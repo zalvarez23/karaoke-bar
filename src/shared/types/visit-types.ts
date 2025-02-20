@@ -17,11 +17,12 @@ export type TSongsRequested = {
   round: number;
   numberSong: number;
   date: Date;
-  status: TSongStatus;
+  status: TVisitStatus;
   userName?: string;
   location?: string;
   userId?: string;
   visitId: string;
+  usersIds?: string[];
 };
 
 export type TVisitStatus = "completed" | "pending" | "cancelled" | "online";
