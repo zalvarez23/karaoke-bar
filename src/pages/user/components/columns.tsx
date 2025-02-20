@@ -10,7 +10,6 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
 import { FilePenLine, MoreHorizontal, Trash } from "lucide-react";
-import { defaultStatusValues, TDefaultStatus } from "@/shared/types/status";
 import {
   getStatusValuesByIsOnline,
   IUser,
@@ -89,7 +88,7 @@ export const columns: ColumnDef<IUser>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => {
+    cell: () => {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

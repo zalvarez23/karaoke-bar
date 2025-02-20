@@ -114,7 +114,7 @@ export const columns = ({
                 onClick={() =>
                   onCompletedClient(
                     row.original.id || "",
-                    row.original.usersIds || "",
+                    row.original.usersIds || [],
                   )
                 }
               >

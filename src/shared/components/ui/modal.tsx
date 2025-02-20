@@ -2,12 +2,10 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import React from "react";
 import { DialogHeader } from "./dialog";
-import { Button } from "./button";
 
 interface ControlledDialogProps {
   isOpen: boolean;

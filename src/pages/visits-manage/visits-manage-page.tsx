@@ -33,17 +33,13 @@ export const VisitsManagePage: React.FC = () => {
     setModalTitle("Nuevo Registro");
   };
 
-  const handleEdit = () => {
-    setIsOpen(true);
-    setModalTitle("Editar Registro");
-  };
+  // const handleEdit = () => {
+  //   setIsOpen(true);
+  //   setModalTitle("Editar Registro");
+  // };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    const formData = new FormData(event.currentTarget);
-    const name = formData.get("name") as string;
-    const percentage = formData.get("percentage") as string;
   };
 
   const handleOnAcceptClient = (visitId: string) => {

@@ -46,7 +46,7 @@ export class SongsServices implements ISongsRepository {
         return timeA - timeB; // orden ascendente por fecha
       }
       return a.numberSong - b.numberSong; // desempate por numberSong
-    });
+    }) as TVisitResponseDto["songs"];
 
     return {
       visits: formattedVisits,

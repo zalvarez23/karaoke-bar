@@ -21,7 +21,7 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { useState } from "react";
 import { Input } from "@/shared/components/ui/input";
-import { Download, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
