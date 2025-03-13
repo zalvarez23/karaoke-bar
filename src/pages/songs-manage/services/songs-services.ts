@@ -6,6 +6,7 @@ import { IVisits, TVisitResponseDto } from "@/shared/types/visit-types";
 export class SongsServices implements ISongsRepository {
   constructor() {}
 
+  
   getTimestamp(dateObj: any): number {
     if (dateObj.seconds !== undefined && dateObj.nanoseconds !== undefined) {
       return dateObj.seconds * 1000 + dateObj.nanoseconds / 1e6;
