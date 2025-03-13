@@ -1,4 +1,6 @@
 export type TSongStatus = "completed" | "singing" | "pending" | "cancelled";
+export type TVisitStatus = "completed" | "pending" | "cancelled" | "online" | "singing";
+
 
 export enum ESongStatus {
   "completed" = "Completado",
@@ -17,7 +19,7 @@ export type TSongsRequested = {
   round: number;
   numberSong: number;
   date: Date;
-  status: TSongStatus | TVisitStatus;
+  status: TVisitStatus;
   userName?: string;
   location?: string;
   userId?: string;
@@ -25,7 +27,6 @@ export type TSongsRequested = {
   usersIds?: string[];
 };
 
-export type TVisitStatus = "completed" | "pending" | "cancelled" | "online";
 type TVisitStatusValue = {
   statusName: string;
   color: string;
