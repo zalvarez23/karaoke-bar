@@ -62,6 +62,7 @@ export const getStatusValue: Record<TVisitStatus, TVisitStatusValue> = {
   online: { statusName: "En línea", color: "text-green-400" },
   cancelled: { statusName: "Cancelado", color: "text-red-400" },
   completed: { statusName: "Completado", color: "text-blue-400" },
+  singing: { statusName: "Cantando", color: "text-green-400" },
 };
 
 export const getStatusSongValue: Record<TSongStatus, TVisitStatusValue> = {
