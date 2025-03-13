@@ -108,7 +108,7 @@ export const columns = ({
 
             <DropdownMenuSeparator />
 
-            {row.original.status === "online" && (
+            {row.original.status === ("online" as TSongStatus) && (
               <DropdownMenuItem
                 className="text-gray-600 tracking-wide text-2sm flex items-center"
                 onClick={() =>
