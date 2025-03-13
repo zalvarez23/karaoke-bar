@@ -13,11 +13,9 @@ import { VisitsServices } from "../visits-manage/services/visits-services";
 
 export const SongsManagePage: React.FC = () => {
   const [songs, setSongs] = useState<TVisitResponseDto>();
-  // selectedSong representa la canción que se está reproduciendo
   const [selectedSong, setSelectedSong] = useState<
     (TSongsRequested & { index: number }) | undefined
   >();
-  // currentVisitId almacena el visitId actual para determinar si hay cambio de mesa
   const [currentVisitId, setCurrentVisitId] = useState<string | null>(null);
   const [showBreak, setShowBreak] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -26,7 +24,6 @@ export const SongsManagePage: React.FC = () => {
   const songsServices = new SongsServices();
   const visitsServices = new VisitsServices();
 
-  // Escucha en tiempo real el snapshot de las canciones (pendientes o en singing)
   useEffect(() => {
     const unsubscribe = songsServices.getAllSongsOnSnapshot((data) => {
       setSongs(data);
@@ -34,8 +31,6 @@ export const SongsManagePage: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // Efecto que administra la selección y transición según el snapshot.
-  // Si ya está en break, no se actualiza para no interrumpir la reproducción del break.
   useEffect(() => {
     if (showBreak) return;
 
@@ -55,14 +50,14 @@ export const SongsManagePage: React.FC = () => {
       setPlaying(true);
       return;
     }
+    // Verificamos que la canción seleccionada siga en la lista.
     const exists = songs.songs.find(
       (song) =>
         song.id === selectedSong.id &&
-        song.numberSong === selectedSong.numberSong,
+        song.numberSong === selectedSong.numberSong
     );
     if (!exists) {
       const nextSong = songs.songs[0];
-      // Si el visitId cambia, se activa el break
       if (nextSong.visitId !== currentVisitId) {
         setShowBreak(true);
         setPlaying(false);
@@ -75,8 +70,17 @@ export const SongsManagePage: React.FC = () => {
     }
   }, [songs?.songs, showBreak, selectedSong, currentVisitId]);
 
+  const updateSongStatus = async (status: TSongStatus) => {
+    if (!selectedSong) return;
+    await visitsServices.updateSongStatus(
+      selectedSong.visitId,
+      selectedSong.id,
+      selectedSong.numberSong,
+      status
+    );
+  };
+
   const handleOnPlay = () => {
-    // Si hay canción y no está en break, activa la reproducción
     if (!showBreak && selectedSong) {
       setPlaying(true);
     }
@@ -86,40 +90,52 @@ export const SongsManagePage: React.FC = () => {
     setPlaying(false);
   };
 
-  // Actualiza el status de la canción en Firestore
-  const updateSongStatus = async (status: TSongStatus) => {
-    if (!selectedSong) return;
-    await visitsServices.updateSongStatus(
-      selectedSong.visitId,
-      selectedSong.id,
-      selectedSong.numberSong,
-      status,
-    );
-  };
-
-  // Cuando inicia la canción, se marca como "singing"
   const handleOnSongStart = () => {
     if (!selectedSong) return;
+    console.log(selectedSong)
+    if (selectedSong.status !== "pending") return;
     updateSongStatus("singing");
   };
 
-  // Cuando termina la canción, se marca como "completed"
-  const handleOnEnded = async () => {
-    await updateSongStatus("completed");
-    setPlaying(false);
+  const handleOnEnded = () => {
+    if (!selectedSong || !songs?.songs) return;
+    updateSongStatus("completed");
+
+      // Siempre tomamos la primera canción de la lista, que ya viene ordenada.
+      const nextSong = songs.songs[0];
+      if (nextSong) {
+        // Si la siguiente canción pertenece a la misma mesa, continuamos reproduciéndola.
+        if (nextSong.visitId === currentVisitId) {
+          setSelectedSong({ ...nextSong, index: 0 });
+          setPlaying(true);
+        } else {
+          // Si la primera canción es de otra mesa, activamos el break.
+          setSelectedSong(undefined);
+          setShowBreak(true);
+          setPlaying(false);
+          setPlayingBreak(true);
+        }
+      } else {
+        // No hay canciones disponibles, activamos el break.
+        setSelectedSong(undefined);
+        setShowBreak(true);
+        setPlaying(false);
+        setPlayingBreak(true);
+      }
   };
 
-  // Al terminar el video de break, se pasa a la siguiente canción
   const handleBreakEnded = () => {
     if (songs?.songs && songs.songs.length > 0) {
-      setPlayingBreak(false);
-      setShowBreak(false);
+      // Siempre tomamos la primera canción de la lista para continuar.
       const nextSong = songs.songs[0];
-      setSelectedSong({ ...nextSong, index: 0 });
-      setCurrentVisitId(nextSong.visitId);
-      setPlaying(true);
+      if (nextSong) {
+        setSelectedSong({ ...nextSong, index: 0 });
+        setCurrentVisitId(nextSong.visitId);
+        setShowBreak(false);
+        setPlaying(true);
+        setPlayingBreak(false);
+      }
     }
-    // Si no hay canciones, el reproductor de break sigue en loop
   };
 
   return (
@@ -145,37 +161,21 @@ export const SongsManagePage: React.FC = () => {
         <Button variant="outline" size="sm" onClick={handleOnPause}>
           Pause
         </Button>
-        <Button variant="outline" size="sm" onClick={() => setPlaying(false)}>
-          Siguiente
-        </Button>
       </div>
-
       <div className="flex justify-center">
-        {/* Reproductor principal: se monta usando key para forzar reinicio al cambiar la canción */}
-        {!showBreak && selectedSong && (
-          <ReactPlayer
-            key={selectedSong.id}
-            url={selectedSong.id}
-            playing={playing}
-            controls
-            width="100%"
-            onStart={handleOnSongStart}
-            onEnded={handleOnEnded}
-          />
-        )}
-
-        {/* Reproductor de break */}
-        {showBreak && (
-          <ReactPlayer
-            // url="https://www.youtube.com/watch?v=yDw2ZTZTA8I" // URL del video de break
-            url="https://www.youtube.com/watch?v=kOMCg_3eMO4"
-            playing={playingBreak}
-            loop={songs?.songs?.length === 0}
-            controls
-            width="100%"
-            onEnded={handleBreakEnded}
-          />
-        )}
+        <ReactPlayer
+          url={
+            showBreak
+              ? "https://www.youtube.com/watch?v=yDw2ZTZTA8I"
+              : selectedSong?.id
+          }
+          playing={showBreak ? playingBreak : playing}
+          controls
+          width="100%"
+          loop={showBreak && songs?.songs?.length === 0}
+          onStart={handleOnSongStart}
+          onEnded={showBreak ? handleBreakEnded : handleOnEnded}
+        />
       </div>
     </div>
   );
