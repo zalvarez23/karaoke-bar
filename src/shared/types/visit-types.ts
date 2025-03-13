@@ -17,7 +17,7 @@ export type TSongsRequested = {
   round: number;
   numberSong: number;
   date: Date;
-  status: TVisitStatus;
+  status: TSongStatus | TVisitStatus;
   userName?: string;
   location?: string;
   userId?: string;
