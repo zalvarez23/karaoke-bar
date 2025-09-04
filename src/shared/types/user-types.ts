@@ -33,7 +33,7 @@ export interface IUser {
   email: string;
   gender: EGenders;
   status: EUserStatus;
-  creationDate: Date;
+  creationDate: Timestamp;
   password?: string;
   additionalInfo: IAdditionalInfo;
 }
