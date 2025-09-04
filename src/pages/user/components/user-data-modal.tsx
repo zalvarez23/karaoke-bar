@@ -20,7 +20,7 @@ export const UserDataModal: React.FC<UserDataModalProps> = ({
   user,
 }) => {
   if (!user) return null;
-
+  console.log(user);
   const isOnline =
     (String(user.additionalInfo.isOnline) as TUserStatusByOnline) || "false";
   const { color, status } = getStatusValuesByIsOnline[isOnline] || {
@@ -137,12 +137,7 @@ export const UserDataModal: React.FC<UserDataModalProps> = ({
               </label>
               <p className="mt-1 text-sm text-gray-900">
                 {user.creationDate
-                  ? user.creationDate.toLocaleDateString("es-PE", {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })
+                  ? formatDateLarge(user.creationDate)
                   : "No disponible"}
               </p>
             </div>
