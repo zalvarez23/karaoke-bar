@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Modal } from "@/shared/components/ui/modal";
 import { Label } from "@/shared/components/ui/label";
 import { Input } from "@/shared/components/ui/input";
@@ -10,19 +10,29 @@ import { DataTable } from "./components/data-table";
 import { columns } from "./components/columns";
 import { IVisits } from "@/shared/types/visit-types";
 import { UserServices } from "../user/services/user-services";
+import { TableUsersModal } from "./components/table-users-modal";
 
 export const VisitsManagePage: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [visits, setVisits] = useState<IVisits[]>();
-  const visitsServices = new VisitsServices();
-  const userServices = new UserServices();
+  const [isTableUsersModalOpen, setIsTableUsersModalOpen] = useState(false);
+  const [selectedVisit, setSelectedVisit] = useState<IVisits | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const visitsServices = useCallback(() => new VisitsServices(), []);
+  const userServices = useCallback(() => new UserServices(), []);
 
   useEffect(() => {
-    const unsubscribe = visitsServices.getAllVisitsOnSnapshot(setVisits);
+    const unsubscribe = visitsServices().getAllVisitsOnSnapshot(
+      (visitsData) => {
+        setVisits(visitsData);
+        setLoading(false);
+      }
+    );
 
     return () => unsubscribe();
-  }, []);
+  }, [visitsServices]);
 
   const handleClose = () => {
     setIsOpen(false);
@@ -43,31 +53,60 @@ export const VisitsManagePage: React.FC = () => {
   };
 
   const handleOnAcceptClient = (visitId: string) => {
-    visitsServices.updateVisitStatus(visitId, "online");
+    visitsServices().updateVisitStatus(visitId, "online");
   };
 
   const handleOnRejectClient = (
     visitId: string,
     usersIds: string[],
-    location: string,
+    location: string
   ) => {
-    visitsServices.updateLocationStatus(location, "available");
-    visitsServices.updateVisitStatus(visitId, "cancelled");
+    visitsServices().updateLocationStatus(location, "available");
+    visitsServices().updateVisitStatus(visitId, "cancelled");
     usersIds?.forEach((userId) => {
-      userServices.updateStatusUser(userId, false);
+      userServices().updateStatusUser(userId, false);
     });
   };
 
-  const handleOnCompletedClient = (
+  const handleOnCompletedClient = async (
     visitId: string,
     usersIds: string[],
-    location: string,
+    location: string
   ) => {
-    visitsServices.updateLocationStatus(location, "available");
-    visitsServices.updateVisitStatus(visitId, "completed");
-    usersIds?.forEach((userId) => {
-      userServices.updateStatusUser(userId, false);
-    });
+    try {
+      // Actualizar estado de la ubicación y visita
+      await visitsServices().updateLocationStatus(location, "available");
+      await visitsServices().updateVisitStatus(visitId, "completed");
+
+      // Actualizar usuarios: poner offline e incrementar contador de visitas
+      for (const userId of usersIds) {
+        await userServices().updateStatusUser(userId, false);
+        await userServices().incrementUserVisits(userId);
+      }
+    } catch (error) {
+      console.error("Error al completar la visita:", error);
+    }
+  };
+
+  const handleViewTableUsers = (visit: IVisits) => {
+    setSelectedVisit(visit);
+    setIsTableUsersModalOpen(true);
+  };
+
+  const handleCloseTableUsersModal = () => {
+    setIsTableUsersModalOpen(false);
+    setSelectedVisit(null);
+  };
+
+  const handleToggleCallWaiter = async (
+    visitId: string,
+    currentStatus: boolean
+  ) => {
+    try {
+      await visitsServices().updateCallWaiterStatus(visitId, !currentStatus);
+    } catch (error) {
+      console.error("Error al cambiar estado de llamada a mesera:", error);
+    }
   };
   return (
     <div>
@@ -77,9 +116,12 @@ export const VisitsManagePage: React.FC = () => {
             onAcceptClient: handleOnAcceptClient,
             onRejectClient: handleOnRejectClient,
             onCompletedClient: handleOnCompletedClient,
+            onViewTableUsers: handleViewTableUsers,
+            onToggleCallWaiter: handleToggleCallWaiter,
           })}
           data={visits || []}
           onAdd={handleAdd}
+          loading={loading}
         />
       </div>
       <Modal
@@ -130,6 +172,12 @@ export const VisitsManagePage: React.FC = () => {
           </DialogFooter>
         </form>
       </Modal>
+
+      <TableUsersModal
+        isOpen={isTableUsersModalOpen}
+        onClose={handleCloseTableUsersModal}
+        visit={selectedVisit}
+      />
     </div>
   );
 };

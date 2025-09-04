@@ -1,5 +1,11 @@
 import { IUser } from "@/shared/types/user-types";
-import { collection, doc, onSnapshot, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  onSnapshot,
+  updateDoc,
+  increment,
+} from "firebase/firestore";
 import { IUserRepository } from "../repository/user-repository";
 import { db } from "@/config/firebase";
 
@@ -31,10 +37,21 @@ export class UserServices implements IUserRepository {
         "additionalInfo.isOnline": isOnline,
         "additionalInfo.lastVisit": new Date(),
       });
-      console.log(`Usuario ${id} actualizado correctamente`);
     } catch (error) {
       console.error("Error updating user status:", error);
       throw new Error(`Error updating user status: ${error}`);
+    }
+  }
+
+  async incrementUserVisits(id: string): Promise<void> {
+    try {
+      const userRef = doc(db, "Users", id);
+      await updateDoc(userRef, {
+        "additionalInfo.visits": increment(1),
+      });
+    } catch (error) {
+      console.error("Error incrementing user visits:", error);
+      throw new Error(`Error incrementing user visits: ${error}`);
     }
   }
 }

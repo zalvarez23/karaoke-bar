@@ -1,106 +1,81 @@
-import React, { useEffect, useState } from "react";
-import { Modal } from "@/shared/components/ui/modal";
-import { Label } from "@/shared/components/ui/label";
-import { Input } from "@/shared/components/ui/input";
-import { Button } from "@/shared/components/ui/button";
-import { DialogFooter } from "@/shared/components/ui/dialog";
-import { Switch } from "@/shared/components/ui/switch";
+import React, { useEffect, useState, useCallback } from "react";
 import { IUser } from "@/shared/types/user-types";
 import { UserServices } from "./services/user-services";
 import { DataTable } from "./components/data-table";
-import { columns } from "./components/columns";
+import { createColumns } from "./components/columns";
+import { UserHistoryModal } from "./components/user-history-modal";
+import { UserDataModal } from "./components/user-data-modal";
 
 export const UserPage: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [modalTitle, setModalTitle] = useState("");
   const [users, setUsers] = useState<IUser[]>();
-  const userServices = new UserServices();
+  const [showOnlyOnline, setShowOnlyOnline] = useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isDataModalOpen, setIsDataModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const userServices = useCallback(() => new UserServices(), []);
 
   useEffect(() => {
-    const unsubscribe = userServices.getAllUsersOnSnapshot(setUsers);
+    const unsubscribe = userServices().getAllUsersOnSnapshot((usersData) => {
+      setUsers(usersData);
+      setLoading(false);
+    });
 
     return () => unsubscribe();
-  }, []);
+  }, [userServices]);
 
-  const handleClose = () => {
-    setIsOpen(false);
+  const handleViewHistory = (user: IUser) => {
+    setSelectedUser(user);
+    setIsHistoryModalOpen(true);
   };
 
-  const handleAdd = () => {
-    setIsOpen(true);
-    setModalTitle("Nuevo Registro");
+  const handleViewData = (user: IUser) => {
+    setSelectedUser(user);
+    setIsDataModalOpen(true);
   };
 
-  // const handleEdit = () => {
-  //   setIsOpen(true);
-  //   setModalTitle("Editar Registro");
-  // };
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    // const formData = new FormData(event.currentTarget);
-    // const name = formData.get("name") as string;
-    // const percentage = formData.get("percentage") as string;
+  const handleCloseHistoryModal = () => {
+    setIsHistoryModalOpen(false);
+    setSelectedUser(null);
   };
+
+  const handleCloseDataModal = () => {
+    setIsDataModalOpen(false);
+    setSelectedUser(null);
+  };
+
+  // Filtrar usuarios según el estado del switch
+  const filteredUsers = showOnlyOnline
+    ? users?.filter((user) => user.additionalInfo.isOnline)
+    : users;
 
   return (
     <div>
       <div className="container mx-auto">
         <DataTable<IUser, unknown>
-          columns={columns}
-          data={users || []}
-          onAdd={handleAdd}
+          columns={createColumns({
+            onViewHistory: handleViewHistory,
+            onViewData: handleViewData,
+          })}
+          data={filteredUsers || []}
+          showOnlyOnline={showOnlyOnline}
+          onToggleOnline={setShowOnlyOnline}
+          loading={loading}
         />
       </div>
-      <Modal
-        isOpen={isOpen}
-        title={modalTitle}
-        subTitle="Haz cambios aquí. Haga clic en Guardar cuando haya terminado."
-        onClose={handleClose}
-      >
-        <form onSubmit={handleSubmit}>
-          <div className="flex gap-4 pt-1 pb-4">
-            <div>
-              <Label htmlFor="name" className="text-right font-normal text-2sm">
-                Nombre
-              </Label>
-              <Input
-                id="name"
-                name="name"
-                defaultValue=""
-                className="col-span-3"
-              />
-            </div>
-            <div>
-              <Label
-                htmlFor="percentage"
-                className="text-right font-normal text-2sm"
-              >
-                Porcentaje
-              </Label>
-              <Input
-                id="percentage"
-                name="percentage"
-                defaultValue=""
-                className="col-span-3"
-              />
-            </div>
-          </div>
-          <div className="flex items-center gap-3 pb-4">
-            <Label htmlFor="status" className="text-right font-normal text-2sm">
-              Estado
-            </Label>
-            <Switch name="status" id="status" />
-          </div>
 
-          <DialogFooter>
-            <Button type="submit" variant="primary" size="smallWeb">
-              Guardar
-            </Button>
-          </DialogFooter>
-        </form>
-      </Modal>
+      <UserHistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={handleCloseHistoryModal}
+        user={selectedUser}
+      />
+
+      <UserDataModal
+        isOpen={isDataModalOpen}
+        onClose={handleCloseDataModal}
+        user={selectedUser}
+      />
     </div>
   );
 };

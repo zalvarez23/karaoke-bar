@@ -49,7 +49,7 @@ export class VisitsServices implements IVisitsRepository {
       where("date", "<", startOfTomorrow),
       where("status", "in", ["pending", "online"]),
       orderBy("date", "desc"),
-      orderBy("status", "asc"),
+      orderBy("status", "asc")
     );
 
     const unsubscribe = onSnapshot(
@@ -63,7 +63,7 @@ export class VisitsServices implements IVisitsRepository {
       },
       (error) => {
         console.error("Error en tiempo real obteniendo visitas:", error);
-      },
+      }
     );
 
     return unsubscribe;
@@ -71,7 +71,7 @@ export class VisitsServices implements IVisitsRepository {
 
   async updateVisitStatus(
     visitId: string,
-    newStatus: TVisitStatus,
+    newStatus: TVisitStatus
   ): Promise<void> {
     try {
       const visitRef = doc(db, "Visits", visitId);
@@ -85,14 +85,14 @@ export class VisitsServices implements IVisitsRepository {
 
   async updateLocationStatus(
     location: string,
-    status: TLocationStatus,
+    status: TLocationStatus
   ): Promise<void> {
     try {
       const q = query(collection(db, "Tables"), where("name", "==", location));
       const snapshot = await getDocs(q);
       if (snapshot.empty)
         return console.error(
-          `No se encontró una tabla con el nombre ${location}`,
+          `No se encontró una tabla con el nombre ${location}`
         );
       await updateDoc(snapshot.docs[0].ref, { status });
       console.log(`Tabla ${location} actualizada con estado: ${status}`);
@@ -106,7 +106,7 @@ export class VisitsServices implements IVisitsRepository {
     visitId: string,
     songId: string,
     numberSong: number,
-    status: TSongStatus,
+    status: TSongStatus
   ): Promise<void> {
     console.log({ visitId, songId, numberSong, status });
     try {
@@ -138,5 +138,127 @@ export class VisitsServices implements IVisitsRepository {
       console.error("Error updating song status:", error);
       throw error;
     }
+  }
+
+  // Obtener visitas por usuario
+  getVisitsByUserOnSnapshot(
+    userId: string,
+    callback: (visits: IVisits[]) => void
+  ): () => void {
+    const visitsQuery = query(
+      collection(db, "Visits"),
+      where("usersIds", "array-contains", userId),
+      orderBy("date", "desc")
+    );
+
+    const unsubscribe = onSnapshot(
+      visitsQuery,
+      (snapshot) => {
+        const visits: IVisits[] = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        callback(visits);
+      },
+      (error) => {
+        console.error("Error obteniendo visitas del usuario:", error);
+      }
+    );
+
+    return unsubscribe;
+  }
+
+  // Actualizar usersIds de una visita
+  async updateVisitUsersIds(
+    visitId: string,
+    usersIds: string[]
+  ): Promise<void> {
+    try {
+      const visitRef = doc(db, "Visits", visitId);
+      await updateDoc(visitRef, { usersIds });
+      console.log(`Visita ${visitId} actualizada con nuevos usersIds`);
+    } catch (error) {
+      console.error(`Error actualizando usersIds de visita ${visitId}:`, error);
+      throw error;
+    }
+  }
+
+  // Actualizar estado de llamada a la mesera
+  async updateCallWaiterStatus(
+    visitId: string,
+    callWaiter: boolean
+  ): Promise<void> {
+    try {
+      const visitRef = doc(db, "Visits", visitId);
+      await updateDoc(visitRef, { callWaiter });
+      console.log(
+        `Visita ${visitId} actualizada - Llamada a mesera: ${callWaiter}`
+      );
+    } catch (error) {
+      console.error(
+        `Error actualizando llamada a mesera de visita ${visitId}:`,
+        error
+      );
+      throw error;
+    }
+  }
+
+  // Eliminar canción de una visita
+  async removeSongFromVisit(
+    visitId: string,
+    songId: string,
+    numberSong: number
+  ): Promise<void> {
+    try {
+      if (!visitId) {
+        throw new Error("visitId is undefined");
+      }
+      const visitRef = doc(db, "Visits", visitId);
+      const visitDoc = await getDoc(visitRef);
+
+      if (!visitDoc.exists()) {
+        throw new Error("Visit not found");
+      }
+
+      const data = visitDoc.data();
+      const songs: TSongsRequested[] = data?.songs || [];
+
+      const updatedSongs = songs.filter(
+        (song) => !(song.id === songId && song.numberSong === numberSong)
+      );
+
+      await updateDoc(visitRef, { songs: updatedSongs });
+
+      console.log("Song removed successfully!");
+    } catch (error) {
+      console.error("Error removing song:", error);
+      throw error;
+    }
+  }
+
+  // Obtener una visita específica en tiempo real
+  getVisitByIdOnSnapshot(
+    visitId: string,
+    callback: (visit: IVisits | null) => void
+  ): () => void {
+    const visitRef = doc(db, "Visits", visitId);
+
+    const unsubscribe = onSnapshot(
+      visitRef,
+      (doc) => {
+        if (doc.exists()) {
+          const visitData = { id: doc.id, ...doc.data() } as IVisits;
+          callback(visitData);
+        } else {
+          callback(null);
+        }
+      },
+      (error) => {
+        console.error("Error obteniendo visita:", error);
+        callback(null);
+      }
+    );
+
+    return unsubscribe;
   }
 }

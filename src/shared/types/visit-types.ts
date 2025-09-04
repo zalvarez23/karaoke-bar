@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase/firestore";
+
 export type TSongStatus = "completed" | "singing" | "pending" | "cancelled";
 
 export enum ESongStatus {
@@ -23,6 +25,8 @@ export type TSongsRequested = {
   userId?: string;
   visitId: string;
   usersIds?: string[];
+  greeting?: string;
+  likes?: number;
 };
 
 export type TVisitStatus = "completed" | "pending" | "cancelled" | "online";
@@ -37,12 +41,13 @@ export interface IVisits {
   userName?: string;
   img?: string;
   points?: number;
-  date?: Date;
+  date?: Date | Timestamp;
   totalPayment?: number;
   songs?: TSongsRequested[];
   location?: string;
   status?: TVisitStatus;
   usersIds?: string[];
+  callWaiter?: boolean;
 }
 
 export type TVisitResponseDto = {
