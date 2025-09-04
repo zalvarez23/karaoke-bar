@@ -21,22 +21,25 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { useState } from "react";
 import { Input } from "@/shared/components/ui/input";
-import { Download } from "lucide-react";
+import { Plus } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  onAdd?: () => void;
   loading?: boolean;
 }
 
 export const DataTable = <TData, TValue>({
   columns,
   data,
+  onAdd,
   loading = false,
 }: DataTableProps<TData, TValue>) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
+
   const table = useReactTable({
     data,
     columns,
@@ -50,27 +53,32 @@ export const DataTable = <TData, TValue>({
       globalFilter,
     },
     onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
     onGlobalFilterChange: setGlobalFilter,
+    getFilteredRowModel: getFilteredRowModel(),
   });
 
   return (
     <>
       <div className="flex items-center py-4 gap-5">
         <Input
-          placeholder="Buscar por descripción"
-          value={globalFilter}
+          placeholder="Buscar mesas..."
+          value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
         />
 
-        <Button variant="outline" size="sm" className="tracking-wide">
-          <Download className="w-4 h-4" />
-          Descargar
+        <Button
+          variant="primary"
+          size="sm"
+          className="tracking-wide"
+          onClick={onAdd}
+        >
+          <Plus className="w-4 h-4" />
+          Agregar Mesa
         </Button>
       </div>
 
-      <div className="rounded-md ">
+      <div className="rounded-md">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -100,7 +108,7 @@ export const DataTable = <TData, TValue>({
                   <div className="flex flex-col items-center justify-center">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
                     <span className="mt-2 text-gray-500">
-                      Cargando canciones...
+                      Cargando mesas...
                     </span>
                   </div>
                 </TableCell>
@@ -130,7 +138,7 @@ export const DataTable = <TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  No se encontraron mesas.
                 </TableCell>
               </TableRow>
             )}

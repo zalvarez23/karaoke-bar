@@ -14,6 +14,7 @@ import {
   SquareTerminal,
   Tags,
   MicVocal,
+  Table,
 } from "lucide-react";
 
 import { NavProjects } from "./nav-project";
@@ -37,9 +38,9 @@ const data = {
   },
   teams: [
     {
-      name: "Fac Alv",
+      name: "Karaoke",
       logo: Flame,
-      plan: "Enterprise",
+      plan: "Canta",
     },
     {
       name: "Acme Corp.",
@@ -70,6 +71,12 @@ const data = {
           url: "/users",
           icon: Tags,
           color: "text-primary-500",
+        },
+        {
+          title: "Mesas",
+          url: "/maintenance",
+          icon: Table,
+          color: "text-blue-500",
         },
         // {
         //   title: "Empresas",

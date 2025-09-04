@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
-import { FilePenLine, MoreHorizontal, Trash } from "lucide-react";
+import { MoreHorizontal, History, Eye } from "lucide-react";
 import {
   getStatusValuesByIsOnline,
   IUser,
@@ -17,7 +17,15 @@ import {
 } from "@/shared/types/user-types";
 import { formatDateLarge } from "@/shared/utils/format-date";
 
-export const columns: ColumnDef<IUser>[] = [
+interface ColumnsProps {
+  onViewHistory: (user: IUser) => void;
+  onViewData: (user: IUser) => void;
+}
+
+export const createColumns = ({
+  onViewHistory,
+  onViewData,
+}: ColumnsProps): ColumnDef<IUser>[] => [
   {
     accessorKey: "name",
     header: () => <div className="tracking-wider">Nombres</div>,
@@ -36,16 +44,6 @@ export const columns: ColumnDef<IUser>[] = [
   },
 
   {
-    accessorKey: "documentNumber",
-    header: () => <div className="tracking-wider">Usuario</div>,
-  },
-
-  {
-    accessorKey: "password",
-    header: () => <div className="tracking-wider">Password</div>,
-  },
-
-  {
     accessorKey: "additionalInfo.visits",
     header: () => <div className="tracking-wider">Visitas</div>,
   },
@@ -55,7 +53,7 @@ export const columns: ColumnDef<IUser>[] = [
     header: () => <div className="tracking-wider">Ultima Visita</div>,
     cell: ({ row }) => {
       const formattedDate = formatDateLarge(
-        row.original.additionalInfo.lastVisit,
+        row.original.additionalInfo.lastVisit
       );
       return <>{formattedDate}</>;
     },
@@ -78,7 +76,7 @@ export const columns: ColumnDef<IUser>[] = [
         <div
           className={cn(
             "font-normal tracking-wider  rounded-md min-w-[80px]",
-            color,
+            color
           )}
         >
           {status}
@@ -88,7 +86,8 @@ export const columns: ColumnDef<IUser>[] = [
   },
   {
     id: "actions",
-    cell: () => {
+    cell: ({ row }) => {
+      const user = row.original;
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -101,22 +100,20 @@ export const columns: ColumnDef<IUser>[] = [
             <DropdownMenuLabel className="font-normal tracking-wide">
               Acciones
             </DropdownMenuLabel>
-            {/*}<DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(taxes?.id || "")}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-gray-600 tracking-wide text-2sm flex items-center"
+              onClick={() => onViewData(user)}
             >
-              Copy payment ID
+              <Eye className="h-4 w-4 text-blue-400" />
+              <div>Ver datos</div>
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          {*/}
-
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-gray-600 tracking-wide text-2sm flex items-center">
-              <FilePenLine className="h-4 w-4 text-green-400" />
-              <div>Actualizar</div>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="text-gray-600 tracking-wide text-2sm flex items-center">
-              <Trash className="h-4 w-4 text-red-300" />
-              <div>Eliminar</div>
+            <DropdownMenuItem
+              className="text-gray-600 tracking-wide text-2sm flex items-center"
+              onClick={() => onViewHistory(user)}
+            >
+              <History className="h-4 w-4 text-green-400" />
+              <div>Ver historia</div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
