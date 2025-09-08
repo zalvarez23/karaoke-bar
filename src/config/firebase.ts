@@ -3,13 +3,13 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAC0jTK2pQyhioVYvBs5RY8gbtjYYIk4oA",
-  authDomain: "my-bar-app-74cec.firebaseapp.com",
-  projectId: "my-bar-app-74cec",
-  storageBucket: "my-bar-app-74cec.firebasestorage.app",
-  messagingSenderId: "977026952913",
-  appId: "1:977026952913:web:fdeb238caaaff7cd969ff0",
-  measurementId: "G-S6CZ9GCR5L",
+  apiKey: "AIzaSyB9kYwwfdqPze3EMYpdBeZs3yCSGHQaORw",
+  authDomain: "kantobar-3db93.firebaseapp.com",
+  projectId: "kantobar-3db93",
+  storageBucket: "kantobar-3db93.firebasestorage.app",
+  messagingSenderId: "81541137450",
+  appId: "1:81541137450:web:cea3f90a732b8edcac2f53",
+  measurementId: "G-Q432ECZKS5",
 };
 
 const app = initializeApp(firebaseConfig);
