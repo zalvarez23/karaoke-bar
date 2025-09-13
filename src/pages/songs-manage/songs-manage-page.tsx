@@ -147,9 +147,20 @@ export const SongsManagePage: React.FC = () => {
     <div className="container mx-auto">
       <DataTable<TSongsRequested, unknown>
         columns={columns({
-          onOpenYouTube: (songId: string) => {
-            // Abrir el video de YouTube en una nueva pestaña
-            window.open(songId, "_blank");
+          onOpenYouTube: (song: TSongsRequested) => {
+            // Verificar si el ID es un link de YouTube válido
+            const isYouTubeLink =
+              song.id.startsWith("http") && song.id.includes("youtube.com");
+
+            if (isYouTubeLink) {
+              // Si es un link válido, abrirlo directamente
+              window.open(song.id, "_blank");
+            } else {
+              // Si no es un link válido, buscar en YouTube con el título de la canción
+              const searchQuery = encodeURIComponent(song.title);
+              const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${searchQuery}`;
+              window.open(youtubeSearchUrl, "_blank");
+            }
           },
           onPlaySong: async (
             songId: string,
