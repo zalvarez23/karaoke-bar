@@ -78,7 +78,7 @@ const GreetingCell = ({
 };
 
 type TSongsManageActions = {
-  onOpenYouTube: (songId: string) => void;
+  onOpenYouTube: (song: TSongsRequested) => void;
   onPlaySong: (songId: string, visitId: string, numberSong: number) => void;
   onCancelSong: (songId: string, visitId: string, numberSong: number) => void;
   onPlayGreeting: (greeting: string) => void;
@@ -197,7 +197,7 @@ export const columns = ({
           variant="ghost"
           size="sm"
           className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
-          onClick={() => onOpenYouTube(row.original.id || "")}
+          onClick={() => onOpenYouTube(row.original)}
         >
           <Youtube className="h-4 w-4" />
         </Button>
