@@ -40,7 +40,7 @@ const data = {
     {
       name: "Karaoke",
       logo: Flame,
-      plan: "Canta",
+      plan: "KantoBar",
     },
     {
       name: "Acme Corp.",
