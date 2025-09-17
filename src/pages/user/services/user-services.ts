@@ -54,4 +54,20 @@ export class UserServices implements IUserRepository {
       throw new Error(`Error incrementing user visits: ${error}`);
     }
   }
+
+  async incrementUserVisitsWithPoints(
+    id: string,
+    points: number
+  ): Promise<void> {
+    try {
+      const userRef = doc(db, "Users", id);
+      await updateDoc(userRef, {
+        "additionalInfo.visits": increment(1),
+        "additionalInfo.points": increment(points),
+      });
+    } catch (error) {
+      console.error("Error incrementing user visits with points:", error);
+      throw new Error(`Error incrementing user visits with points: ${error}`);
+    }
+  }
 }

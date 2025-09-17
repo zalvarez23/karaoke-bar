@@ -11,6 +11,7 @@ import { columns } from "./components/columns";
 import { IVisits } from "@/shared/types/visit-types";
 import { UserServices } from "../user/services/user-services";
 import { TableUsersModal } from "./components/table-users-modal";
+import { CompleteVisitModal } from "./components/complete-visit-modal";
 
 export const VisitsManagePage: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,6 +20,14 @@ export const VisitsManagePage: React.FC = () => {
   const [isTableUsersModalOpen, setIsTableUsersModalOpen] = useState(false);
   const [selectedVisit, setSelectedVisit] = useState<IVisits | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isCompleteVisitModalOpen, setIsCompleteVisitModalOpen] =
+    useState(false);
+  const [visitToComplete, setVisitToComplete] = useState<{
+    visitId: string;
+    usersIds: string[];
+    location: string;
+    visit: IVisits;
+  } | null>(null);
 
   const visitsServices = useCallback(() => new VisitsServices(), []);
   const userServices = useCallback(() => new UserServices(), []);
@@ -73,19 +82,53 @@ export const VisitsManagePage: React.FC = () => {
     usersIds: string[],
     location: string
   ) => {
-    try {
-      // Actualizar estado de la ubicación y visita
-      await visitsServices().updateLocationStatus(location, "available");
-      await visitsServices().updateVisitStatus(visitId, "completed");
+    // Encontrar la visita completa para mostrar en el modal
+    const visit = visits?.find((v) => v.id === visitId);
+    if (visit) {
+      setVisitToComplete({
+        visitId,
+        usersIds,
+        location,
+        visit,
+      });
+      setIsCompleteVisitModalOpen(true);
+    }
+  };
 
-      // Actualizar usuarios: poner offline e incrementar contador de visitas
+  const handleCompleteVisitWithPoints = async (
+    points: number,
+    totalConsumption: number
+  ) => {
+    if (!visitToComplete) return;
+
+    try {
+      const { visitId, usersIds, location } = visitToComplete;
+
+      // Actualizar estado de la ubicación y visita con puntos y consumo
+      await visitsServices().updateLocationStatus(location, "available");
+      await visitsServices().completeVisitWithPoints(
+        visitId,
+        points,
+        totalConsumption
+      );
+
+      // Actualizar usuarios: poner offline e incrementar contador de visitas con puntos
       for (const userId of usersIds) {
         await userServices().updateStatusUser(userId, false);
-        await userServices().incrementUserVisits(userId);
+        await userServices().incrementUserVisitsWithPoints(userId, points);
       }
+
+      console.log(
+        `✅ Visita completada con ${points} puntos y S/ ${totalConsumption} de consumo`
+      );
     } catch (error) {
       console.error("Error al completar la visita:", error);
     }
+  };
+
+  const handleCloseCompleteVisitModal = () => {
+    setIsCompleteVisitModalOpen(false);
+    setVisitToComplete(null);
   };
 
   const handleViewTableUsers = (visit: IVisits) => {
@@ -177,6 +220,13 @@ export const VisitsManagePage: React.FC = () => {
         isOpen={isTableUsersModalOpen}
         onClose={handleCloseTableUsersModal}
         visit={selectedVisit}
+      />
+
+      <CompleteVisitModal
+        isOpen={isCompleteVisitModalOpen}
+        onClose={handleCloseCompleteVisitModal}
+        onConfirm={handleCompleteVisitWithPoints}
+        visit={visitToComplete?.visit || null}
       />
     </div>
   );

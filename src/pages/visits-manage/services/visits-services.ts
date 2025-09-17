@@ -83,6 +83,27 @@ export class VisitsServices implements IVisitsRepository {
     }
   }
 
+  async completeVisitWithPoints(
+    visitId: string,
+    points: number,
+    totalConsumption: number
+  ): Promise<void> {
+    try {
+      const visitRef = doc(db, "Visits", visitId);
+      await updateDoc(visitRef, {
+        status: "completed" as TVisitStatus,
+        points: points,
+        totalPayment: totalConsumption,
+      });
+      console.log(
+        `Visita ${visitId} completada con ${points} puntos y S/ ${totalConsumption} de consumo`
+      );
+    } catch (error) {
+      console.error(`Error completando visita ${visitId}:`, error);
+      throw error;
+    }
+  }
+
   async updateLocationStatus(
     location: string,
     status: TLocationStatus
