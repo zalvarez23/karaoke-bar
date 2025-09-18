@@ -6,13 +6,10 @@ export class ElevenLabsService {
 
   // Array de voces más naturales y realistas
   private artistVoices = [
-    "21m00Tcm4TlvDq8ikWAM", // Rachel (voz femenina clara)
     "EXAVITQu4vr4xnSDxMaL", // Bella (voz femenina suave)
     "VR6AewLTigWG4xSOukaG", // Josh (voz masculina joven)
     "pNInz6obpgDQGcFmaJgB", // Adam (voz masculina madura)
-    "AZnzlk1XvdvUeBnXmlld", // Domi (voz femenina expresiva)
     "yoZ06aMxZJJ28mfd3POQ", // Charlie (voz masculina clara)
-    "piTKgcLEGmPE4e6mEKli", // Emily (voz femenina natural)
     "ThT5KcBeYPX3keUQqHPh", // Clyde (voz masculina profunda)
   ];
 
@@ -123,7 +120,7 @@ export class ElevenLabsService {
   }
 
   // Método para reproducir audio desde un Blob
-  playAudio(audioBlob: Blob, playbackRate: number = 0.8): void {
+  playAudio(audioBlob: Blob, playbackRate: number = 0.6): void {
     const audioUrl = URL.createObjectURL(audioBlob);
     const audio = new Audio(audioUrl);
 
