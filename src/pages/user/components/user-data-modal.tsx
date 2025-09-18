@@ -93,6 +93,14 @@ export const UserDataModal: React.FC<UserDataModalProps> = ({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
+                Puntos acumulados
+              </label>
+              <p className="mt-1 text-sm text-gray-900">
+                {user.additionalInfo.points || 0}
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
                 Última visita
               </label>
               <p className="mt-1 text-sm text-gray-900">

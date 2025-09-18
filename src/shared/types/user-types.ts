@@ -22,6 +22,7 @@ export interface IAdditionalInfo {
   lastVisit: Timestamp;
   cardType: TCardType;
   visits: number;
+  points: number;
 }
 
 export interface IUser {
