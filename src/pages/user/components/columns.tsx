@@ -49,6 +49,11 @@ export const createColumns = ({
   },
 
   {
+    accessorKey: "additionalInfo.points",
+    header: () => <div className="tracking-wider">Puntos</div>,
+  },
+
+  {
     accessorKey: "additionalInfo.lastVisit",
     header: () => <div className="tracking-wider">Ultima Visita</div>,
     cell: ({ row }) => {
