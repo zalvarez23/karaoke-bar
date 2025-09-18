@@ -241,7 +241,7 @@ export const SongsManagePage: React.FC = () => {
               );
 
               // Reproducir el audio
-              elevenLabsService().playAudio(audioBlob, 0.9);
+              elevenLabsService().playAudio(audioBlob, 0.8);
 
               console.log("✅ Audio reproducido exitosamente");
             } catch (error) {
