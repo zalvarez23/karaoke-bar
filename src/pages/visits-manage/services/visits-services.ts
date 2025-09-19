@@ -282,4 +282,49 @@ export class VisitsServices implements IVisitsRepository {
 
     return unsubscribe;
   }
+
+  // Nuevo método para obtener solo visitas pendientes (para notificaciones)
+  getPendingVisitsOnSnapshot(
+    callback: (visits: IVisits[]) => void
+  ): () => void {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    // Calcular el inicio del día de ayer (15 si hoy es 16)
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    // Calcular el inicio del día siguiente a hoy (por ejemplo, 17 si hoy es 16)
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const startOfYesterday = Timestamp.fromDate(yesterday);
+    const startOfTomorrow = Timestamp.fromDate(tomorrow);
+    const pendingVisitsQuery = query(
+      collection(db, "Visits"),
+      where("date", ">=", startOfYesterday),
+      where("date", "<", startOfTomorrow),
+      where("status", "in", ["pending"]),
+      orderBy("date", "desc"),
+      orderBy("status", "asc")
+    );
+
+    const unsubscribe = onSnapshot(
+      pendingVisitsQuery,
+      (snapshot) => {
+        const allVisits = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        callback(allVisits as IVisits[]);
+      },
+      (error) => {
+        console.error(
+          "Error en tiempo real obteniendo visitas pendientes:",
+          error
+        );
+      }
+    );
+
+    return unsubscribe;
+  }
 }
