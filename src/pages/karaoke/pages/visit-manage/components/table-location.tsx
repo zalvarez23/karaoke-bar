@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import { FC } from "react";
 import { Circle } from "lucide-react";
 import {
   ICON_TABLE_COLOR_AVAILABLE,
@@ -51,7 +51,7 @@ const TableLocation: FC<TTableLocationProps> = ({
     >
       <Circle size={35} color={getIconColor()} fill={getIconColor()} />
       <Typography
-        variant="body-xs-semi"
+        variant="label-xs-semi"
         color={getIconColor()}
         className="text-center"
       >

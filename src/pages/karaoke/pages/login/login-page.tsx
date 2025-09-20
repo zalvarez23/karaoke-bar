@@ -162,7 +162,7 @@ export const KaraokeLoginPage: React.FC = () => {
               placeholder="Número de teléfono"
               inputType="onlyNumbers"
               maxLength={15}
-              icon={
+              customIcon={
                 <Phone
                   size={20}
                   color={
@@ -186,7 +186,7 @@ export const KaraokeLoginPage: React.FC = () => {
               value={watchedValues.password}
               placeholder="Contraseña"
               type="password"
-              icon={
+              customIcon={
                 <Lock
                   size={20}
                   color={

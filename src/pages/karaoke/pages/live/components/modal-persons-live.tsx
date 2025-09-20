@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect } from "react";
 import { Mic, Headphones } from "lucide-react";
 import { Typography, ConfirmModal } from "../../../shared/components";
 import { KaraokeColors } from "../../../colors";
