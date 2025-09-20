@@ -167,7 +167,7 @@ export const KaraokeUserRegisterPage: React.FC = () => {
             control={control}
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                value={value || ""}
+                value={value?.toString() || ""}
                 placeholder="Teléfono *"
                 type="tel"
                 maxLength={15}

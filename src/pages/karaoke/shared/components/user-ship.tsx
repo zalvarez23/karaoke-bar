@@ -8,7 +8,7 @@ type UserShipProps = {
   icon?: string;
 };
 
-const UserShip = ({ name, image, points, icon }: UserShipProps) => {
+const UserShip = ({ name, image, points }: UserShipProps) => {
   return (
     <div className="flex flex-row justify-start items-center gap-2 h-20 w-auto">
       <Avatar image={image as any} size="md" />
@@ -18,14 +18,14 @@ const UserShip = ({ name, image, points, icon }: UserShipProps) => {
       >
         <div className="flex flex-col">
           <Typography
-            variant="body-xs-semi"
+            variant="label-xs-semi"
             className="tracking-wider text-center"
             color={KaraokeColors.base.white}
           >
             {name}
           </Typography>
           <Typography
-            variant="body-xs-semi"
+            variant="label-xs-semi"
             color={KaraokeColors.gray.gray500}
             className="text-center"
           >

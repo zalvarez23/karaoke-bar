@@ -63,7 +63,7 @@ export const HistoryUser = ({
               >
                 {visit.points} {visit.points === 1 ? "Punto" : "Puntos"}
               </Typography>
-              <Typography variant="body-xs" color={KaraokeColors.gray.gray500}>
+              <Typography color={KaraokeColors.gray.gray500}>
                 {formatDate(visit.date as any)}
               </Typography>
             </div>

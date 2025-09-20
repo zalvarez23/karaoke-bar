@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import { FC } from "react";
 import { Check } from "lucide-react";
 import { KaraokeColors } from "../../../colors";
 import { Button, Typography } from "../../../shared/components";

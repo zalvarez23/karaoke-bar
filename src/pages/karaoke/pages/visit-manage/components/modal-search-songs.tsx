@@ -202,7 +202,7 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
               value={search}
               placeholder="Buscar canciones en YouTube..."
               onChangeText={setSearch}
-              icon={
+              customIcon={
                 <Search size={20} color={KaraokeColors.primary.primary500} />
               }
               className="w-full"
