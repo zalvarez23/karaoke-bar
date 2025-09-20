@@ -39,6 +39,8 @@ body {
   /* Asegurar que la app use toda la pantalla */
   height: 100vh;
   height: -webkit-fill-available;
+  /* Padding para botones nativos de Android */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 html {

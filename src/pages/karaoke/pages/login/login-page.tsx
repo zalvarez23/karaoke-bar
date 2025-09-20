@@ -125,7 +125,7 @@ export const KaraokeLoginPage: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center relative"
+      className="min-h-screen flex flex-col justify-center relative"
       style={{ backgroundColor: KaraokeColors.base.darkPrimary }}
     >
       <div className="w-full max-w-md px-8">
@@ -226,7 +226,10 @@ export const KaraokeLoginPage: React.FC = () => {
         </form>
 
         {/* Footer */}
-        <div className="absolute bottom-8 left-0 right-0 flex items-center justify-center space-x-2">
+        <div
+          className="absolute bottom-8 left-0 right-0 flex items-center justify-center space-x-2 mb-6"
+          style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}
+        >
           <Typography
             variant="body-md-semi"
             color={KaraokeColors.base.white}

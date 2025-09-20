@@ -17,7 +17,7 @@ const Header = ({ title, showBackIcon, description }: THeaderProps) => {
   };
 
   return (
-    <div className="py-4 relative">
+    <div className="pt-4 relative">
       {showBackIcon && (
         <button
           onClick={handleGoBack}
