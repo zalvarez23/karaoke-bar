@@ -4,17 +4,49 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/kantobar-icon.svg" />
     <link rel="apple-touch-icon" href="/kantobar-icon.svg" />
+    <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#191720" />
     <meta name="msapplication-navbutton-color" content="#191720" />
     <meta
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
     />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="KantoBar" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
     <title>KantoBar</title>
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Ocultar UI del navegador en móvil
+      if (window.innerHeight <= window.innerWidth) {
+        // Landscape mode - ocultar barras
+        window.addEventListener("load", function () {
+          setTimeout(function () {
+            window.scrollTo(0, 1);
+          }, 0);
+        });
+      }
+
+      // Prevenir zoom en doble tap
+      let lastTouchEnd = 0;
+      document.addEventListener(
+        "touchend",
+        function (event) {
+          const now = new Date().getTime();
+          if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+          }
+          lastTouchEnd = now;
+        },
+        false
+      );
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
