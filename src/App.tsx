@@ -7,10 +7,20 @@ import {
   SongsManagePage,
   CompanyPage,
   MaintenancePage,
+  // Karaoke Pages
+  KaraokeLoginPage,
+  KaraokeHomePage,
+  KaraokeVisitManagePage,
+  KaraokeVisitManageOnlinePage,
+  KaraokeLivePage,
+  KaraokeUserRegisterPage,
+  KaraokeProfilePage,
 } from "@/pages";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { AppProviders } from "@/pages/karaoke/shared/context";
+import { ProtectedKaraokeRoute } from "@/pages/karaoke/shared/components";
 
 function App() {
   return (
@@ -19,6 +29,86 @@ function App() {
         <Routes>
           {/* Ruta de login sin protección */}
           <Route path="/login" element={<LoginPage />} />
+
+          {/* Rutas de Karaoke */}
+          <Route
+            path="/karaoke/login"
+            element={
+              <AppProviders>
+                <KaraokeLoginPage />
+              </AppProviders>
+            }
+          />
+          <Route
+            path="/karaoke/register"
+            element={
+              <AppProviders>
+                <KaraokeUserRegisterPage />
+              </AppProviders>
+            }
+          />
+
+          {/* Rutas de Karaoke - Protegidas por su propio sistema */}
+          <Route
+            path="/karaoke"
+            element={
+              <AppProviders>
+                <ProtectedKaraokeRoute>
+                  <KaraokeHomePage />
+                </ProtectedKaraokeRoute>
+              </AppProviders>
+            }
+          />
+          <Route
+            path="/karaoke/home"
+            element={
+              <AppProviders>
+                <ProtectedKaraokeRoute>
+                  <KaraokeHomePage />
+                </ProtectedKaraokeRoute>
+              </AppProviders>
+            }
+          />
+          <Route
+            path="/karaoke/mesas"
+            element={
+              <AppProviders>
+                <ProtectedKaraokeRoute>
+                  <KaraokeVisitManagePage />
+                </ProtectedKaraokeRoute>
+              </AppProviders>
+            }
+          />
+          <Route
+            path="/karaoke/mesas-online"
+            element={
+              <AppProviders>
+                <ProtectedKaraokeRoute>
+                  <KaraokeVisitManageOnlinePage />
+                </ProtectedKaraokeRoute>
+              </AppProviders>
+            }
+          />
+          <Route
+            path="/karaoke/live"
+            element={
+              <AppProviders>
+                <ProtectedKaraokeRoute>
+                  <KaraokeLivePage />
+                </ProtectedKaraokeRoute>
+              </AppProviders>
+            }
+          />
+          <Route
+            path="/karaoke/profile"
+            element={
+              <AppProviders>
+                <ProtectedKaraokeRoute>
+                  <KaraokeProfilePage />
+                </ProtectedKaraokeRoute>
+              </AppProviders>
+            }
+          />
 
           {/* Rutas protegidas con MainLayoutContainer */}
           <Route
