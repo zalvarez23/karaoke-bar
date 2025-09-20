@@ -689,7 +689,7 @@ export const KaraokeVisitManagePage: FC = () => {
         </div>
       </div>
       {/* Bottom Section */}
-      <div className="absolute bottom-24 left-0 right-0 mx-6.5">
+      <div className="absolute bottom-24 left-0 right-0 mx-6.5 mb-8">
         <BottomSelectLocation
           item={tableSelected}
           onConfirm={handleReservedOperations}

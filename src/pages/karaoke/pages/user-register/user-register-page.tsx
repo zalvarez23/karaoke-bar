@@ -110,7 +110,7 @@ export const KaraokeUserRegisterPage: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen pb-20"
+      className="min-h-screen flex flex-col"
       style={{ backgroundColor: KaraokeColors.base.darkPrimary }}
     >
       {/* Header */}
@@ -119,7 +119,7 @@ export const KaraokeUserRegisterPage: React.FC = () => {
       </div>
 
       {/* Content */}
-      <div className="px-8 pt-5 relative mb-12">
+      <div className="px-8 pt-5 flex-1">
         <Typography variant="headline-xl-semi" color={KaraokeColors.base.white}>
           Registro
         </Typography>
@@ -131,7 +131,7 @@ export const KaraokeUserRegisterPage: React.FC = () => {
           Vamos a registrarte, con unos simples pasos.
         </Typography>
 
-        <div className="mt-8 mb-8 pb-24 space-y-6">
+        <div className="mt-8 space-y-6">
           <Controller
             control={control}
             render={({ field: { onChange, onBlur, value } }) => (
@@ -217,7 +217,10 @@ export const KaraokeUserRegisterPage: React.FC = () => {
       </div>
 
       {/* Bottom Button */}
-      <div className="px-8 pb-5">
+      <div
+        className="px-8 pb-8 mb-6 mt-auto"
+        style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}
+      >
         <Button
           size="lg"
           theme="primary"
