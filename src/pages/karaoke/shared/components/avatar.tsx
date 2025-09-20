@@ -11,11 +11,11 @@ type TImagesAvatar =
 // Mapeo de imágenes de avatares
 const getAvatarImage = (image: TImagesAvatar): string => {
   const avatarMap: Record<TImagesAvatar, string> = {
-    avatarBoy: "/src/pages/karaoke/assets/images/avatars/default.png",
-    avatarGirl: "/src/pages/karaoke/assets/images/avatars/avatar-girl.png",
-    image2: "/src/pages/karaoke/assets/images/avatars/image2.jpeg",
-    image3: "/src/pages/karaoke/assets/images/avatars/image3.jpeg",
-    default: "/src/pages/karaoke/assets/images/avatars/default.png",
+    avatarBoy: "/karaoke/avatars/default.png",
+    avatarGirl: "/karaoke/avatars/avatar-girl.png",
+    image2: "/karaoke/avatars/image2.jpeg",
+    image3: "/karaoke/avatars/image3.jpeg",
+    default: "/karaoke/avatars/default.png",
   };
 
   return avatarMap[image] || avatarMap.default;
@@ -58,8 +58,7 @@ const Avatar: FC<AvatarProps> = ({
         )}
         onError={(e) => {
           // Fallback a un avatar por defecto si la imagen no carga
-          (e.target as HTMLImageElement).src =
-            "/src/pages/karaoke/assets/images/avatars/default.png";
+          (e.target as HTMLImageElement).src = "/karaoke/avatars/default.png";
         }}
       />
     </div>
