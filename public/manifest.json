@@ -1,17 +1,24 @@
 {
   "name": "KantoBar Karaoke",
   "short_name": "KantoBar",
-  "description": "Aplicación de Karaoke para KantoBar",
+  "description": "Aplicación de Karaoke para KantoBar - Disfruta de la mejor experiencia de karaoke",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#191720",
   "theme_color": "#191720",
   "orientation": "portrait",
+  "scope": "/",
+  "lang": "es",
+  "categories": ["entertainment", "music"],
   "icons": [
     {
       "src": "/kantobar-icon.svg",
       "sizes": "any",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
-  ]
+  ],
+  "screenshots": [],
+  "related_applications": [],
+  "prefer_related_applications": false
 }

@@ -1,12 +1,4 @@
 {
-  "functions": {
-    "api/youtube/search-youtube.ts": {
-      "runtime": "nodejs18.x"
-    },
-    "api/youtube/suggestions.ts": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/youtube/(.*)",
