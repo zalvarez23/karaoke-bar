@@ -1,14 +1,27 @@
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  query,
+  where,
+  doc,
+  updateDoc,
+  getDoc,
+} from "firebase/firestore";
 import { ISongsRepository } from "../repository/songs-repository";
 import { db } from "@/config/firebase";
-import { IVisits, TVisitResponseDto } from "@/shared/types/visit-types";
+import {
+  IVisits,
+  TSongsRequested,
+  TVisitResponseDto,
+} from "@/shared/types/visit-types";
 
 export class SongsServices implements ISongsRepository {
   constructor() {}
 
-  
-  getTimestamp(dateObj: any): number {
-    if (dateObj.seconds !== undefined && dateObj.nanoseconds !== undefined) {
+  getTimestamp(
+    dateObj: Date | { seconds: number; nanoseconds: number }
+  ): number {
+    if ("seconds" in dateObj && "nanoseconds" in dateObj) {
       return dateObj.seconds * 1000 + dateObj.nanoseconds / 1e6;
     }
     return new Date(dateObj).getTime();
@@ -36,7 +49,7 @@ export class SongsServices implements ISongsRepository {
           location: visit.location,
           userName: visit.userName,
           visitId: visit.id,
-        })),
+        }))
     );
 
     // Ordenamos globalmente las canciones por fecha (ascendente) y luego por numberSong
@@ -56,11 +69,11 @@ export class SongsServices implements ISongsRepository {
   }
 
   getAllSongsOnSnapshot(
-    callback: (visits: TVisitResponseDto) => void,
+    callback: (visits: TVisitResponseDto) => void
   ): () => void {
     const visitsQuery = query(
       collection(db, "Visits"),
-      where("status", "in", ["pending", "online"]),
+      where("status", "in", ["online"])
     );
 
     const unsubscribe = onSnapshot(
@@ -76,9 +89,81 @@ export class SongsServices implements ISongsRepository {
       },
       (error) => {
         console.error("Error en tiempo real obteniendo visitas:", error);
-      },
+      }
     );
 
     return unsubscribe;
+  }
+
+  getPendingSongsOnSnapshot(
+    callback: (visits: TVisitResponseDto) => void
+  ): () => void {
+    const visitsQuery = query(
+      collection(db, "Visits"),
+      where("status", "in", ["online"])
+    );
+
+    const unsubscribe = onSnapshot(
+      visitsQuery,
+      (snapshot) => {
+        const visits: IVisits[] = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        const songsFormatted = this.formatVisitsAndSongs(visits);
+
+        // Filtrar solo canciones pendientes que NO estén marcadas como leídas
+        const unreadPendingSongs = songsFormatted.songs.filter(
+          (song) => song.status === "pending" && !song.notificationRead
+        );
+
+        // Crear un nuevo objeto con solo las canciones no leídas
+        const filteredResponse = {
+          ...songsFormatted,
+          songs: unreadPendingSongs,
+        };
+
+        callback(filteredResponse);
+      },
+      (error) => {
+        console.error("Error en tiempo real obteniendo visitas:", error);
+      }
+    );
+
+    return unsubscribe;
+  }
+
+  // Marcar canción como leída
+  async markSongAsRead(
+    visitId: string,
+    songId: string,
+    numberSong: number
+  ): Promise<void> {
+    try {
+      const visitRef = doc(db, "Visits", visitId);
+      const visitDoc = await getDoc(visitRef);
+
+      if (!visitDoc.exists()) {
+        throw new Error("Visit not found");
+      }
+
+      const data = visitDoc.data();
+      const songs = data?.songs || [];
+
+      // Actualizar el campo notificationRead de la canción específica
+      const updatedSongs = songs.map((song: TSongsRequested) => {
+        if (song.id === songId && song.numberSong === numberSong) {
+          return { ...song, notificationRead: true };
+        }
+        return song;
+      });
+
+      await updateDoc(visitRef, { songs: updatedSongs });
+      console.log("Canción marcada como leída exitosamente!");
+    } catch (error) {
+      console.error("Error marcando canción como leída:", error);
+      throw error;
+    }
   }
 }

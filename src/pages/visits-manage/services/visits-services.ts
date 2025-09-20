@@ -129,7 +129,6 @@ export class VisitsServices implements IVisitsRepository {
     numberSong: number,
     status: TSongStatus
   ): Promise<void> {
-    console.log({ visitId, songId, numberSong, status });
     try {
       if (!visitId) {
         throw new Error("visitId is undefined");

@@ -233,8 +233,6 @@ export const SongsManagePage: React.FC = () => {
           },
           onPlayGreeting: async (greeting: string) => {
             try {
-              console.log("🎤 Generando audio con ElevenLabs para:", greeting);
-
               // Generar audio con ElevenLabs (voz aleatoria)
               const audioBlob = await elevenLabsService().textToSpeech(
                 greeting
@@ -242,11 +240,8 @@ export const SongsManagePage: React.FC = () => {
 
               // Reproducir el audio
               elevenLabsService().playAudio(audioBlob, 0.8);
-
-              console.log("✅ Audio reproducido exitosamente");
             } catch (error) {
               console.error("❌ Error reproduciendo saludo:", error);
-
               // Fallback a Web Speech API si ElevenLabs falla
               if ("speechSynthesis" in window) {
                 console.log("🔄 Usando fallback: Web Speech API");

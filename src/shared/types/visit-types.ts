@@ -27,6 +27,7 @@ export type TSongsRequested = {
   usersIds?: string[];
   greeting?: string;
   likes?: number;
+  notificationRead?: boolean;
 };
 
 export type TVisitStatus = "completed" | "pending" | "cancelled" | "online";

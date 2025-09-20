@@ -7,10 +7,9 @@ export class ElevenLabsService {
   // Array de voces más naturales y realistas
   private artistVoices = [
     "EXAVITQu4vr4xnSDxMaL", // Bella (voz femenina suave)
-    "VR6AewLTigWG4xSOukaG", // Josh (voz masculina joven)
     "pNInz6obpgDQGcFmaJgB", // Adam (voz masculina madura)
     "yoZ06aMxZJJ28mfd3POQ", // Charlie (voz masculina clara)
-    "ThT5KcBeYPX3keUQqHPh", // Clyde (voz masculina profunda)
+    // "ThT5KcBeYPX3keUQqHPh", // Clyde (voz masculina profunda)
   ];
 
   constructor() {
