@@ -33,6 +33,21 @@
 body {
   font-family: "Gibson", sans-serif !important;
   letter-spacing: 0.035em;
+  /* Ocultar barras de navegación en móvil */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
+  /* Asegurar que la app use toda la pantalla */
+  height: 100vh;
+  height: -webkit-fill-available;
+}
+
+html {
+  height: -webkit-fill-available;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
 }
 
 @layer base {
