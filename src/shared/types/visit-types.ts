@@ -70,7 +70,7 @@ export const getStatusValue: Record<TVisitStatus, TVisitStatusValue> = {
 };
 
 export const getStatusSongValue: Record<TSongStatus, TVisitStatusValue> = {
-  pending: { statusName: "Pendiente", color: "text-yellow-300" },
+  pending: { statusName: "Pendiente", color: "text-red-500" },
   singing: { statusName: "Cantando", color: "text-green-400" },
   cancelled: { statusName: "Cancelado", color: "text-red-400" },
   completed: { statusName: "Completado", color: "text-blue-400" },

@@ -138,7 +138,7 @@ export const columns = ({
       return (
         <div
           className={cn(
-            "font-normal tracking-wider  rounded-md min-w-[80px]",
+            "font-regular tracking-wider  rounded-md min-w-[80px]",
             color
           )}
         >
