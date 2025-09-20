@@ -1,0 +1,257 @@
+import React, { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import { Phone, Lock } from "lucide-react";
+import { KaraokeColors } from "../../colors";
+import {
+  Typography,
+  Button,
+  Input,
+  Spinner,
+  StatusModal,
+  type ModalRef,
+} from "../../shared/components";
+import { UserServices } from "../../shared/services";
+import { useUsersContext } from "../../shared/context";
+import { useUserStorage } from "../../shared/hooks";
+import { KARAOKE_ROUTES } from "../../shared/types";
+
+type TFormData = {
+  username: string;
+  password: string;
+};
+
+export const KaraokeLoginPage: React.FC = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isCheckingStorage, setIsCheckingStorage] = useState<boolean>(true);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
+  const userService = new UserServices();
+  const { setUser: setUserState } = useUsersContext();
+  const { setUser: setUserStorage, getUser: getUserStorage } = useUserStorage();
+  const statusModalRef = useRef<ModalRef>(null);
+  const navigate = useNavigate();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+  } = useForm<TFormData>({
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+  });
+
+  const watchedValues = watch();
+  const isError = Object.keys(errors).length > 0;
+
+  // Verificar si ya hay un usuario guardado
+  useEffect(() => {
+    const checkStoredUser = async () => {
+      try {
+        const storedUser = await getUserStorage();
+
+        // Agregar 1 segundo adicional al loading para mejor UX
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        if (storedUser) {
+          // Si hay usuario guardado, el contexto ya lo cargará automáticamente
+          // Solo redirigimos al home
+          navigate(KARAOKE_ROUTES.HOME, { replace: true });
+        } else {
+          // No hay usuario guardado, mostrar formulario
+          setIsCheckingStorage(false);
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (error) {
+        console.log("No hay usuario guardado");
+        setIsCheckingStorage(false);
+      }
+    };
+    checkStoredUser();
+  }, [getUserStorage, navigate]);
+
+  const handleOnLogIn = async (userData: TFormData) => {
+    try {
+      setIsLoading(true);
+      const res = await userService.login(userData);
+      setUserState(res);
+      setUserStorage(res);
+
+      // Navegar al home
+      navigate(KARAOKE_ROUTES.HOME, { replace: true });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("Error desconocido");
+      }
+      statusModalRef.current?.open();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOnConfirmStatus = () => {
+    statusModalRef.current?.close();
+  };
+
+  const handleGoToRegister = () => {
+    navigate(KARAOKE_ROUTES.REGISTER);
+  };
+
+  // Mostrar loading mientras se verifica el storage
+  if (isCheckingStorage) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: KaraokeColors.base.darkPrimary }}
+      >
+        <div className="text-center">
+          <Spinner size={35} color={KaraokeColors.base.white} />
+          <Typography
+            variant="body-md-semi"
+            className="mt-5 text-center"
+            color={KaraokeColors.base.white}
+          >
+            Verificando sesión...
+          </Typography>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center relative"
+      style={{ backgroundColor: KaraokeColors.base.darkPrimary }}
+    >
+      <div className="w-full max-w-md px-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <Typography
+            variant="headline-xl-semi"
+            color={KaraokeColors.base.white}
+          >
+            Log In
+          </Typography>
+          <Typography
+            variant="body-md-semi"
+            className="mt-2 text-right"
+            color={KaraokeColors.gray.gray300}
+          >
+            Vive una experiencia única
+          </Typography>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit(handleOnLogIn)} className="space-y-6">
+          {/* Username Input */}
+          <div>
+            <Input
+              {...register("username", {
+                required: "Número de teléfono es requerido",
+                pattern: {
+                  value: /^[0-9]{9,15}$/,
+                  message: "Número de teléfono inválido (9-15 dígitos)",
+                },
+              })}
+              value={watchedValues.username}
+              placeholder="Número de teléfono"
+              inputType="onlyNumbers"
+              maxLength={15}
+              icon={
+                <Phone
+                  size={20}
+                  color={
+                    errors?.username?.message
+                      ? KaraokeColors.red.red300
+                      : KaraokeColors.primary.primary500
+                  }
+                />
+              }
+              error={errors?.username?.message}
+              className="w-full"
+            />
+          </div>
+
+          {/* Password Input */}
+          <div>
+            <Input
+              {...register("password", {
+                required: "Contraseña es requerida",
+              })}
+              value={watchedValues.password}
+              placeholder="Contraseña"
+              type="password"
+              icon={
+                <Lock
+                  size={20}
+                  color={
+                    errors?.password?.message
+                      ? KaraokeColors.red.red300
+                      : KaraokeColors.primary.primary500
+                  }
+                />
+              }
+              error={errors?.password?.message}
+              className="w-full"
+            />
+          </div>
+
+          {/* Forgot Password Link */}
+          <div className="text-right">
+            <Typography
+              variant="link-sm-semi"
+              color={KaraokeColors.gray.gray300}
+              className="cursor-pointer hover:opacity-80 transition-opacity"
+            >
+              ¿Olvidaste tu contraseña?
+            </Typography>
+          </div>
+
+          {/* Submit Button */}
+          <Button
+            size="lg"
+            theme="primary"
+            fullWidth
+            disabled={isError}
+            isLoading={isLoading}
+            type="submit"
+          >
+            Ingresar
+          </Button>
+        </form>
+
+        {/* Footer */}
+        <div className="absolute bottom-8 left-0 right-0 flex items-center justify-center space-x-2">
+          <Typography
+            variant="body-md-semi"
+            color={KaraokeColors.base.white}
+            className="text-center"
+          >
+            ¿No tienes cuenta?
+          </Typography>
+          <Typography
+            variant="link-md-semi"
+            color={KaraokeColors.primary.primary400}
+            className="cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={handleGoToRegister}
+          >
+            Regístrate
+          </Typography>
+        </div>
+
+        {/* Status Modal */}
+        <StatusModal
+          ref={statusModalRef}
+          status="error"
+          onConfirm={handleOnConfirmStatus}
+          description={errorMessage}
+        />
+      </div>
+    </div>
+  );
+};

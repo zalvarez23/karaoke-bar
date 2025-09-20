@@ -6,10 +6,8 @@ import {
   Bot,
   Command,
   Flame,
-  Frame,
   Grid,
   PieChart,
-  Map,
   Settings2,
   SquareTerminal,
   Tags,
@@ -143,19 +141,9 @@ const data = {
   ],
   projects: [
     {
-      name: "Restaurante",
-      url: "#",
-      icon: Frame,
-    },
-    {
       name: "Karaoke",
-      url: "#",
+      url: "/karaoke/login",
       icon: PieChart,
-    },
-    {
-      name: "Viajes",
-      url: "#",
-      icon: Map,
     },
   ],
 };
