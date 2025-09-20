@@ -5,7 +5,7 @@ import { Check, X, Loader2 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
 
-export interface Request {
+export interface RequestVisit {
   id: string;
   userId: string;
   userName: string;
@@ -16,14 +16,14 @@ export interface Request {
   status: "pending" | "accepted" | "rejected";
 }
 
-interface RequestCardProps {
-  request: Request;
+interface RequestCardVisitProps {
+  request: RequestVisit;
   onAccept: (requestId: string) => void;
   onReject: (requestId: string) => void;
   isProcessing?: boolean;
 }
 
-export const RequestCard: React.FC<RequestCardProps> = ({
+export const RequestCardVisit: React.FC<RequestCardVisitProps> = ({
   request,
   onAccept,
   onReject,
@@ -34,7 +34,7 @@ export const RequestCard: React.FC<RequestCardProps> = ({
       <CardContent className="p-3">
         {/* Texto descriptivo */}
         <div className="mb-2">
-          <p className="text-xs text-gray-600">
+          <p className="text-sm text-gray-600">
             <span className="font-medium">{request.userName}</span> quiere
             ingresar a la{" "}
             <span className="font-medium">{request.tableName}</span>
@@ -76,7 +76,7 @@ export const RequestCard: React.FC<RequestCardProps> = ({
         {/* Estado simple */}
         {request.status !== "pending" && (
           <div className="text-center">
-            <p className="text-xs text-gray-500">
+            <p className="text-sm text-gray-500">
               {request.status === "accepted" && "✅ Aceptado"}
               {request.status === "rejected" && "❌ Rechazado"}
             </p>
