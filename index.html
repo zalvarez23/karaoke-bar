@@ -68,6 +68,20 @@
             });
         });
       }
+
+      // Prevenir bounce scroll en iOS
+      document.addEventListener('touchmove', function (e) {
+        e.preventDefault();
+      }, { passive: false });
+
+      // Permitir scroll solo en elementos específicos
+      document.addEventListener('touchmove', function (e) {
+        const target = e.target;
+        const scrollableParent = target.closest('[data-scrollable]');
+        if (!scrollableParent) {
+          e.preventDefault();
+        }
+      }, { passive: false });
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>

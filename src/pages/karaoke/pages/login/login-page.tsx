@@ -126,9 +126,9 @@ export const KaraokeLoginPage: React.FC = () => {
   return (
     <div
       className="min-h-screen flex flex-col justify-center relative"
-      style={{ 
+      style={{
         backgroundColor: KaraokeColors.base.darkPrimary,
-        paddingTop: 'env(safe-area-inset-top, 0px)'
+        paddingTop: "env(safe-area-inset-top, 0px)",
       }}
     >
       <div className="w-full max-w-md px-8">

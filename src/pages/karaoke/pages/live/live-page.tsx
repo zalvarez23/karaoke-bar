@@ -59,9 +59,9 @@ export const KaraokeLivePage: FC = () => {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-[#1e1c24] flex flex-col pb-20"
-      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+      style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
     >
       {/* Header */}
       <div className="px-9 pt-4">
