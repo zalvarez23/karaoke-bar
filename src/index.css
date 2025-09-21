@@ -39,8 +39,6 @@ body {
   /* Asegurar que la app use toda la pantalla */
   height: 100vh;
   height: -webkit-fill-available;
-  /* Safe area solo para bottom */
-  padding-bottom: env(safe-area-inset-bottom, 0px);
   /* Prevenir bounce scroll y fondo blanco */
   background-color: #191720;
   overflow-x: hidden;
@@ -59,6 +57,8 @@ html {
   background-color: #191720;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  /* Asegurar que el fondo se extienda completamente */
+  position: relative;
 }
 
 @layer base {
