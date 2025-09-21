@@ -69,19 +69,15 @@
         });
       }
 
-      // Prevenir bounce scroll en iOS
-      document.addEventListener('touchmove', function (e) {
-        e.preventDefault();
-      }, { passive: false });
-
-      // Permitir scroll solo en elementos específicos
-      document.addEventListener('touchmove', function (e) {
+      // Prevenir bounce scroll en iOS pero permitir scroll normal
+      document.addEventListener('touchstart', function(e) {
         const target = e.target;
-        const scrollableParent = target.closest('[data-scrollable]');
-        if (!scrollableParent) {
-          e.preventDefault();
+        const scrollableElement = target.closest('[data-scrollable]') || target.closest('.scrollable') || document.body;
+        if (scrollableElement) {
+          scrollableElement.style.overflow = 'auto';
+          scrollableElement.style.webkitOverflowScrolling = 'touch';
         }
-      }, { passive: false });
+      }, { passive: true });
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
