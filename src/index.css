@@ -71,7 +71,9 @@ html {
 
 /* Regla específica para iOS */
 @supports (-webkit-touch-callout: none) {
-  body, html, #root {
+  body,
+  html,
+  #root {
     overscroll-behavior: none !important;
     -webkit-overflow-scrolling: auto !important;
   }
