@@ -77,6 +77,19 @@ html {
     overscroll-behavior: none !important;
     -webkit-overflow-scrolling: auto !important;
   }
+
+  /* Ocultar home indicator en iOS */
+  body {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Forzar que el contenido llegue hasta el borde */
+  #root {
+    min-height: 100vh !important;
+    min-height: -webkit-fill-available !important;
+    padding-bottom: 0 !important;
+  }
 }
 
 @layer base {
