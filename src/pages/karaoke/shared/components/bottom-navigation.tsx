@@ -50,13 +50,13 @@ export const BottomNavigation: FC<BottomNavigationProps> = ({
   };
 
   return (
-    <div className={`absolute bottom-0 left-0 right-0 z-50 ${className}`}>
+    <div className={`fixed bottom-0 left-0 right-0 z-50 ${className}`}>
       {/* Blur background effect */}
       {/* <div className="absolute inset-0 bg-black/60 backdrop-blur-md" /> */}
 
       {/* Navigation container */}
-      <div className="relative bg-gray border-t border-gray-700">
-        <div className="flex items-center justify-around py-3 px-4">
+      <div className="relative bg-black/80 rounded-t-2xl mx-4 mb-2 border-t border-gray-700">
+        <div className="flex items-center justify-around py-2 px-4">
           {tabs.map((tab) => {
             const IconComponent = tab.icon;
             const isActive = isActiveTab(tab.path);
@@ -65,7 +65,7 @@ export const BottomNavigation: FC<BottomNavigationProps> = ({
               <button
                 key={tab.id}
                 onClick={() => handleTabClick(tab.path)}
-                className="flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all duration-200 hover:bg-white/10"
+                className="flex flex-col items-center justify-center py-1 px-3 rounded-lg transition-all duration-200 hover:bg-white/10"
               >
                 <IconComponent
                   size={20}
