@@ -55,45 +55,42 @@ export const BottomNavigation: FC<BottomNavigationProps> = ({
       {/* <div className="absolute inset-0 bg-black/60 backdrop-blur-md" /> */}
 
       {/* Navigation container */}
-      <div className="relative bg-yellow border-t border-gray-700">
-        {/* Safe area spacer solo cuando sea necesario */}
-        <div style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
-          <div className="flex items-center justify-around py-3 px-4">
-            {tabs.map((tab) => {
-              const IconComponent = tab.icon;
-              const isActive = isActiveTab(tab.path);
+      <div className="relative bg-gray border-t border-gray-700">
+        <div className="flex items-center justify-around py-3 px-4">
+          {tabs.map((tab) => {
+            const IconComponent = tab.icon;
+            const isActive = isActiveTab(tab.path);
 
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTabClick(tab.path)}
-                  className="flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all duration-200 hover:bg-white/10"
+            return (
+              <button
+                key={tab.id}
+                onClick={() => handleTabClick(tab.path)}
+                className="flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all duration-200 hover:bg-white/10"
+              >
+                <IconComponent
+                  size={20}
+                  color={
+                    isActive
+                      ? KaraokeColors.red.red400
+                      : KaraokeColors.gray.gray500
+                  }
+                  className="mb-1"
+                />
+                <span
+                  className={`text-xs ${
+                    isActive ? "font-bold" : "font-medium text-gray-500"
+                  }`}
+                  style={{
+                    color: isActive
+                      ? KaraokeColors.red.red400
+                      : KaraokeColors.gray.gray500,
+                  }}
                 >
-                  <IconComponent
-                    size={20}
-                    color={
-                      isActive
-                        ? KaraokeColors.red.red400
-                        : KaraokeColors.gray.gray500
-                    }
-                    className="mb-1"
-                  />
-                  <span
-                    className={`text-xs ${
-                      isActive ? "font-bold" : "font-medium text-gray-500"
-                    }`}
-                    style={{
-                      color: isActive
-                        ? KaraokeColors.red.red400
-                        : KaraokeColors.gray.gray500,
-                    }}
-                  >
-                    {tab.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+                  {tab.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
