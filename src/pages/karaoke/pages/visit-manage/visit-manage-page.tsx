@@ -385,7 +385,10 @@ export const KaraokeVisitManagePage: FC = () => {
     return (
       <div
         className="min-h-screen"
-        style={{ backgroundColor: KaraokeColors.base.darkPrimary }}
+        style={{
+          backgroundColor: KaraokeColors.base.darkPrimary,
+          paddingTop: "env(safe-area-inset-top, 0px)",
+        }}
       >
         {/* Header */}
         <div className="pt-2.5 px-9">
@@ -404,7 +407,10 @@ export const KaraokeVisitManagePage: FC = () => {
     return (
       <div
         className="min-h-screen"
-        style={{ backgroundColor: KaraokeColors.base.darkPrimary }}
+        style={{
+          backgroundColor: KaraokeColors.base.darkPrimary,
+          paddingTop: "env(safe-area-inset-top, 0px)",
+        }}
       >
         {/* Header con avatar y rol */}
         <div className="pt-2.5 px-9">
