@@ -50,12 +50,12 @@ export const BottomNavigation: FC<BottomNavigationProps> = ({
   };
 
   return (
-    <div className={`fixed bottom-0 left-0 right-0 z-50 ${className}`}>
+    <div className={`absolute bottom-0 left-0 right-0 z-50 ${className}`}>
       {/* Blur background effect */}
       {/* <div className="absolute inset-0 bg-black/60 backdrop-blur-md" /> */}
 
       {/* Navigation container */}
-      <div className="relative bg-blue rounded-t-2xl border-t border-gray-700">
+      <div className="relative bg-yellow border-t border-gray-700">
         {/* Safe area spacer solo cuando sea necesario */}
         <div style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
           <div className="flex items-center justify-around py-3 px-4">
