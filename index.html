@@ -97,6 +97,14 @@
         },
         { passive: true }
       );
+
+      // Prevenir gesture de scroll desde abajo en iOS
+      document.addEventListener('touchmove', function(e) {
+        // Detectar si el touch empezó desde la parte inferior de la pantalla
+        if (e.touches[0].clientY > window.innerHeight - 50) {
+          e.preventDefault();
+        }
+      }, { passive: false });
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>

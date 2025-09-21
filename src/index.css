@@ -42,8 +42,9 @@ body {
   /* Prevenir bounce scroll y fondo blanco */
   background-color: #191720;
   overflow-x: hidden;
-  /* Prevenir gesture indicator en iOS */
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* Prevenir gesture de scroll desde abajo en iOS */
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: auto;
 }
 
 html {
