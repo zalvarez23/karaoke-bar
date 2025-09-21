@@ -67,7 +67,7 @@ export const HistoryUser = ({
                 {formatDate(visit.date as any)}
               </Typography>
             </div>
-            {visit.totalPayment && visit.totalPayment > 0 && (
+            {visit.totalPayment && visit.totalPayment > 0 ? (
               <Typography
                 className="absolute right-0 top-6"
                 variant="body-sm-semi"
@@ -75,7 +75,7 @@ export const HistoryUser = ({
               >
                 {formatCurrency(visit.totalPayment)}
               </Typography>
-            )}
+            ) : null}
           </div>
         ))}
       </div>

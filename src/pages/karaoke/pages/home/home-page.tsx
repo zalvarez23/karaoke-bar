@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { KaraokeColors } from "../../colors";
 import { HeaderScreen, BottomNavigation } from "../../shared/components";
@@ -19,6 +19,10 @@ export const KaraokeHomePage: React.FC = () => {
     user?.id || ""
   );
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isPulling, setIsPulling] = useState(false);
+  const startY = useRef(0);
+  const currentY = useRef(0);
   const userServices = new UserServices();
   const { setUser: setUserStorage } = useUserStorage();
   const navigate = useNavigate();
@@ -55,6 +59,33 @@ export const KaraokeHomePage: React.FC = () => {
     }
   };
 
+  // Pull to refresh handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    startY.current = e.touches[0].clientY;
+    setIsPulling(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isPulling) return;
+
+    currentY.current = e.touches[0].clientY;
+    const distance = currentY.current - startY.current;
+
+    // Solo permitir pull hacia abajo y máximo 100px
+    if (distance > 0 && distance < 100) {
+      setPullDistance(distance);
+      e.preventDefault();
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (pullDistance > 50) {
+      handleRefresh();
+    }
+    setPullDistance(0);
+    setIsPulling(false);
+  };
+
   return (
     <div
       className="min-h-screen pb-20"
@@ -62,7 +93,58 @@ export const KaraokeHomePage: React.FC = () => {
         backgroundColor: KaraokeColors.base.darkPrimary,
         paddingTop: "env(safe-area-inset-top, 0px)",
       }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
+      {/* Pull to refresh indicator */}
+      {(isPulling || isRefreshing) && (
+        <div
+          className="flex justify-center items-center w-full transition-all duration-300"
+          style={{
+            height: `${Math.min(pullDistance * 0.6, 60)}px`,
+            transform: `translateY(${Math.min(pullDistance * 0.6, 60) - 60}px)`,
+          }}
+        >
+          <div className="relative">
+            {/* Círculo de fondo */}
+            <div
+              className="rounded-full transition-all duration-300"
+              style={{
+                width: `${Math.min(pullDistance * 0.8, 40)}px`,
+                height: `${Math.min(pullDistance * 0.8, 40)}px`,
+                backgroundColor: KaraokeColors.purple.purple500,
+                opacity: isRefreshing ? 1 : Math.min(pullDistance / 50, 1),
+              }}
+            >
+              {/* Loader spinner */}
+              {(isRefreshing || pullDistance > 20) && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 animate-spin text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    style={{
+                      opacity: isRefreshing
+                        ? 1
+                        : Math.min(pullDistance / 30, 1),
+                    }}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="px-9 py-5">
         <HeaderScreen user={user} />
         <CardUserHome additionalInfo={user.additionalInfo} />
@@ -75,32 +157,6 @@ export const KaraokeHomePage: React.FC = () => {
           onStart={handleOnStart}
           onRetry={handleOnRetry}
         />
-      </div>
-
-      {/* Refresh Button */}
-      <div className="fixed bottom-6 right-6">
-        <button
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          className="p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-105 disabled:opacity-50"
-          style={{ backgroundColor: KaraokeColors.primary.primary500 }}
-        >
-          <svg
-            className={`w-6 h-6 text-white ${
-              isRefreshing ? "animate-spin" : ""
-            }`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-            />
-          </svg>
-        </button>
       </div>
 
       {/* Bottom Navigation */}
