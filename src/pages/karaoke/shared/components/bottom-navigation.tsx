@@ -55,12 +55,7 @@ export const BottomNavigation: FC<BottomNavigationProps> = ({
       <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
 
       {/* Navigation container */}
-      <div
-        className="relative bg-black/80 rounded-t-2xl mx-4 border-t border-gray-700"
-        style={{
-          paddingBottom: "env(safe-area-inset-bottom, 0px)",
-        }}
-      >
+      <div className="relative bg-black/80 rounded-t-2xl mx-4 mb-2 border-t border-gray-700">
         <div className="flex items-center justify-around py-3 px-4">
           {tabs.map((tab) => {
             const IconComponent = tab.icon;
