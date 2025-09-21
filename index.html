@@ -98,13 +98,29 @@
         { passive: true }
       );
 
-      // Prevenir gesture de scroll desde abajo en iOS
-      document.addEventListener('touchmove', function(e) {
-        // Detectar si el touch empezó desde la parte inferior de la pantalla
-        if (e.touches[0].clientY > window.innerHeight - 50) {
-          e.preventDefault();
-        }
-      }, { passive: false });
+      // Prevenir gesture indicator desde abajo en iOS
+      let startY = 0;
+      document.addEventListener(
+        "touchstart",
+        function (e) {
+          startY = e.touches[0].clientY;
+        },
+        { passive: true }
+      );
+
+      document.addEventListener(
+        "touchmove",
+        function (e) {
+          const currentY = e.touches[0].clientY;
+          const deltaY = startY - currentY;
+
+          // Si el touch empezó desde abajo y se mueve hacia arriba, prevenir
+          if (startY > window.innerHeight - 100 && deltaY > 0) {
+            e.preventDefault();
+          }
+        },
+        { passive: false }
+      );
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>

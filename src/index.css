@@ -52,6 +52,9 @@ html {
   /* Prevenir bounce scroll en iOS */
   background-color: #191720;
   overflow-x: hidden;
+  /* Prevenir overscroll bounce en iOS */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 #root {
@@ -62,6 +65,16 @@ html {
   -webkit-overflow-scrolling: touch;
   /* Asegurar que el fondo se extienda completamente */
   position: relative;
+  /* Prevenir bounce scroll en iOS */
+  overscroll-behavior: none;
+}
+
+/* Regla específica para iOS */
+@supports (-webkit-touch-callout: none) {
+  body, html, #root {
+    overscroll-behavior: none !important;
+    -webkit-overflow-scrolling: auto !important;
+  }
 }
 
 @layer base {
