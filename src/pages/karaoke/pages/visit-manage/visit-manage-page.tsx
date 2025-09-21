@@ -566,19 +566,6 @@ export const KaraokeVisitManagePage: FC = () => {
           )}
         </div>
 
-        {/* Footer con información del local */}
-        <div
-          className="fixed bottom-0 left-0 right-0 px-6 py-4 border-t border-gray-700"
-          style={{ backgroundColor: KaraokeColors.base.extraDark }}
-        >
-          <div className="flex items-center justify-center gap-2.5">
-            <MapPin size={18} color={KaraokeColors.primary.primary400} />
-            <Typography variant="body-sm" color={KaraokeColors.gray.gray300}>
-              Local Jirón Tomás Guido 190, Lince
-            </Typography>
-          </div>
-        </div>
-
         {/* Modales */}
         <ConfirmModal
           visible={showExitModal}
@@ -683,18 +670,6 @@ export const KaraokeVisitManagePage: FC = () => {
               No disponible
             </Typography>
           </div>
-        </div>
-      </div>
-      {/* Footer con información del local */}
-      <div
-        className="fixed bottom-0 left-0 right-0 px-6 py-4 border-t border-gray-700"
-        style={{ backgroundColor: KaraokeColors.base.extraDark }}
-      >
-        <div className="flex items-center justify-center gap-2.5">
-          <MapPin size={18} color={KaraokeColors.primary.primary400} />
-          <Typography variant="body-sm" color={KaraokeColors.gray.gray300}>
-            Local Jirón Tomás Guido 190, Lince
-          </Typography>
         </div>
       </div>
       {/* Bottom Section */}
