@@ -611,9 +611,9 @@ export const KaraokeVisitManagePage: FC = () => {
   return (
     <div
       className="min-h-screen pb-20"
-      style={{ 
+      style={{
         backgroundColor: KaraokeColors.base.darkPrimary,
-        paddingTop: 'env(safe-area-inset-top, 0px)'
+        paddingTop: "env(safe-area-inset-top, 0px)",
       }}
     >
       {/* Header */}

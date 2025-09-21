@@ -58,9 +58,9 @@ export const KaraokeHomePage: React.FC = () => {
   return (
     <div
       className="min-h-screen pb-20"
-      style={{ 
+      style={{
         backgroundColor: KaraokeColors.base.darkPrimary,
-        paddingTop: 'env(safe-area-inset-top, 0px)'
+        paddingTop: "env(safe-area-inset-top, 0px)",
       }}
     >
       <div className="px-9 py-5">

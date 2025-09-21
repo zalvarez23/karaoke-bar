@@ -42,15 +42,27 @@ body {
   /* Safe area para PWA */
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* Prevenir bounce scroll y fondo blanco */
+  background-color: #191720;
+  overflow-x: hidden;
 }
 
 html {
   height: -webkit-fill-available;
+  /* Prevenir bounce scroll en iOS */
+  background-color: #191720;
+  overflow-x: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
 }
 
 #root {
   min-height: 100vh;
   min-height: -webkit-fill-available;
+  background-color: #191720;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 @layer base {
