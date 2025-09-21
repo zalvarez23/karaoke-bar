@@ -26,9 +26,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
 
-    <!-- Eliminar completamente el home indicator en iOS -->
-    <meta name="apple-touch-fullscreen" content="yes" />
+    <!-- Configuración más agresiva para iOS -->
     <meta name="apple-mobile-web-app-orientations" content="portrait" />
+    <meta name="apple-touch-fullscreen" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
     <meta name="apple-mobile-web-app-title" content="KantoBar" />
     <meta
       name="viewport"
@@ -125,6 +126,26 @@
         },
         { passive: false }
       );
+
+      // Ocultar home indicator en iOS de forma más agresiva
+      if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+        // Forzar que el viewport use toda la pantalla
+        document.documentElement.style.setProperty(
+          "--vh",
+          `${window.innerHeight * 0.01}px`
+        );
+
+        // Prevenir que aparezca el home indicator
+        document.addEventListener("touchstart", function () {}, {
+          passive: true,
+        });
+
+        // Ocultar la barra de navegación del sistema
+        if (window.navigator && window.navigator.standalone !== undefined) {
+          document.body.style.paddingBottom = "0px";
+          document.body.style.marginBottom = "0px";
+        }
+      }
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
