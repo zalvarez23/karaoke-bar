@@ -16,7 +16,7 @@ import {
   TSongsRequested,
   TGuestUsers,
 } from "../../shared/types/visits.types";
-import { Circle, MapPin } from "lucide-react";
+import { Circle } from "lucide-react";
 import { TableRequestCard } from "./components/table-request-card";
 import { BottomNavigation } from "../../shared/components";
 import {
