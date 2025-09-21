@@ -58,7 +58,10 @@ export const KaraokeHomePage: React.FC = () => {
   return (
     <div
       className="min-h-screen pb-20"
-      style={{ backgroundColor: KaraokeColors.base.darkPrimary }}
+      style={{ 
+        backgroundColor: KaraokeColors.base.darkPrimary,
+        paddingTop: 'env(safe-area-inset-top, 0px)'
+      }}
     >
       <div className="px-9 py-5">
         <HeaderScreen user={user} />

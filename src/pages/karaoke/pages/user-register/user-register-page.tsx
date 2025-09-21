@@ -111,7 +111,10 @@ export const KaraokeUserRegisterPage: React.FC = () => {
   return (
     <div
       className="min-h-screen flex flex-col"
-      style={{ backgroundColor: KaraokeColors.base.darkPrimary }}
+      style={{ 
+        backgroundColor: KaraokeColors.base.darkPrimary,
+        paddingTop: 'env(safe-area-inset-top, 0px)'
+      }}
     >
       {/* Header */}
       <div className="px-8 pt-5">
