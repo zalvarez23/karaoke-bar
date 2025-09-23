@@ -3,6 +3,7 @@ import { TCardType } from "./card.types";
 export type TUserStatus = "active" | "inactive";
 export type TGenders = "M" | "F" | "O";
 export type TUserVisitStatus = "pending" | "active" | "inactive";
+export type TUserStatusByOnline = "true" | "false";
 
 export enum EUserStatus {
   "active" = 1,
@@ -49,3 +50,16 @@ export interface IUserLogin {
   username: string;
   password: string;
 }
+
+type TUserStatusByOnlineValues = {
+  status: string;
+  color: "text-red" | "text-green";
+};
+
+export const getStatusValuesByIsOnline: Record<
+  TUserStatusByOnline,
+  TUserStatusByOnlineValues
+> = {
+  true: { status: "Online", color: "text-green" },
+  false: { status: "Offline", color: "text-red" },
+};

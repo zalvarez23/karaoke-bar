@@ -8,6 +8,13 @@ import {
 } from "@/shared/types/visit-types";
 import { SongsServices } from "./services/songs-services";
 import { ElevenLabsService } from "./services/elevenlabs-service";
+import { googleTtsService } from "./services/google-tts-service";
+import {
+  USE_GOOGLE_TTS,
+  TTS_CONFIG,
+  getRandomVoice,
+  improveTextForTTS,
+} from "../layout/config/tts-config";
 import ReactPlayer from "react-player";
 import { Button } from "@/shared/components/ui/button";
 import { VisitsServices } from "../visits-manage/services/visits-services";
@@ -233,33 +240,50 @@ export const SongsManagePage: React.FC = () => {
           },
           onPlayGreeting: async (greeting: string) => {
             try {
-              // Generar audio con ElevenLabs (voz aleatoria)
-              const audioBlob = await elevenLabsService().textToSpeech(
-                greeting
-              );
+              if (USE_GOOGLE_TTS) {
+                // 🎤 Usar Google Cloud TTS (nuevo servicio)
+                console.log("🎤 Usando Google Cloud TTS");
+                const randomVoice = getRandomVoice();
+                console.log("🎲 Voz seleccionada:", randomVoice);
 
-              // Reproducir el audio
-              elevenLabsService().playAudio(audioBlob, 0.8);
+                // Mejorar el texto para mejor pronunciación
+                const improvedGreeting = improveTextForTTS(greeting);
+                console.log("📝 Texto mejorado:", improvedGreeting);
+
+                await googleTtsService.synthesizeAndPlay(improvedGreeting, {
+                  ...TTS_CONFIG.google,
+                  voice: randomVoice,
+                });
+              } else {
+                // 🎤 Usar ElevenLabs (servicio original)
+                console.log("🎤 Usando ElevenLabs");
+                const audioBlob = await elevenLabsService().textToSpeech(
+                  greeting
+                );
+                elevenLabsService().playAudio(
+                  audioBlob,
+                  TTS_CONFIG.elevenlabs.volume
+                );
+              }
             } catch (error) {
               console.error("❌ Error reproduciendo saludo:", error);
-              // Fallback a Web Speech API si ElevenLabs falla
+
+              // 🔄 Fallback a Web Speech API si el servicio principal falla
               if ("speechSynthesis" in window) {
                 console.log("🔄 Usando fallback: Web Speech API");
                 const utterance = new SpeechSynthesisUtterance(greeting);
-                utterance.lang = "es-ES";
-                utterance.rate = 0.85;
-                utterance.pitch = 1.1;
-                utterance.volume = 1;
+                utterance.lang = TTS_CONFIG.webSpeech.language;
+                utterance.rate = TTS_CONFIG.webSpeech.rate;
+                utterance.pitch = TTS_CONFIG.webSpeech.pitch;
+                utterance.volume = TTS_CONFIG.webSpeech.volume;
 
-                // Función para obtener voces con retraso para asegurar que estén cargadas
+                // Obtener voz femenina si está disponible
                 const getVoicesWithDelay = () => {
                   return new Promise<SpeechSynthesisVoice[]>((resolve) => {
                     let voices = speechSynthesis.getVoices();
-
                     if (voices.length > 0) {
                       resolve(voices);
                     } else {
-                      // Si no hay voces, esperar un poco y reintentar
                       setTimeout(() => {
                         voices = speechSynthesis.getVoices();
                         resolve(voices);
@@ -268,40 +292,19 @@ export const SongsManagePage: React.FC = () => {
                   });
                 };
 
-                // Usar la función asíncrona para obtener voces
                 getVoicesWithDelay().then((voices) => {
-                  // Priorizar voces femeninas que suenen como las de navegación en español
-                  const femaleNavigationVoice = voices.find(
+                  const femaleVoice = voices.find(
                     (voice) =>
                       voice.lang.includes("es") &&
-                      (voice.name.toLowerCase().includes("female") ||
-                        voice.name.toLowerCase().includes("mujer") ||
-                        voice.name.toLowerCase().includes("maria") ||
-                        voice.name.toLowerCase().includes("ana") ||
-                        voice.name.toLowerCase().includes("carmen") ||
-                        voice.name.toLowerCase().includes("sofia") ||
-                        voice.name.toLowerCase().includes("lucia") ||
-                        voice.name.toLowerCase().includes("isabella") ||
-                        voice.name.toLowerCase().includes("elena") ||
-                        voice.name.toLowerCase().includes("patricia") ||
-                        voice.name.toLowerCase().includes("paulina"))
+                      voice.name.toLowerCase().includes("female")
                   );
 
-                  // Si no encuentra voz femenina específica, buscar cualquier voz en español
-                  const spanishVoice = !femaleNavigationVoice
-                    ? voices.find((voice) => voice.lang.includes("es"))
-                    : null;
-
-                  const selectedVoice = femaleNavigationVoice || spanishVoice;
-
-                  if (selectedVoice) {
-                    utterance.voice = selectedVoice;
-                    console.log(
-                      "🎤 Fallback usando voz femenina:",
-                      selectedVoice.name
-                    );
+                  if (femaleVoice) {
+                    utterance.voice = femaleVoice;
                   } else {
-                    console.log("🎤 Fallback usando voz por defecto");
+                    console.log(
+                      "No se encontró voz femenina, usando voz por defecto"
+                    );
                   }
 
                   speechSynthesis.speak(utterance);

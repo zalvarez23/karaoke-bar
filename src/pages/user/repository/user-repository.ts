@@ -1,4 +1,4 @@
-import { IUser } from "@/shared/types/user-types";
+import { IUser } from "@/pages/karaoke/shared/types/user.types";
 
 export interface IUserRepository {
   getAllUsersOnSnapshot(callback: (users: IUser[]) => void): () => void;

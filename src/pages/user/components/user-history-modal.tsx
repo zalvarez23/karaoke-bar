@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Modal } from "@/shared/components/ui/modal";
-import { IUser } from "@/shared/types/user-types";
+import { IUser } from "@/pages/karaoke/shared/types/user.types";
 import { IVisits, getStatusValue } from "@/shared/types/visit-types";
 import { VisitsServices } from "../../visits-manage/services/visits-services";
 import { formatDateLarge } from "@/shared/utils/format-date";
