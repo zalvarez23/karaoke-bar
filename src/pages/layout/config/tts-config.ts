@@ -5,8 +5,12 @@ export const USE_GOOGLE_TTS = true;
 // Voces disponibles para español latino (expandible)
 const AVAILABLE_VOICES = [
   // APROVECHANDO CRÉDITO GRATUITO - Solo Ultra Premium
-  "es-US-Chirp3-HD-Laomedeia", // Ultra premium (gratis con $300 crédito)
-  "es-US-Chirp3-HD-Pulcherrima",
+  "es-US-Chirp3-HD-Laomedeia", // Femenina latina
+  "es-US-Chirp3-HD-Pulcherrima", // Femenina latina
+  "es-US-Chirp3-HD-Algenib", // Masculina latina
+  "es-US-Chirp3-HD-Atlas", // Masculina latina
+  "es-US-Chirp3-HD-Calliope", // Femenina latina
+
   // Otras voces (comentadas para usar solo la mejor calidad)
   // "es-US-Standard-A", // Femenina latina
   // "es-US-Standard-B", // Masculina latina

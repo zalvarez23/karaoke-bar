@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Modal } from "@/shared/components/ui/modal";
 import { IVisits } from "@/shared/types/visit-types";
-import { IUser } from "@/shared/types/user-types";
+import { IUser } from "@/pages/karaoke/shared/types/user.types";
 import { UserServices } from "../../user/services/user-services";
 import { VisitsServices } from "../services/visits-services";
 import { formatDateLarge } from "@/shared/utils/format-date";
 import {
   getStatusValuesByIsOnline,
   TUserStatusByOnline,
-} from "@/shared/types/user-types";
+} from "@/pages/karaoke/shared/types/user.types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -34,6 +34,42 @@ export const TableUsersModal: React.FC<TableUsersModalProps> = ({
 }) => {
   const [users, setUsers] = useState<IUser[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Helper function para formatear fechas
+  const formatUserDate = (
+    date: Date | { seconds: number; nanoseconds: number } | string | null
+  ): string => {
+    if (!date) return "Sin fecha";
+    try {
+      if (
+        typeof date === "object" &&
+        "seconds" in date &&
+        "nanoseconds" in date
+      ) {
+        return formatDateLarge(
+          date as { seconds: number; nanoseconds: number }
+        );
+      }
+      if (date instanceof Date) {
+        return formatDateLarge({
+          seconds: Math.floor(date.getTime() / 1000),
+          nanoseconds: (date.getTime() % 1000) * 1000000,
+        });
+      }
+      if (typeof date === "string") {
+        const dateObj = new Date(date);
+        if (!isNaN(dateObj.getTime())) {
+          return formatDateLarge({
+            seconds: Math.floor(dateObj.getTime() / 1000),
+            nanoseconds: (dateObj.getTime() % 1000) * 1000000,
+          });
+        }
+      }
+      return "Fecha inválida";
+    } catch {
+      return "Error al formatear fecha";
+    }
+  };
 
   useEffect(() => {
     if (!isOpen || !visit?.id) {
@@ -263,9 +299,7 @@ export const TableUsersModal: React.FC<TableUsersModalProps> = ({
                     <div>
                       <span className="text-gray-600">Última visita:</span>
                       <span className="ml-2 font-medium">
-                        {user.additionalInfo.lastVisit
-                          ? formatDateLarge(user.additionalInfo.lastVisit)
-                          : "Sin visitas"}
+                        {formatUserDate(user.additionalInfo.lastVisit)}
                       </span>
                     </div>
                   </div>
