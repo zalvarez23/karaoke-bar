@@ -33,3 +33,6 @@ const ErrorStateHistory = ({ onRetry }: TErrorStateHistoryProps) => {
 };
 
 export default ErrorStateHistory;
+
+
+

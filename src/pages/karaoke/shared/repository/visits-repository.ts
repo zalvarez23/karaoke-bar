@@ -21,3 +21,6 @@ export interface IVisitsRepository {
   getAllVisits(updateCallback: (songs: TVisitResponseDto | null) => void): void;
   updateCallWaiter(visitId: string, callWaiter: boolean): Promise<void>;
 }
+
+
+

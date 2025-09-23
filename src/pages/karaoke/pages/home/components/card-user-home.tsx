@@ -12,3 +12,6 @@ export const CardUserHome = ({ additionalInfo }: TCardUserHomeProps) => {
     </div>
   );
 };
+
+
+

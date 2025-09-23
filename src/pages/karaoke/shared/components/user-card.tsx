@@ -72,3 +72,6 @@ export const UserCard = ({ additionalInfo }: UserCardProps) => {
     </div>
   );
 };
+
+
+

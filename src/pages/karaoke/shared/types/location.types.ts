@@ -12,3 +12,6 @@ export interface ILocations {
   abbreviation: string;
   status: TLocationStatus;
 }
+
+
+
