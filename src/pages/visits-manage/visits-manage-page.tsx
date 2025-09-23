@@ -112,14 +112,52 @@ export const VisitsManagePage: React.FC = () => {
         totalConsumption
       );
 
-      // Actualizar usuarios: poner offline e incrementar contador de visitas con puntos
-      for (const userId of usersIds) {
-        await userServices().updateStatusUser(userId, false);
-        await userServices().incrementUserVisitsWithPoints(userId, points);
+      // Actualizar usuarios: poner offline e incrementar contador de visitas con puntos (EN PARALELO)
+      console.log(`🚀 Procesando ${usersIds.length} usuarios en paralelo...`);
+
+      const updateResults = await Promise.allSettled(
+        usersIds.map(async (userId) => {
+          try {
+            await userServices().updateStatusUser(userId, false);
+            await userServices().incrementUserVisitsWithPoints(userId, points);
+            console.log(`✅ Usuario ${userId} actualizado correctamente`);
+            return { success: true, userId };
+          } catch (error) {
+            const errorMessage =
+              error instanceof Error ? error.message : String(error);
+            console.error(`❌ Error con usuario ${userId}:`, errorMessage);
+            return { success: false, userId, error: errorMessage };
+          }
+        })
+      );
+
+      // Procesar resultados de Promise.allSettled
+      const successful = updateResults.filter(
+        (result) => result.status === "fulfilled" && result.value.success
+      ).length;
+
+      const failed = updateResults
+        .filter(
+          (result) => result.status === "rejected" || !result.value.success
+        )
+        .map((result) => ({
+          userId:
+            result.status === "fulfilled" ? result.value.userId : "unknown",
+          error:
+            result.status === "fulfilled"
+              ? result.value.error
+              : result.reason?.message || "Unknown error",
+        }));
+
+      if (failed.length > 0) {
+        console.warn(
+          `⚠️ ${failed.length} usuarios no se pudieron actualizar:`,
+          failed
+        );
       }
 
       console.log(
-        `✅ Visita completada con ${points} puntos y S/ ${totalConsumption} de consumo`
+        `✅ Visita completada: ${successful}/${usersIds.length} usuarios actualizados con ${points} puntos y S/ ${totalConsumption} de consumo`
       );
     } catch (error) {
       console.error("Error al completar la visita:", error);
