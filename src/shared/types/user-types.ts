@@ -36,6 +36,7 @@ export interface IUser {
   status: EUserStatus;
   creationDate: Timestamp;
   password?: string;
+  isGuest?: boolean; // Identificador para usuarios invitados
   additionalInfo: IAdditionalInfo;
 }
 

@@ -4,9 +4,46 @@ import {
   IUser,
   getStatusValuesByIsOnline,
   TUserStatusByOnline,
-} from "@/shared/types/user-types";
+} from "@/pages/karaoke/shared/types/user.types";
 import { formatDateLarge } from "@/shared/utils/format-date";
 import { cn } from "@/lib/utils";
+
+// Helper function to format user dates (handles both Date and Timestamp)
+const formatUserDate = (
+  date: Date | { seconds: number; nanoseconds: number } | string | null
+): string => {
+  if (!date) return "Sin fecha";
+
+  try {
+    if (
+      typeof date === "object" &&
+      "seconds" in date &&
+      "nanoseconds" in date
+    ) {
+      // Firebase Timestamp - convert to Date first
+      return formatDateLarge(date as { seconds: number; nanoseconds: number });
+    }
+    if (date instanceof Date) {
+      // Convert Date to Timestamp format for formatDateLarge
+      return formatDateLarge({
+        seconds: Math.floor(date.getTime() / 1000),
+        nanoseconds: (date.getTime() % 1000) * 1000000,
+      });
+    }
+    if (typeof date === "string") {
+      const dateObj = new Date(date);
+      if (!isNaN(dateObj.getTime())) {
+        return formatDateLarge({
+          seconds: Math.floor(dateObj.getTime() / 1000),
+          nanoseconds: (dateObj.getTime() % 1000) * 1000000,
+        });
+      }
+    }
+    return "Fecha inválida";
+  } catch {
+    return "Error al formatear fecha";
+  }
+};
 
 interface UserDataModalProps {
   isOpen: boolean;
@@ -105,7 +142,7 @@ export const UserDataModal: React.FC<UserDataModalProps> = ({
               </label>
               <p className="mt-1 text-sm text-gray-900">
                 {user.additionalInfo.lastVisit
-                  ? formatDateLarge(user.additionalInfo.lastVisit)
+                  ? formatUserDate(user.additionalInfo.lastVisit)
                   : "Sin visitas"}
               </p>
             </div>
@@ -145,7 +182,7 @@ export const UserDataModal: React.FC<UserDataModalProps> = ({
               </label>
               <p className="mt-1 text-sm text-gray-900">
                 {user.creationDate
-                  ? formatDateLarge(user.creationDate)
+                  ? formatUserDate(user.creationDate)
                   : "No disponible"}
               </p>
             </div>

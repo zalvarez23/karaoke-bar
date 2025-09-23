@@ -3,6 +3,13 @@ import { Button } from "@/shared/components/ui/button";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Megaphone, Volume2, Loader2 } from "lucide-react";
 import { ElevenLabsService } from "@/pages/songs-manage/services/elevenlabs-service";
+import { googleTtsService } from "@/pages/songs-manage/services/google-tts-service";
+import {
+  USE_GOOGLE_TTS,
+  TTS_CONFIG,
+  getRandomVoice,
+  improveTextForTTS,
+} from "../config/tts-config";
 import { Modal } from "@/shared/components/ui/modal";
 
 interface GreetingsModalProps {
@@ -48,27 +55,47 @@ export const GreetingsModal: React.FC<GreetingsModalProps> = ({
     setIsPlaying(true);
 
     try {
-      // Reutilizar la misma funcionalidad del song manager
-      const audioBlob = await elevenLabsService().textToSpeech(message);
+      if (USE_GOOGLE_TTS) {
+        // 🎤 Usar Google Cloud TTS (nuevo servicio)
+        console.log("🎤 Usando Google Cloud TTS");
+        const randomVoice = getRandomVoice();
+        console.log("🎲 Voz seleccionada:", randomVoice);
 
-      // Reproducir el audio con la misma configuración
-      elevenLabsService().playAudio(audioBlob, 0.8);
+        // Mejorar el texto para mejor pronunciación
+        const improvedMessage = improveTextForTTS(message);
+        console.log("📝 Texto mejorado:", improvedMessage);
 
-      // Simular el tiempo de reproducción para actualizar el estado
-      setTimeout(() => {
-        setIsPlaying(false);
-      }, message.length * 100); // Estimación basada en la longitud del texto
+        await googleTtsService.synthesizeAndPlay(improvedMessage, {
+          ...TTS_CONFIG.google,
+          voice: randomVoice,
+        });
+
+        // Simular el tiempo de reproducción para actualizar el estado
+        setTimeout(() => {
+          setIsPlaying(false);
+        }, message.length * 100);
+      } else {
+        // 🎤 Usar ElevenLabs (servicio original)
+        console.log("🎤 Usando ElevenLabs");
+        const audioBlob = await elevenLabsService().textToSpeech(message);
+        elevenLabsService().playAudio(audioBlob, TTS_CONFIG.elevenlabs.volume);
+
+        // Simular el tiempo de reproducción para actualizar el estado
+        setTimeout(() => {
+          setIsPlaying(false);
+        }, message.length * 100);
+      }
     } catch (error) {
       console.error("❌ Error enviando saludo:", error);
 
-      // Fallback a Web Speech API si ElevenLabs falla (igual que en song manager)
+      // 🔄 Fallback a Web Speech API si el servicio principal falla
       if ("speechSynthesis" in window) {
         console.log("🔄 Usando fallback: Web Speech API");
         const utterance = new SpeechSynthesisUtterance(message);
-        utterance.lang = "es-ES";
-        utterance.rate = 0.9;
-        utterance.pitch = 1.2;
-        utterance.volume = 1;
+        utterance.lang = TTS_CONFIG.webSpeech.language;
+        utterance.rate = TTS_CONFIG.webSpeech.rate;
+        utterance.pitch = TTS_CONFIG.webSpeech.pitch;
+        utterance.volume = TTS_CONFIG.webSpeech.volume;
 
         // Obtener voz femenina si está disponible
         const getVoicesWithDelay = () => {
@@ -122,6 +149,20 @@ export const GreetingsModal: React.FC<GreetingsModalProps> = ({
             <Megaphone className="h-5 w-5 text-blue-600" />
             Enviar Saludo
           </h2>
+
+          {/* Indicador de servicio TTS */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500">Usando:</span>
+            <span
+              className={`text-xs px-2 py-1 rounded-full font-medium ${
+                USE_GOOGLE_TTS
+                  ? "bg-green-100 text-green-700"
+                  : "bg-purple-100 text-purple-700"
+              }`}
+            >
+              {USE_GOOGLE_TTS ? "Google TTS" : "ElevenLabs"}
+            </span>
+          </div>
         </div>
 
         {/* Content */}
