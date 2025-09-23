@@ -4,9 +4,9 @@ import { KaraokeColors } from "../../colors";
 import { HeaderScreen, BottomNavigation } from "../../shared/components";
 import { CardUserHome, RecentUsers, HistoryUser } from "./components";
 import { useUsersContext } from "../../shared/context";
-import { UseGetVisits } from "../../shared/hooks";
+import { UseGetVisits } from "../../shared/hooks/visits/use-get-visits";
 import { UserServices } from "../../shared/services";
-import { useUserStorage } from "../../shared/hooks";
+import { useUserStorage } from "../../shared/hooks/user/use-user-storage";
 import { KARAOKE_ROUTES } from "../../shared/types";
 
 export const KaraokeHomePage: React.FC = () => {
@@ -43,13 +43,15 @@ export const KaraokeHomePage: React.FC = () => {
       // Refrescar datos de visitas
       await getVisitsByUser();
 
-      // Refrescar información del usuario
-      userServices.getToUserById((updatedUser) => {
-        if (updatedUser) {
-          setUser(updatedUser);
-          setUserStorage(updatedUser);
-        }
-      }, user.id);
+      // Solo refrescar información del usuario si no es invitado
+      if (!user.isGuest) {
+        userServices.getToUserById((updatedUser) => {
+          if (updatedUser) {
+            setUser(updatedUser);
+            setUserStorage(updatedUser);
+          }
+        }, user.id);
+      }
 
       console.log("🔄 Datos del home actualizados");
     } catch (error) {

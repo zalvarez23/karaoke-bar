@@ -28,6 +28,7 @@ const initialUsersState: UsersState = {
     status: 0,
     gender: EGenders.other,
     creationDate: new Date(),
+    isGuest: false,
     additionalInfo: {
       isOnline: false,
       lastVisit: new Date(),

@@ -2,6 +2,7 @@
 export const KARAOKE_ROUTES = {
   LOGIN: "/karaoke/login",
   REGISTER: "/karaoke/register",
+  GUEST_MODE: "/karaoke/guest-mode",
   HOME: "/karaoke/home",
   MESAS: "/karaoke/mesas",
   MESAS_ONLINE: "/karaoke/mesas-online",
@@ -16,6 +17,3 @@ export interface UseKaraokeNavigationReturn {
   navigate: (route: KaraokeRoute) => void;
   currentRoute: KaraokeRoute;
 }
-
-
-

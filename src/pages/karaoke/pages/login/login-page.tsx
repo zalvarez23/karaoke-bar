@@ -13,8 +13,8 @@ import {
 } from "../../shared/components";
 import { UserServices } from "../../shared/services";
 import { useUsersContext } from "../../shared/context";
-import { useUserStorage } from "../../shared/hooks";
 import { KARAOKE_ROUTES } from "../../shared/types";
+import { useUserStorage } from "../../shared/hooks/user/use-user-storage";
 
 type TFormData = {
   username: string;
@@ -100,6 +100,10 @@ export const KaraokeLoginPage: React.FC = () => {
 
   const handleGoToRegister = () => {
     navigate(KARAOKE_ROUTES.REGISTER);
+  };
+
+  const handleGoToGuestMode = () => {
+    navigate(KARAOKE_ROUTES.GUEST_MODE);
   };
 
   // Mostrar loading mientras se verifica el storage
@@ -227,6 +231,18 @@ export const KaraokeLoginPage: React.FC = () => {
             Ingresar
           </Button>
         </form>
+
+        {/* Guest Mode Section */}
+        <div className="mt-8">
+          <Button
+            size="lg"
+            theme="secondary"
+            fullWidth
+            onClick={handleGoToGuestMode}
+          >
+            Ingresar como invitado
+          </Button>
+        </div>
 
         {/* Footer */}
         <div

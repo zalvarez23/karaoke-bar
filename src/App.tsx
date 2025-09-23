@@ -15,6 +15,7 @@ import {
   KaraokeLivePage,
   KaraokeUserRegisterPage,
   KaraokeProfilePage,
+  GuestModePage,
 } from "@/pages";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -44,6 +45,14 @@ function App() {
             element={
               <AppProviders>
                 <KaraokeUserRegisterPage />
+              </AppProviders>
+            }
+          />
+          <Route
+            path="/karaoke/guest-mode"
+            element={
+              <AppProviders>
+                <GuestModePage />
               </AppProviders>
             }
           />

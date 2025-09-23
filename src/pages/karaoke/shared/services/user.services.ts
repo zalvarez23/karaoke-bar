@@ -103,6 +103,51 @@ export class UserServices implements IUserRepository {
     }
   }
 
+  async registerGuest(name: string): Promise<IUser> {
+    try {
+      // Generar un ID único para el invitado usando timestamp + random
+      const guestId = `guest_${Date.now()}_${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
+
+      const guestUser: IUser = {
+        id: "", // Se asignará después de crear el documento
+        name: name.trim(),
+        lastName: "", // Vacío para invitados
+        phone: 0, // 0 para invitados
+        documentNumber: 0, // 0 para invitados
+        email: "", // Vacío para invitados
+        gender: EGenders.other, // Valor por defecto
+        status: EUserStatus.active,
+        creationDate: new Date(),
+        password: guestId, // Usar el ID generado como contraseña
+        generatedUsername: guestId, // Usar el ID generado como usuario
+        isGuest: true, // Marcar como usuario invitado
+        additionalInfo: {
+          cardType: "classic" as TCardType,
+          isOnline: false,
+          lastVisit: new Date(),
+          visits: 0,
+          points: 1,
+        },
+      };
+
+      const usersCollection = collection(
+        this.db,
+        KARAOKE_CONSTANTS.FIREBASE.COLLECTIONS.USERS
+      );
+      const docRef = await addDoc(usersCollection, guestUser);
+
+      // Retornar el usuario completo con el ID asignado
+      return {
+        ...guestUser,
+        id: docRef.id,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   getToUserById(
     updateCallback: (user: IUser | null) => void,
     userId: string
