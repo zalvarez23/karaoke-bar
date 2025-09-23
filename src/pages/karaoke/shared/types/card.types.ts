@@ -30,3 +30,6 @@ export interface ICard {
   discount: number;
   status: boolean;
 }
+
+
+

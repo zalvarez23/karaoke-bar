@@ -33,3 +33,6 @@ const EmptyStateHistory = ({ onStart }: TEmptyStateHistoryProps) => {
 };
 
 export default EmptyStateHistory;
+
+
+

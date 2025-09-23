@@ -26,3 +26,6 @@ const Separator: React.FC<SeparatorProps> = ({
 };
 
 export default Separator;
+
+
+
