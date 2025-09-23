@@ -34,7 +34,10 @@ export const HeaderScreen = ({ user }: THeaderScreenProps) => {
   };
 
   const handleGoToProfile = () => {
-    navigate(KARAOKE_ROUTES.PROFILE);
+    // Solo permitir navegación a perfil si no es invitado
+    if (!user?.isGuest) {
+      navigate(KARAOKE_ROUTES.PROFILE);
+    }
   };
 
   return (
@@ -42,16 +45,24 @@ export const HeaderScreen = ({ user }: THeaderScreenProps) => {
       <div className="w-full flex flex-row justify-between items-center mt-5">
         {/* Profile Section */}
         <div
-          className="flex flex-row items-center gap-5 cursor-pointer hover:opacity-80 transition-opacity"
+          className={`flex flex-row items-center gap-5 transition-opacity ${
+            user?.isGuest ? "opacity-70" : "cursor-pointer hover:opacity-80"
+          }`}
           onClick={handleGoToProfile}
         >
           <Avatar image="avatarGirl" />
           <div>
             <Typography variant="body-lg-semi" color={KaraokeColors.base.white}>
-              {`${user?.name.split(" ")[0]} ${user?.lastName.split(" ")[0]}`}
+              {
+                user?.isGuest
+                  ? user.name // Para invitados mostrar el nombre completo
+                  : `${user?.name.split(" ")[0]} ${
+                      user?.lastName.split(" ")[0]
+                    }` // Para usuarios normales mostrar nombre y apellido abreviados
+              }
             </Typography>
             <Typography variant="body-sm" color={KaraokeColors.gray.gray200}>
-              Cantante profesional
+              {user?.isGuest ? "Modo invitado" : "Cantante profesional"}
             </Typography>
           </div>
         </div>

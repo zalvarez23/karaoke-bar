@@ -6,3 +6,4 @@ export { KaraokeVisitManageOnlinePage } from "./visit-manage-online/visit-manage
 export { KaraokeLivePage } from "./live/live-page";
 export { KaraokeUserRegisterPage } from "./user-register/user-register-page";
 export { KaraokeProfilePage } from "./profile/profile-page";
+export { GuestModePage } from "./guest-mode";

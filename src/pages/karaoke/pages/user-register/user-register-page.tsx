@@ -13,8 +13,8 @@ import {
 import { EGenders, IUser } from "../../shared/types/user.types";
 import { UserServices } from "../../shared/services";
 import { useUsersContext } from "../../shared/context";
-import { useUserStorage } from "../../shared/hooks";
 import { KARAOKE_ROUTES } from "../../shared/types";
+import { useUserStorage } from "../../shared/hooks/user/use-user-storage";
 
 export const KaraokeUserRegisterPage: React.FC = () => {
   const [selectedGender, setSelectedGender] = useState<string>("O"); // Default a 'No especificar'

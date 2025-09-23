@@ -36,6 +36,7 @@ export interface IUser {
   creationDate: Date;
   password?: string;
   generatedUsername?: string; // Usuario generado automáticamente (teléfono)
+  isGuest?: boolean; // Identificador para usuarios invitados
   additionalInfo: IAdditionalInfo;
   accountDeletionRequest?: {
     requested: boolean;
@@ -48,6 +49,3 @@ export interface IUserLogin {
   username: string;
   password: string;
 }
-
-
-
