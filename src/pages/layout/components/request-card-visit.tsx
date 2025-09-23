@@ -53,15 +53,6 @@ export const RequestCardVisit: React.FC<RequestCardVisitProps> = ({
         {request.status === "pending" && !isProcessing && (
           <div className="flex gap-1">
             <Button
-              onClick={() => onAccept(request.id)}
-              className="flex-1 border-green-600 text-green-600 hover:bg-green-50 h-8"
-              variant="outline"
-              size="sm"
-            >
-              <Check className="h-3 w-3 mr-1" />
-              Aceptar
-            </Button>
-            <Button
               onClick={() => onReject(request.id)}
               className="flex-1 border-red-600 text-red-600 hover:bg-red-50 h-8"
               variant="outline"
@@ -69,6 +60,15 @@ export const RequestCardVisit: React.FC<RequestCardVisitProps> = ({
             >
               <X className="h-3 w-3 mr-1" />
               Rechazar
+            </Button>
+            <Button
+              onClick={() => onAccept(request.id)}
+              className="flex-1 border-green-600 text-green-600 hover:bg-green-50 h-8"
+              variant="outline"
+              size="sm"
+            >
+              <Check className="h-3 w-3 mr-1" />
+              Aceptar
             </Button>
           </div>
         )}
