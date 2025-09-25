@@ -92,7 +92,7 @@ export const KaraokeUserRegisterPage: React.FC = () => {
       setUser(userLogged);
       setUserStorage(userLogged);
       setShowStatusModal(false);
-      navigate(KARAOKE_ROUTES.HOME);
+      navigate(KARAOKE_ROUTES.MESAS);
     } catch (error: any) {
       console.error("Error en login automático:", error);
       // Si falla el login, mostrar error

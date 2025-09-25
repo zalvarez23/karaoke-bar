@@ -52,7 +52,11 @@ export const HeaderScreen = ({ user }: THeaderScreenProps) => {
         >
           <Avatar image="avatarGirl" />
           <div>
-            <Typography variant="body-lg-semi" color={KaraokeColors.base.white}>
+            <Typography
+              variant="body-lg-semi"
+              color={KaraokeColors.base.white}
+              className="capitalize"
+            >
               {
                 user?.isGuest
                   ? user.name // Para invitados mostrar el nombre completo

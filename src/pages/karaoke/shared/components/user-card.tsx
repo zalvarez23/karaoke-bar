@@ -75,3 +75,4 @@ export const UserCard = ({ additionalInfo }: UserCardProps) => {
 
 
 
+

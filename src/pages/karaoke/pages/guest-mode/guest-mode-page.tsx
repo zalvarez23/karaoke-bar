@@ -73,7 +73,7 @@ export const GuestModePage: React.FC = () => {
   const handleOnConfirmStatus = () => {
     if (isSuccess) {
       // Navegar al home después del registro exitoso
-      navigate(KARAOKE_ROUTES.HOME, { replace: true });
+      navigate(KARAOKE_ROUTES.MESAS, { replace: true });
     } else {
       statusModalRef.current?.close();
     }
