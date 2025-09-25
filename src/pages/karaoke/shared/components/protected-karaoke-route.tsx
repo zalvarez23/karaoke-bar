@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUsersContext } from "../context";
 import { KARAOKE_ROUTES } from "../types";
@@ -16,15 +16,24 @@ export const ProtectedKaraokeRoute = ({
   const { state, isInitialized } = useUsersContext();
   const navigate = useNavigate();
 
+  // Efecto para redirigir cuando no hay usuario autenticado
+  useEffect(() => {
+    if (
+      isInitialized &&
+      (!state.user || (!state.user.id && !state.user.isGuest))
+    ) {
+      navigate(KARAOKE_ROUTES.LOGIN, { replace: true });
+    }
+  }, [isInitialized, state.user, navigate]);
+
   // Mostrar loading mientras se inicializa el contexto
   if (!isInitialized) {
     return <KaraokeLoadingScreen />;
   }
 
-  // Si no hay usuario autenticado, redirigir al login de karaoke
-  if (!state.user || !state.user.id) {
-    navigate(KARAOKE_ROUTES.LOGIN, { replace: true });
-    return null;
+  // Si no hay usuario autenticado (ni usuario normal ni invitado), mostrar loading mientras redirige
+  if (!state.user || (!state.user.id && !state.user.isGuest)) {
+    return <KaraokeLoadingScreen />;
   }
 
   // Si hay usuario, mostrar el contenido protegido

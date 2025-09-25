@@ -58,8 +58,8 @@ export const KaraokeLoginPage: React.FC = () => {
 
         if (storedUser) {
           // Si hay usuario guardado, el contexto ya lo cargará automáticamente
-          // Solo redirigimos al home
-          navigate(KARAOKE_ROUTES.HOME, { replace: true });
+          // Redirigir directamente a mesas
+          navigate(KARAOKE_ROUTES.MESAS, { replace: true });
         } else {
           // No hay usuario guardado, mostrar formulario
           setIsCheckingStorage(false);
@@ -80,8 +80,8 @@ export const KaraokeLoginPage: React.FC = () => {
       setUserState(res);
       setUserStorage(res);
 
-      // Navegar al home
-      navigate(KARAOKE_ROUTES.HOME, { replace: true });
+      // Navegar directamente a mesas
+      navigate(KARAOKE_ROUTES.MESAS, { replace: true });
     } catch (error: unknown) {
       if (error instanceof Error) {
         setErrorMessage(error.message);
