@@ -79,6 +79,29 @@
                 "✅ Service Worker registrado exitosamente:",
                 registration.scope
               );
+
+              // Verificar actualizaciones cada vez que se carga la página
+              registration.update();
+
+              // Escuchar actualizaciones del service worker
+              registration.addEventListener("updatefound", () => {
+                console.log("🔄 Nueva versión del Service Worker encontrada");
+                const newWorker = registration.installing;
+
+                if (newWorker) {
+                  newWorker.addEventListener("statechange", () => {
+                    if (
+                      newWorker.state === "installed" &&
+                      navigator.serviceWorker.controller
+                    ) {
+                      console.log(
+                        "✅ Nueva versión instalada y lista para activar"
+                      );
+                      // La notificación se mostrará automáticamente via el hook
+                    }
+                  });
+                }
+              });
             })
             .catch(function (error) {
               console.log("❌ Error al registrar Service Worker:", error);
