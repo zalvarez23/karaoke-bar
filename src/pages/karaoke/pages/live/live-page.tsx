@@ -67,7 +67,7 @@ export const KaraokeLivePage: FC = () => {
       <div className="px-9 pt-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <Music size={35} color={KaraokeColors.orange.orange400} />
+            <Music size={35} color={KaraokeColors.base.white} />
             <div>
               <Typography
                 variant="body-md-semi"

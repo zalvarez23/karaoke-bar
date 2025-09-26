@@ -24,14 +24,14 @@ export const EmptyStateLive: React.FC<TEmptyStateLiveProps> = ({
         Agrega una cancion, dale empezar y escoge tu preferida !
       </Typography>
 
-      <div className="flex gap-4 mt-5 w-full">
+      <div className="flex mt-5 justify-between px-4">
         <button
           onClick={onStart}
-          className="flex-1 border border-orange-400 rounded-lg py-3 px-4 hover:bg-orange-400 hover:bg-opacity-10 transition-colors"
+          className="py-3 px-4 hover:opacity-80 transition-opacity"
         >
           <Typography
             color={KaraokeColors.orange.orange400}
-            variant="body-sm-semi"
+            variant="body-md-semi"
           >
             Empezar
           </Typography>
@@ -39,11 +39,11 @@ export const EmptyStateLive: React.FC<TEmptyStateLiveProps> = ({
 
         <button
           onClick={onViewTables}
-          className="flex-1 border border-green-400 rounded-lg py-3 px-4 hover:bg-green-400 hover:bg-opacity-10 transition-colors"
+          className="py-3 px-4 hover:opacity-80 transition-opacity"
         >
           <Typography
             color={KaraokeColors.green.green400}
-            variant="body-sm-semi"
+            variant="body-md-semi"
           >
             Ver Mesas
           </Typography>
