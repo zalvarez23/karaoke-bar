@@ -14,7 +14,7 @@ export const EmptyStateLive: React.FC<TEmptyStateLiveProps> = ({
   return (
     <div className="flex flex-col items-center justify-center mt-8 gap-1">
       <Typography variant="body-lg-semi" color={KaraokeColors.base.white}>
-        Aún no han solicitado canciones
+        Aún no han solicitado canciones.
       </Typography>
       <Typography
         variant="body-sm"
