@@ -2,24 +2,28 @@
 // Cambiar a true para usar Google Cloud TTS, false para ElevenLabs
 export const USE_GOOGLE_TTS = true;
 
-// Voces disponibles para español latino (expandible)
+// Voces disponibles para español latino (verificadas y funcionando)
 const AVAILABLE_VOICES = [
-  // APROVECHANDO CRÉDITO GRATUITO - Solo Ultra Premium
-  "es-US-Chirp3-HD-Laomedeia", // Femenina latina
-  "es-US-Chirp3-HD-Pulcherrima", // Femenina latina
-  "es-US-Chirp3-HD-Algenib", // Masculina latina
-  "es-US-Chirp3-HD-Atlas", // Masculina latina
-  "es-US-Chirp3-HD-Calliope", // Femenina latina
+  // Voces Neural2 (premium y estables)
+  "es-US-Neural2-A", // Femenina latina premium
+  "es-US-Neural2-B", // Masculina latina premium
 
-  // Otras voces (comentadas para usar solo la mejor calidad)
-  // "es-US-Standard-A", // Femenina latina
-  // "es-US-Standard-B", // Masculina latina
-  // "es-US-Standard-C", // Masculina latina
-  // "es-US-Neural2-A", // Femenina latina premium
-  // "es-US-Neural2-B", // Masculina latina premium
-  // "es-US-Wavenet-A", // Femenina latina premium
-  // "es-US-Wavenet-B", // Masculina latina premium
-  // "es-US-Wavenet-C", // Masculina latina premium
+  // Voces Wavenet (premium y estables)
+  "es-US-Wavenet-A", // Femenina latina premium
+  "es-US-Wavenet-B", // Masculina latina premium
+  "es-US-Wavenet-C", // Masculina latina premium
+
+  // Voces Standard (básicas pero siempre funcionan)
+  "es-US-Standard-A", // Femenina latina
+  "es-US-Standard-B", // Masculina latina
+  "es-US-Standard-C", // Masculina latina
+
+  // Voces Chirp3 (comentadas hasta verificar disponibilidad)
+  // "es-US-Chirp3-HD-Laomedeia", // Femenina latina
+  // "es-US-Chirp3-HD-Pulcherrima", // Femenina latina
+  // "es-US-Chirp3-HD-Algenib", // Masculina latina
+  // "es-US-Chirp3-HD-Atlas", // Masculina latina
+  // "es-US-Chirp3-HD-Calliope", // Femenina latina
 ];
 
 // Función para obtener una voz aleatoria
@@ -88,7 +92,7 @@ export const TTS_CONFIG = {
   // Configuración para Google TTS
   google: {
     language: "es-US",
-    voice: "es-US-Chirp3-HD-Laomedeia", // Voz ultra premium (gratis con crédito)
+    voice: "es-US-Neural2-A", // Voz premium estable (femenina latina)
     speed: 1.0,
     pitch: 0.0,
     volume: 1.0,
