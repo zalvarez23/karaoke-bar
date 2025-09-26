@@ -20,10 +20,11 @@ export const usePWAUpdate = () => {
       const registration = await navigator.serviceWorker.getRegistration();
       if (!registration) return;
 
-      // Verificar si hay una nueva versión
-      const newRegistration = await registration.update();
+      // Verificar si hay una nueva versión disponible
+      await registration.update();
 
-      if (newRegistration.waiting) {
+      // Verificar si hay un service worker esperando
+      if (registration.waiting) {
         setState((prev) => ({
           ...prev,
           isUpdateAvailable: true,
