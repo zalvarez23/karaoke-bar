@@ -1,28 +1,48 @@
 // Service Worker para KantoBar Karaoke PWA
-const CACHE_NAME = "kantobar-karaoke-v1";
+const CACHE_NAME = "kantobar-karaoke-v1.1.0";
 const urlsToCache = ["/karaoke/", "/kantobar-icon.svg", "/manifest.json"];
 
 // Instalar service worker
 self.addEventListener("install", (event) => {
+  console.log("🔄 Service Worker: Instalando nueva versión", CACHE_NAME);
+
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(urlsToCache);
-    })
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => {
+        return cache.addAll(urlsToCache);
+      })
+      .then(() => {
+        // Forzar activación inmediata de la nueva versión
+        return self.skipWaiting();
+      })
   );
 });
 
 // Activar service worker
 self.addEventListener("activate", (event) => {
+  console.log("✅ Service Worker: Activando nueva versión", CACHE_NAME);
+
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches
+      .keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              console.log(
+                "🗑️ Service Worker: Eliminando cache antiguo",
+                cacheName
+              );
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => {
+        // Tomar control de todas las pestañas inmediatamente
+        return self.clients.claim();
+      })
   );
 });
 
@@ -78,5 +98,29 @@ self.addEventListener("fetch", (event) => {
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
+  }
+});
+
+// Notificar al cliente cuando hay una actualización disponible
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "CHECK_UPDATE") {
+    // Verificar si hay una nueva versión disponible
+    event.waitUntil(
+      self.registration
+        .update()
+        .then(() => {
+          // Notificar al cliente
+          event.ports[0].postMessage({
+            type: "UPDATE_AVAILABLE",
+            version: CACHE_NAME,
+          });
+        })
+        .catch(() => {
+          // No hay actualización disponible
+          event.ports[0].postMessage({
+            type: "NO_UPDATE",
+          });
+        })
+    );
   }
 });

@@ -5,6 +5,7 @@ import { KARAOKE_ROUTES } from "../types";
 import Spinner from "./spinner";
 import { KaraokeColors } from "../../colors";
 import Typography from "./typography";
+import { UpdateNotification } from "./update-notification";
 
 interface ProtectedKaraokeRouteProps {
   children: ReactNode;
@@ -37,7 +38,12 @@ export const ProtectedKaraokeRoute = ({
   }
 
   // Si hay usuario, mostrar el contenido protegido
-  return <>{children}</>;
+  return (
+    <>
+      <UpdateNotification />
+      {children}
+    </>
+  );
 };
 
 // Componente de loading para mostrar mientras se verifica la autenticación
