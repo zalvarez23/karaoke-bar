@@ -86,7 +86,6 @@ export const GreetingsModal: React.FC<GreetingsModalProps> = ({
         }, message.length * 100);
       }
     } catch (error) {
-      return;
       console.error("❌ Error enviando saludo:", error);
 
       // 🔄 Fallback a Web Speech API si el servicio principal falla
