@@ -1,6 +1,6 @@
 // 🎤 Configuración de Text-to-Speech
-// Cambiar a true para usar Google Cloud TTS, false para ElevenLabs
-export const USE_GOOGLE_TTS = true;
+// Orden de prioridad: ElevenLabs → Google TTS → Web Speech API
+export const USE_ELEVENLABS_FIRST = true;
 
 // Voces disponibles para español latino (verificadas y funcionando)
 const AVAILABLE_VOICES = [
@@ -103,7 +103,7 @@ export const TTS_CONFIG = {
   // Configuración para ElevenLabs (fallback)
   elevenlabs: {
     volume: 0.8,
-    rate: 0.9,
+    rate: 1,
     pitch: 1.2,
   },
 

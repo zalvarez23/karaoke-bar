@@ -35,6 +35,14 @@ export const VisitsManagePage: React.FC = () => {
   useEffect(() => {
     const unsubscribe = visitsServices().getAllVisitsOnSnapshot(
       (visitsData) => {
+        console.log("📋 Visitas cargadas:", visitsData.length);
+        visitsData.forEach((visit, index) => {
+          console.log(
+            `🔑 Visita ${index + 1} - ID: ${visit.id} | Estado: ${
+              visit.status
+            } | Ubicación: ${visit.location}`
+          );
+        });
         setVisits(visitsData);
         setLoading(false);
       }
