@@ -6,20 +6,14 @@ export class ElevenLabsService {
   private baseUrl: string = "https://api.elevenlabs.io/v1";
 
   // Array de voces latinas femeninas
-  private artistVoices = [
-    "JM2A9JbRp8XUJ7bdCXJc", // Fernanda Olea - Mujer chilena poderosa
-    "KuCuu213C5LmCbAvbEb8",
-  ];
+  private artistVoices = ["CR1lq7ib1ppidMQ84stE"];
 
   // Array de voces latinas masculinas (para opción futura)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
   constructor() {
     // Array de API keys con fallback
     this.apiKeys = [
-      import.meta.env.VITE_ELEVENLABS_API_KEY || "", // Key principal
-      "sk_3f83dda0185558df4d5ed52380bbd0954924ce9bff8ac1a0", // Key de respaldo 1
-      "sk_63c88917e29d931461411b03815cd3792af1832cf26553f8", // Key de respaldo 2
+      "sk_63c88917e29d931461411b03815cd3792af1832cf26553f8",
     ].filter((key) => key !== ""); // Filtrar keys vacías
   }
 
@@ -79,8 +73,8 @@ export class ElevenLabsService {
             model_id: "eleven_multilingual_v2",
             voice_settings: {
               stability: 0.5,
-              similarity_boost: 0.5,
-              style: 0.0,
+              similarity_boost: 0.7,
+              style: 0.5,
               use_speaker_boost: true,
             },
           },

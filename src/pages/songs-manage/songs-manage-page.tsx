@@ -10,7 +10,6 @@ import { SongsServices } from "./services/songs-services";
 import { ElevenLabsService } from "./services/elevenlabs-service";
 import { googleTtsService } from "./services/google-tts-service";
 import {
-  USE_GOOGLE_TTS,
   TTS_CONFIG,
   getRandomVoice,
   improveTextForTTS,
@@ -240,31 +239,39 @@ export const SongsManagePage: React.FC = () => {
           },
           onPlayGreeting: async (greeting: string) => {
             try {
-              if (USE_GOOGLE_TTS) {
-                // 🎤 Usar Google Cloud TTS (nuevo servicio)
-                console.log("🎤 Usando Google Cloud TTS");
-                const randomVoice = getRandomVoice();
-                console.log("🎲 Voz seleccionada:", randomVoice);
-
-                // Mejorar el texto para mejor pronunciación
-                const improvedGreeting = improveTextForTTS(greeting);
-                console.log("📝 Texto mejorado:", improvedGreeting);
-
-                await googleTtsService.synthesizeAndPlay(improvedGreeting, {
-                  ...TTS_CONFIG.google,
-                  voice: randomVoice,
-                });
-              } else {
-                // 🎤 Usar ElevenLabs (servicio original)
-                console.log("🎤 Usando ElevenLabs");
+              // 🎤 1. Intentar ElevenLabs primero (mejor calidad)
+              console.log("🎤 Intentando ElevenLabs primero para saludo");
+              try {
                 const audioBlob = await elevenLabsService().textToSpeech(
                   greeting
                 );
                 elevenLabsService().playAudio(
                   audioBlob,
-                  TTS_CONFIG.elevenlabs.volume
+                  TTS_CONFIG.elevenlabs.rate
+                );
+                return; // Éxito, salir de la función
+              } catch (elevenLabsError) {
+                console.log(
+                  "❌ ElevenLabs falló para saludo, intentando Google TTS:",
+                  elevenLabsError
                 );
               }
+
+              // 🎤 2. Fallback a Google Cloud TTS
+              console.log(
+                "🎤 Usando Google Cloud TTS como fallback para saludo"
+              );
+              const randomVoice = getRandomVoice();
+              console.log("🎲 Voz seleccionada:", randomVoice);
+
+              // Mejorar el texto para mejor pronunciación
+              const improvedGreeting = improveTextForTTS(greeting);
+              console.log("📝 Texto mejorado:", improvedGreeting);
+
+              await googleTtsService.synthesizeAndPlay(improvedGreeting, {
+                ...TTS_CONFIG.google,
+                voice: randomVoice,
+              });
             } catch (error) {
               console.error("❌ Error reproduciendo saludo:", error);
 

@@ -5,7 +5,7 @@ import { Megaphone, Volume2, Loader2 } from "lucide-react";
 import { ElevenLabsService } from "@/pages/songs-manage/services/elevenlabs-service";
 import { googleTtsService } from "@/pages/songs-manage/services/google-tts-service";
 import {
-  USE_GOOGLE_TTS,
+  USE_ELEVENLABS_FIRST,
   TTS_CONFIG,
   getRandomVoice,
   improveTextForTTS,
@@ -55,36 +55,42 @@ export const GreetingsModal: React.FC<GreetingsModalProps> = ({
     setIsPlaying(true);
 
     try {
-      if (USE_GOOGLE_TTS) {
-        // 🎤 Usar Google Cloud TTS (nuevo servicio)
-        console.log("🎤 Usando Google Cloud TTS");
-        const randomVoice = getRandomVoice();
-        console.log("🎲 Voz seleccionada:", randomVoice);
-
-        // Mejorar el texto para mejor pronunciación
-        const improvedMessage = improveTextForTTS(message);
-        console.log("📝 Texto mejorado:", improvedMessage);
-
-        await googleTtsService.synthesizeAndPlay(improvedMessage, {
-          ...TTS_CONFIG.google,
-          voice: randomVoice,
-        });
-
-        // Simular el tiempo de reproducción para actualizar el estado
-        setTimeout(() => {
-          setIsPlaying(false);
-        }, message.length * 100);
-      } else {
-        // 🎤 Usar ElevenLabs (servicio original)
-        console.log("🎤 Usando ElevenLabs");
+      // 🎤 1. Intentar ElevenLabs primero (mejor calidad)
+      console.log("🎤 Intentando ElevenLabs primero");
+      try {
         const audioBlob = await elevenLabsService().textToSpeech(message);
-        elevenLabsService().playAudio(audioBlob, TTS_CONFIG.elevenlabs.volume);
+        elevenLabsService().playAudio(audioBlob, TTS_CONFIG.elevenlabs.rate);
 
         // Simular el tiempo de reproducción para actualizar el estado
         setTimeout(() => {
           setIsPlaying(false);
         }, message.length * 100);
+        return; // Éxito, salir de la función
+      } catch (elevenLabsError) {
+        console.log(
+          "❌ ElevenLabs falló, intentando Google TTS:",
+          elevenLabsError
+        );
       }
+
+      // 🎤 2. Fallback a Google Cloud TTS
+      console.log("🎤 Usando Google Cloud TTS como fallback");
+      const randomVoice = getRandomVoice();
+      console.log("🎲 Voz seleccionada:", randomVoice);
+
+      // Mejorar el texto para mejor pronunciación
+      const improvedMessage = improveTextForTTS(message);
+      console.log("📝 Texto mejorado:", improvedMessage);
+
+      await googleTtsService.synthesizeAndPlay(improvedMessage, {
+        ...TTS_CONFIG.google,
+        voice: randomVoice,
+      });
+
+      // Simular el tiempo de reproducción para actualizar el estado
+      setTimeout(() => {
+        setIsPlaying(false);
+      }, message.length * 100);
     } catch (error) {
       console.error("❌ Error enviando saludo:", error);
 
@@ -155,12 +161,14 @@ export const GreetingsModal: React.FC<GreetingsModalProps> = ({
             <span className="text-xs text-gray-500">Usando:</span>
             <span
               className={`text-xs px-2 py-1 rounded-full font-medium ${
-                USE_GOOGLE_TTS
-                  ? "bg-green-100 text-green-700"
-                  : "bg-purple-100 text-purple-700"
+                USE_ELEVENLABS_FIRST
+                  ? "bg-purple-100 text-purple-700"
+                  : "bg-green-100 text-green-700"
               }`}
             >
-              {USE_GOOGLE_TTS ? "Google TTS" : "ElevenLabs"}
+              {USE_ELEVENLABS_FIRST
+                ? "ElevenLabs → Google TTS"
+                : "Google TTS → ElevenLabs"}
             </span>
           </div>
         </div>
