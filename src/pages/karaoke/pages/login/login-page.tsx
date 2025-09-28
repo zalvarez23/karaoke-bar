@@ -15,6 +15,7 @@ import { UserServices } from "../../shared/services";
 import { useUsersContext } from "../../shared/context";
 import { KARAOKE_ROUTES } from "../../shared/types";
 import { useUserStorage } from "../../shared/hooks/user/use-user-storage";
+import { KARAOKE_CONSTANTS } from "../../shared/constants/global.constants";
 
 type TFormData = {
   username: string;
@@ -245,23 +246,34 @@ export const KaraokeLoginPage: React.FC = () => {
 
         {/* Footer */}
         <div
-          className="absolute bottom-8 left-0 right-0 flex items-center justify-center space-x-2 mb-6"
+          className="absolute bottom-8 left-0 right-0 flex flex-col items-center justify-center space-y-3 mb-6"
           style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}
         >
+          <div className="flex items-center space-x-2">
+            <Typography
+              variant="body-md-semi"
+              color={KaraokeColors.base.white}
+              className="text-center"
+            >
+              ¿No tienes cuenta?
+            </Typography>
+            <Typography
+              variant="link-md-semi"
+              color={KaraokeColors.primary.primary400}
+              className="cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={handleGoToRegister}
+            >
+              Regístrate
+            </Typography>
+          </div>
+
+          {/* Version */}
           <Typography
-            variant="body-md-semi"
-            color={KaraokeColors.base.white}
-            className="text-center"
+            variant="body-sm-semi"
+            color={KaraokeColors.gray.gray400}
+            className="text-center opacity-70"
           >
-            ¿No tienes cuenta?
-          </Typography>
-          <Typography
-            variant="link-md-semi"
-            color={KaraokeColors.primary.primary400}
-            className="cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={handleGoToRegister}
-          >
-            Regístrate
+            v{KARAOKE_CONSTANTS.APP.VERSION}
           </Typography>
         </div>
 

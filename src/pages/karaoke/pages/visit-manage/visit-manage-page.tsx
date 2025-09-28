@@ -49,23 +49,9 @@ export const KaraokeVisitManagePage: FC = () => {
     state: { user },
   } = useUsersContext();
 
-  // LOGS TEMPORALES PARA VERIFICAR ESTADO DEL USUARIO
-  console.log("🔍 [MESAS] Usuario desde Context:", user);
-  console.log("🔍 [MESAS] Usuario ID:", user.id);
-  console.log(
-    "🔍 [MESAS] Usuario desde localStorage:",
-    localStorage.getItem("kantobar_karaoke_session_user")
-  );
-  console.log("🔍 [MESAS] currentVisit?.userId:", currentVisit?.userId);
-
   // Identificar si es host o invitado (igual que en el móvil)
   const isHost = currentVisit?.userId === user.id;
   const isGuest = currentVisit?.userId !== user.id;
-
-  // LOGS PARA VERIFICAR CÁLCULOS
-  console.log("🔍 [MESAS] isHost:", isHost);
-  console.log("🔍 [MESAS] isGuest:", isGuest);
-
   const locationServices = new LocationServices();
   const userServices = new UserServices();
   const visitServices = new VisitsServices();
