@@ -13,7 +13,7 @@ export const KARAOKE_CONSTANTS = {
   // Application settings
   APP: {
     NAME: "KantoBar Karaoke",
-    VERSION: "1.0.2",
+    VERSION: "1.0.3",
     DESCRIPTION: "Sistema de karaoke web para KantoBar",
   },
 
