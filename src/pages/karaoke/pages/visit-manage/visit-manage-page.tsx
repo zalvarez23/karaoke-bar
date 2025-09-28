@@ -29,6 +29,7 @@ import {
   VisitPendingState,
   ModalSearchSongs,
 } from "./components";
+import { getFirestore, addDoc, collection } from "firebase/firestore";
 
 export const KaraokeVisitManagePage: FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +55,31 @@ export const KaraokeVisitManagePage: FC = () => {
   const userServices = new UserServices();
   const visitServices = new VisitsServices();
   const reservationServices = new ReservationServices();
+  const db = getFirestore();
+
+  // Función para loggear errores a Firebase
+  const logErrorToFirebase = async (error: Error, context: string) => {
+    const errorData = {
+      error_message: error.message,
+      error_name: error.name,
+      error_stack: error.stack,
+      context: context,
+      user_id: user.id,
+      user_name: `${user.name} ${user.lastName}`,
+      table_selected: tableSelected?.name || "none",
+      timestamp: new Date().toISOString(),
+      user_agent: navigator.userAgent,
+      url: window.location.href,
+    };
+
+    try {
+      // Intentar guardar en Firebase
+      await addDoc(collection(db, "reservation_errors"), errorData);
+      console.log("✅ Error loggeado en Firebase");
+    } catch (logError) {
+      console.error("❌ Error loggeando a Firebase:", logError);
+    }
+  };
 
   useEffect(() => {
     locationServices.listenToLocations(setLocations);
@@ -119,6 +145,14 @@ export const KaraokeVisitManagePage: FC = () => {
       } catch (error) {
         lastError = error as Error;
         console.error(`❌ Intento ${attempt} falló:`, error);
+
+        // Loggear error a Firebase (no bloqueante)
+        logErrorToFirebase(
+          error as Error,
+          `Intento ${attempt} de reserva`
+        ).catch((logError) => {
+          console.error("❌ Error en logging (no crítico):", logError);
+        });
 
         if (attempt < maxRetries) {
           console.log(`⏳ Esperando 1 segundo antes del siguiente intento...`);
