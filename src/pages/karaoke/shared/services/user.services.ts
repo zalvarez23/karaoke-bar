@@ -22,130 +22,118 @@ export class UserServices implements IUserRepository {
   constructor() {}
 
   async login(loginUser: IUserLogin): Promise<IUser> {
-    try {
-      const usersCollection = collection(
-        this.db,
-        KARAOKE_CONSTANTS.FIREBASE.COLLECTIONS.USERS
-      );
+    const usersCollection = collection(
+      this.db,
+      KARAOKE_CONSTANTS.FIREBASE.COLLECTIONS.USERS
+    );
 
-      // Buscar por generatedUsername primero, luego por documentNumber para compatibilidad
-      let querySnapshot = await getDocs(
+    // Buscar por generatedUsername primero, luego por documentNumber para compatibilidad
+    let querySnapshot = await getDocs(
+      query(
+        usersCollection,
+        where("generatedUsername", "==", loginUser.username.toLowerCase())
+      )
+    );
+
+    // Si no encuentra por generatedUsername, buscar por documentNumber (compatibilidad)
+    if (querySnapshot.empty) {
+      querySnapshot = await getDocs(
         query(
           usersCollection,
-          where("generatedUsername", "==", loginUser.username.toLowerCase())
+          where("documentNumber", "==", loginUser.username.toLowerCase())
         )
       );
-
-      // Si no encuentra por generatedUsername, buscar por documentNumber (compatibilidad)
-      if (querySnapshot.empty) {
-        querySnapshot = await getDocs(
-          query(
-            usersCollection,
-            where("documentNumber", "==", loginUser.username.toLowerCase())
-          )
-        );
-      }
-
-      if (querySnapshot.empty) {
-        throw new Error("Usuario no encontrado, vuelva a intentarlo");
-      }
-
-      const document = querySnapshot.docs[0];
-      const user = document.data() as IUser;
-
-      if (user.password !== loginUser.password) {
-        throw new Error("Contraseña incorrecta, vuelva a intentarlo");
-      }
-
-      return {
-        ...user,
-        id: document.id,
-      };
-    } catch (error) {
-      throw error;
     }
+
+    if (querySnapshot.empty) {
+      throw new Error("Usuario no encontrado, vuelva a intentarlo");
+    }
+
+    const document = querySnapshot.docs[0];
+    const user = document.data() as IUser;
+
+    if (user.password !== loginUser.password) {
+      throw new Error("Contraseña incorrecta, vuelva a intentarlo");
+    }
+
+    return {
+      ...user,
+      id: document.id,
+    };
   }
 
   async register(user: IUser): Promise<string> {
-    try {
-      user.creationDate = new Date();
-      user.status = EUserStatus.active;
+    user.creationDate = new Date();
+    user.status = EUserStatus.active;
 
-      // Usar el teléfono como usuario y contraseña
-      const phoneAsUsername = user.phone.toString();
-      user.generatedUsername = phoneAsUsername;
-      user.password = phoneAsUsername;
+    // Usar el teléfono como usuario y contraseña
+    const phoneAsUsername = user.phone.toString();
+    user.generatedUsername = phoneAsUsername;
+    user.password = phoneAsUsername;
 
-      // Manejar campos opcionales
-      if (!user.email) {
-        user.email = ""; // Valor por defecto para email opcional
-      }
-      if (!user.gender) {
-        user.gender = EGenders.other; // Valor por defecto para género opcional
-      }
+    // Manejar campos opcionales
+    if (!user.email) {
+      user.email = ""; // Valor por defecto para email opcional
+    }
+    if (!user.gender) {
+      user.gender = EGenders.other; // Valor por defecto para género opcional
+    }
 
-      user.additionalInfo = {
+    user.additionalInfo = {
+      cardType: "classic" as TCardType,
+      isOnline: false,
+      lastVisit: new Date(),
+      visits: 0,
+      points: 1,
+    };
+
+    const usersCollection = collection(
+      this.db,
+      KARAOKE_CONSTANTS.FIREBASE.COLLECTIONS.USERS
+    );
+    const docRef = await addDoc(usersCollection, user);
+    return docRef.id;
+  }
+
+  async registerGuest(name: string): Promise<IUser> {
+    // Generar un ID único para el invitado usando timestamp + random
+    const guestId = `guest_${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
+
+    const guestUser: IUser = {
+      id: "", // Se asignará después de crear el documento
+      name: name.trim(),
+      lastName: "", // Vacío para invitados
+      phone: 0, // 0 para invitados
+      documentNumber: 0, // 0 para invitados
+      email: "", // Vacío para invitados
+      gender: EGenders.other, // Valor por defecto
+      status: EUserStatus.active,
+      creationDate: new Date(),
+      password: guestId, // Usar el ID generado como contraseña
+      generatedUsername: guestId, // Usar el ID generado como usuario
+      isGuest: true, // Marcar como usuario invitado
+      additionalInfo: {
         cardType: "classic" as TCardType,
         isOnline: false,
         lastVisit: new Date(),
         visits: 0,
         points: 1,
-      };
+      },
+    };
 
-      const usersCollection = collection(
-        this.db,
-        KARAOKE_CONSTANTS.FIREBASE.COLLECTIONS.USERS
-      );
-      const docRef = await addDoc(usersCollection, user);
-      return docRef.id;
-    } catch (error) {
-      throw error;
-    }
-  }
+    const usersCollection = collection(
+      this.db,
+      KARAOKE_CONSTANTS.FIREBASE.COLLECTIONS.USERS
+    );
+    const docRef = await addDoc(usersCollection, guestUser);
 
-  async registerGuest(name: string): Promise<IUser> {
-    try {
-      // Generar un ID único para el invitado usando timestamp + random
-      const guestId = `guest_${Date.now()}_${Math.random()
-        .toString(36)
-        .substr(2, 9)}`;
-
-      const guestUser: IUser = {
-        id: "", // Se asignará después de crear el documento
-        name: name.trim(),
-        lastName: "", // Vacío para invitados
-        phone: 0, // 0 para invitados
-        documentNumber: 0, // 0 para invitados
-        email: "", // Vacío para invitados
-        gender: EGenders.other, // Valor por defecto
-        status: EUserStatus.active,
-        creationDate: new Date(),
-        password: guestId, // Usar el ID generado como contraseña
-        generatedUsername: guestId, // Usar el ID generado como usuario
-        isGuest: true, // Marcar como usuario invitado
-        additionalInfo: {
-          cardType: "classic" as TCardType,
-          isOnline: false,
-          lastVisit: new Date(),
-          visits: 0,
-          points: 1,
-        },
-      };
-
-      const usersCollection = collection(
-        this.db,
-        KARAOKE_CONSTANTS.FIREBASE.COLLECTIONS.USERS
-      );
-      const docRef = await addDoc(usersCollection, guestUser);
-
-      // Retornar el usuario completo con el ID asignado
-      return {
-        ...guestUser,
-        id: docRef.id,
-      };
-    } catch (error) {
-      throw error;
-    }
+    // Retornar el usuario completo con el ID asignado
+    return {
+      ...guestUser,
+      id: docRef.id,
+    };
   }
 
   getToUserById(
@@ -185,18 +173,14 @@ export class UserServices implements IUserRepository {
   }
 
   async updatePassword(userId: string, newPassword: string): Promise<void> {
-    try {
-      const userDoc = doc(
-        this.db,
-        KARAOKE_CONSTANTS.FIREBASE.COLLECTIONS.USERS,
-        userId
-      );
-      await updateDoc(userDoc, {
-        password: newPassword.toLowerCase(),
-      });
-    } catch (error) {
-      throw error;
-    }
+    const userDoc = doc(
+      this.db,
+      KARAOKE_CONSTANTS.FIREBASE.COLLECTIONS.USERS,
+      userId
+    );
+    await updateDoc(userDoc, {
+      password: newPassword.toLowerCase(),
+    });
   }
 
   async requestAccountDeletion(
@@ -207,18 +191,14 @@ export class UserServices implements IUserRepository {
       reason: string;
     }
   ): Promise<void> {
-    try {
-      const userDoc = doc(
-        this.db,
-        KARAOKE_CONSTANTS.FIREBASE.COLLECTIONS.USERS,
-        userId
-      );
-      await updateDoc(userDoc, {
-        accountDeletionRequest: deletionRequest,
-      });
-    } catch (error) {
-      throw error;
-    }
+    const userDoc = doc(
+      this.db,
+      KARAOKE_CONSTANTS.FIREBASE.COLLECTIONS.USERS,
+      userId
+    );
+    await updateDoc(userDoc, {
+      accountDeletionRequest: deletionRequest,
+    });
   }
 
   async updateStatusUser(id: string, isOnline: boolean): Promise<void> {

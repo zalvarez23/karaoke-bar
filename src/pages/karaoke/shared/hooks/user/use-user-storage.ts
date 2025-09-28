@@ -21,14 +21,16 @@ export const useUserStorage = () => {
     }
   }, []);
 
-  const getUser = useCallback(async (): Promise<IUser | null> => {
+  const getUser = useCallback((): IUser | null => {
     try {
       const userData = localStorage.getItem(STORAGE_KEYS.SESSION_USER);
+
       if (userData) {
-        return JSON.parse(userData) as IUser;
+        const parsedUser = JSON.parse(userData) as IUser;
+        return parsedUser;
       }
       return null;
-    } catch (err) {
+    } catch (error) {
       return null;
     }
   }, []);

@@ -5,6 +5,7 @@ import {
   Typography,
   ConfirmModal,
   UserItemSong,
+  Spinner,
 } from "../../shared/components";
 import { LocationServices, ReservationServices } from "../../shared/services";
 import { ILocations } from "../../shared/types/location.types";
@@ -33,6 +34,7 @@ import { getFirestore, addDoc, collection } from "firebase/firestore";
 
 export const KaraokeVisitManagePage: FC = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMesas, setIsLoadingMesas] = useState(true);
   const [locations, setLocations] = useState<ILocations[]>([]);
   const [tableSelected, setTableSelected] = useState<ILocations | undefined>(
     undefined
@@ -47,9 +49,22 @@ export const KaraokeVisitManagePage: FC = () => {
     state: { user },
   } = useUsersContext();
 
+  // LOGS TEMPORALES PARA VERIFICAR ESTADO DEL USUARIO
+  console.log("🔍 [MESAS] Usuario desde Context:", user);
+  console.log("🔍 [MESAS] Usuario ID:", user.id);
+  console.log(
+    "🔍 [MESAS] Usuario desde localStorage:",
+    localStorage.getItem("kantobar_karaoke_session_user")
+  );
+  console.log("🔍 [MESAS] currentVisit?.userId:", currentVisit?.userId);
+
   // Identificar si es host o invitado (igual que en el móvil)
   const isHost = currentVisit?.userId === user.id;
   const isGuest = currentVisit?.userId !== user.id;
+
+  // LOGS PARA VERIFICAR CÁLCULOS
+  console.log("🔍 [MESAS] isHost:", isHost);
+  console.log("🔍 [MESAS] isGuest:", isGuest);
 
   const locationServices = new LocationServices();
   const userServices = new UserServices();
@@ -82,7 +97,15 @@ export const KaraokeVisitManagePage: FC = () => {
   };
 
   useEffect(() => {
-    locationServices.listenToLocations(setLocations);
+    const loadLocations = () => {
+      setIsLoadingMesas(true);
+      locationServices.listenToLocations((newLocations) => {
+        setLocations(newLocations);
+        setIsLoadingMesas(false);
+      });
+    };
+
+    loadLocations();
 
     return () => {
       locationServices.stopListening();
@@ -669,25 +692,40 @@ export const KaraokeVisitManagePage: FC = () => {
       <div className="flex-1 px-6">
         {/* Grid de Mesas */}
         <div className="mt-2.5">
-          {tableRows.map((row, rowIndex) => (
-            <div key={rowIndex} className="flex justify-between mb-5">
-              {row.map((location) => (
-                <TableLocation
-                  key={`location-${location.id || location.name}`}
-                  item={location}
-                  tableSelected={tableSelected?.id}
-                  onSelectTable={handleSelectTable}
-                />
-              ))}
-              {/* Rellenar espacios vacíos si la fila no tiene 5 elementos */}
-              {Array.from({ length: 5 - row.length }).map((_, index) => (
-                <div
-                  key={`empty-${rowIndex}-${index}`}
-                  className="flex-1 mx-2.5"
-                />
-              ))}
+          {isLoadingMesas ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <Spinner size={30} color={KaraokeColors.base.white} />
+              <Typography
+                variant="body-sm-semi"
+                className="mt-3 text-center"
+                color={KaraokeColors.gray.gray300}
+              >
+                Cargando mesas...
+              </Typography>
             </div>
-          ))}
+          ) : (
+            <>
+              {tableRows.map((row, rowIndex) => (
+                <div key={rowIndex} className="flex justify-between mb-5">
+                  {row.map((location) => (
+                    <TableLocation
+                      key={`location-${location.id || location.name}`}
+                      item={location}
+                      tableSelected={tableSelected?.id}
+                      onSelectTable={handleSelectTable}
+                    />
+                  ))}
+                  {/* Rellenar espacios vacíos si la fila no tiene 5 elementos */}
+                  {Array.from({ length: 5 - row.length }).map((_, index) => (
+                    <div
+                      key={`empty-${rowIndex}-${index}`}
+                      className="flex-1 mx-2.5"
+                    />
+                  ))}
+                </div>
+              ))}
+            </>
+          )}
         </div>
 
         {/* Leyenda */}

@@ -25,7 +25,6 @@ export const KaraokeLoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isCheckingStorage, setIsCheckingStorage] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string>("");
-
   const userService = new UserServices();
   const { setUser: setUserState } = useUsersContext();
   const { setUser: setUserStorage, getUser: getUserStorage } = useUserStorage();
@@ -47,31 +46,31 @@ export const KaraokeLoginPage: React.FC = () => {
   const watchedValues = watch();
   const isError = Object.keys(errors).length > 0;
 
-  // Verificar si ya hay un usuario guardado
   useEffect(() => {
     const checkStoredUser = async () => {
       try {
-        const storedUser = await getUserStorage();
+        const storedUser = getUserStorage();
 
-        // Agregar 1 segundo adicional al loading para mejor UX
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
         if (storedUser) {
           // Si hay usuario guardado, el contexto ya lo cargará automáticamente
           // Redirigir directamente a mesas
+          setUserState(storedUser);
+          setIsCheckingStorage(true);
           navigate(KARAOKE_ROUTES.MESAS, { replace: true });
         } else {
           // No hay usuario guardado, mostrar formulario
           setIsCheckingStorage(false);
         }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
-        console.log("No hay usuario guardado");
+        console.log("error", error);
         setIsCheckingStorage(false);
       }
     };
+
     checkStoredUser();
-  }, [getUserStorage, navigate]);
+  }, []); // Sin dependencias para que solo se ejecute una vez
 
   const handleOnLogIn = async (userData: TFormData) => {
     try {

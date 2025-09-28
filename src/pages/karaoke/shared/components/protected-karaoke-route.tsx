@@ -13,23 +13,20 @@ interface ProtectedKaraokeRouteProps {
 export const ProtectedKaraokeRoute = ({
   children,
 }: ProtectedKaraokeRouteProps) => {
-  const { state, isInitialized } = useUsersContext();
+  const { state } = useUsersContext();
   const navigate = useNavigate();
 
   // Efecto para redirigir cuando no hay usuario autenticado
   useEffect(() => {
-    if (
-      isInitialized &&
-      (!state.user || (!state.user.id && !state.user.isGuest))
-    ) {
+    if (!state.user || (!state.user.id && !state.user.isGuest)) {
       navigate(KARAOKE_ROUTES.LOGIN, { replace: true });
     }
-  }, [isInitialized, state.user, navigate]);
+  }, [state.user, navigate]);
 
   // Mostrar loading mientras se inicializa el contexto
-  if (!isInitialized) {
-    return <KaraokeLoadingScreen />;
-  }
+  // if (!isInitialized) {
+  //   return <KaraokeLoadingScreen />;
+  // }
 
   // Si no hay usuario autenticado (ni usuario normal ni invitado), mostrar loading mientras redirige
   if (!state.user || (!state.user.id && !state.user.isGuest)) {
