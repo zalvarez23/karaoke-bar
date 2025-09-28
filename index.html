@@ -83,6 +83,13 @@
               // Verificar actualizaciones cada vez que se carga la página
               registration.update();
 
+              // Forzar actualización cada 30 segundos si la página está activa
+              setInterval(() => {
+                if (!document.hidden) {
+                  registration.update();
+                }
+              }, 30000);
+
               // Escuchar actualizaciones del service worker
               registration.addEventListener("updatefound", () => {
                 console.log("🔄 Nueva versión del Service Worker encontrada");

@@ -1,5 +1,5 @@
 // Service Worker para KantoBar Karaoke PWA
-const CACHE_NAME = "kantobar-karaoke-v1.6.0";
+const CACHE_NAME = "kantobar-karaoke-v1.6.1";
 const urlsToCache = ["/karaoke/", "/kantobar-icon.svg", "/manifest.json"];
 
 // Instalar service worker
@@ -66,31 +66,27 @@ self.addEventListener("fetch", (event) => {
   }
 
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      // Si está en cache, devolverlo
-      if (response) {
-        return response;
-      }
-
-      // Si no está en cache, hacer fetch y cachear
-      return fetch(event.request).then((response) => {
+    fetch(event.request)
+      .then((response) => {
         // Verificar que la respuesta sea válida
         if (!response || response.status !== 200 || response.type !== "basic") {
           return response;
         }
 
-        // La validación de URL ya se hizo al inicio del evento
-
         // Clonar la respuesta
         const responseToCache = response.clone();
 
+        // Cachear la nueva respuesta
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, responseToCache);
         });
 
         return response;
-      });
-    })
+      })
+      .catch(() => {
+        // Si falla la red, intentar servir desde cache
+        return caches.match(event.request);
+      })
   );
 });
 
