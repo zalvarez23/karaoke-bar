@@ -6,7 +6,7 @@ import {
   ConfirmModal,
   UserItemSong,
 } from "../../shared/components";
-import { LocationServices } from "../../shared/services";
+import { LocationServices, ReservationServices } from "../../shared/services";
 import { ILocations } from "../../shared/types/location.types";
 import { UserServices } from "../../shared/services";
 import { useUsersContext } from "../../shared/context";
@@ -53,6 +53,7 @@ export const KaraokeVisitManagePage: FC = () => {
   const locationServices = new LocationServices();
   const userServices = new UserServices();
   const visitServices = new VisitsServices();
+  const reservationServices = new ReservationServices();
 
   useEffect(() => {
     locationServices.listenToLocations(setLocations);
@@ -90,40 +91,47 @@ export const KaraokeVisitManagePage: FC = () => {
   };
 
   const locationReservedOperations = async () => {
-    try {
-      setIsLoading(true);
+    const maxRetries = 3;
+    let lastError: Error | null = null;
 
-      // Actualizar el estado del usuario a online
-      await userServices.updateStatusUser(user.id, true);
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        setIsLoading(true);
+        console.log(`🔄 Intento ${attempt}/${maxRetries} de reserva`);
 
-      // Cambiar el estado de la mesa a ocupada (igual que en móvil)
-      await locationServices.changeStatusLocation(
-        tableSelected?.id || "",
-        "occupied"
-      );
+        // Realizar reserva atómica
+        const reservationData = {
+          userId: user.id,
+          userName: `${user.name} ${user.lastName}`,
+          location: tableSelected?.name || "",
+          locationId: tableSelected?.id || "",
+        };
 
-      // Determinar el estado inicial de la visita
-      const initialVisitStatus = "pending" as const;
+        console.log("🔄 Creando reserva:", reservationData);
+        const visitId = await reservationServices.createReservation(
+          reservationData
+        );
+        console.log("✅ Reserva creada exitosamente con ID:", visitId);
 
-      // Guardar la visita con estado inicial
-      const visitData = {
-        userId: user.id,
-        userName: `${user.name} ${user.lastName}`,
-        location: tableSelected?.name,
-        locationId: tableSelected?.id,
-        status: initialVisitStatus,
-      };
+        console.log(`✅ Reserva completada exitosamente en intento ${attempt}`);
+        setTableSelected(undefined);
+        return; // Éxito, salir del loop
+      } catch (error) {
+        lastError = error as Error;
+        console.error(`❌ Intento ${attempt} falló:`, error);
 
-      console.log("🔄 Guardando visita:", visitData);
-      const visitId = await visitServices.saveVisit(visitData);
-      console.log("✅ Visita guardada con ID:", visitId);
-
-      setTableSelected(undefined);
-    } catch {
-      alert("Tenemos inconvenientes con la conexión, inténtelo en un momento.");
-    } finally {
-      setIsLoading(false);
+        if (attempt < maxRetries) {
+          console.log(`⏳ Esperando 1 segundo antes del siguiente intento...`);
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+      } finally {
+        setIsLoading(false);
+      }
     }
+
+    // Si llegamos aquí, todos los intentos fallaron
+    console.error(`❌ Todos los intentos fallaron. Último error:`, lastError);
+    alert("Tenemos inconvenientes con la conexión, inténtelo nuevamente.");
   };
 
   const handleReservedOperations = () => {
