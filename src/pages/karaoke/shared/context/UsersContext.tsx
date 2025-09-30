@@ -37,7 +37,7 @@ const UsersContext = createContext<
   | {
       state: UsersState;
       setUser: (user: IUser) => void;
-      updateOnlineStatus: (isOnline: boolean) => void;
+      updateOnlineStatus: (isOnline: boolean) => Promise<void>;
       logout: () => Promise<void>;
     }
   | undefined
@@ -58,17 +58,22 @@ export const UsersProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Actualizar el estado de "isOnline"
-  const updateOnlineStatus = (isOnline: boolean) => {
+  const updateOnlineStatus = async (isOnline: boolean) => {
+    const updatedUser = {
+      ...state.user,
+      additionalInfo: {
+        ...state.user.additionalInfo,
+        isOnline,
+      },
+    };
+
     setState((prevState) => ({
       ...prevState,
-      user: {
-        ...prevState.user,
-        additionalInfo: {
-          ...prevState.user.additionalInfo,
-          isOnline,
-        },
-      },
+      user: updatedUser,
     }));
+
+    // Actualizar también en localStorage
+    await setUserStorage(updatedUser);
   };
 
   // Función para cerrar sesión

@@ -1,7 +1,14 @@
 module.exports = {
   theme: {
     fontFamily: {
-      gibson: ["var(--font-gibson)"],
+      hurme: ["var(--font-hurme)"],
+    },
+    letterSpacing: {
+      hurme: "var(--font-hurme-spacing)",
+      "hurme-tight": "0.015em", // Más estrecho
+      "hurme-normal": "0.025em", // Normal (actual)
+      "hurme-wide": "0.035em", // Más amplio
+      "hurme-wider": "0.05em", // Muy amplio
     },
     colors: {
       primary: {
@@ -203,6 +210,40 @@ module.exports = {
       black: "#000000",
       white: "#ffffff",
       transparent: "transparent",
+      base: {
+        blackLight: "rgb(19, 20, 30)",
+      },
+    },
+    animation: {
+      "bounce-small": "bounce-small 0.3s ease-in-out",
+      "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+      ripple: "ripple 0.6s ease-out",
+    },
+    keyframes: {
+      "bounce-small": {
+        "0%, 20%, 50%, 80%, 100%": { transform: "translateY(0)" },
+        "40%": { transform: "translateY(-2px)" },
+        "60%": { transform: "translateY(-1px)" },
+      },
+      ripple: {
+        "0%": {
+          transform: "scale(0)",
+          opacity: "1",
+        },
+        "100%": {
+          transform: "scale(4)",
+          opacity: "0",
+        },
+      },
+    },
+    transitionTimingFunction: {
+      "bounce-in": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+      smooth: "cubic-bezier(0.4, 0, 0.2, 1)",
+    },
+    scale: {
+      102: "1.02",
+      98: "0.98",
+      104: "1.04",
     },
   },
 };

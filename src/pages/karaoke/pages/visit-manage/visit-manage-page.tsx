@@ -47,6 +47,7 @@ export const KaraokeVisitManagePage: FC = () => {
 
   const {
     state: { user },
+    updateOnlineStatus,
   } = useUsersContext();
 
   // Identificar si es host o invitado (igual que en el móvil)
@@ -147,6 +148,9 @@ export const KaraokeVisitManagePage: FC = () => {
           reservationData
         );
         console.log("✅ Reserva creada exitosamente con ID:", visitId);
+
+        // Actualizar el estado online en el contexto y localStorage
+        await updateOnlineStatus(true);
 
         console.log(`✅ Reserva completada exitosamente en intento ${attempt}`);
         setTableSelected(undefined);
@@ -266,6 +270,9 @@ export const KaraokeVisitManagePage: FC = () => {
       );
     }
 
+    // 4. Actualizar el estado online en el contexto y localStorage
+    await updateOnlineStatus(false);
+
     console.log("✅ Host salió de mesa correctamente");
   };
 
@@ -282,6 +289,8 @@ export const KaraokeVisitManagePage: FC = () => {
 
     // 3. NO cancelar la visita (sigue activa para el host)
     // 4. NO liberar la mesa (el host sigue ahí)
+    // 5. Actualizar el estado online en el contexto y localStorage
+    await updateOnlineStatus(false);
 
     console.log("✅ Invitado salió de mesa correctamente");
   };

@@ -7,32 +7,40 @@
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   background-color: white;
-  --font-gibson: "Gibson", sans-serif;
+  --font-hurme: "HurmeGeometricSans4", sans-serif;
+  --font-hurme-spacing: 0.095em; /* Letter spacing global para Hurme */
 }
 @font-face {
-  font-family: "Gibson";
-  src: url("./assets/fonts/gibson_regular.woff") format("woff");
+  font-family: "HurmeGeometricSans4";
+  src: url("./assets/fonts/HurmeGeometricSans4-Regular.woff") format("woff");
   font-weight: 400;
   font-style: normal;
 }
 
 @font-face {
-  font-family: "Gibson";
-  src: url("./assets/fonts/gibson_medium.woff") format("woff");
-  font-weight: 500;
+  font-family: "HurmeGeometricSans4";
+  src: url("./assets/fonts/HurmeGeometricSans4-Light.woff") format("woff");
+  font-weight: 300;
   font-style: normal;
 }
 
 @font-face {
-  font-family: "Gibson";
-  src: url("./assets/fonts/gibson_semibold.woff") format("woff");
+  font-family: "HurmeGeometricSans4";
+  src: url("./assets/fonts/HurmeGeometricSans4-SemiBold.woff") format("woff");
   font-weight: 600;
   font-style: normal;
 }
 
+@font-face {
+  font-family: "HurmeGeometricSans4";
+  src: url("./assets/fonts/HurmeGeometricSans4-Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+}
+
 body {
-  font-family: "Gibson", sans-serif !important;
-  letter-spacing: 0.035em;
+  font-family: "HurmeGeometricSans4", sans-serif !important;
+  letter-spacing: var(--font-hurme-spacing);
   /* Ocultar barras de navegación en móvil */
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: none;
@@ -67,6 +75,24 @@ html {
   position: relative;
   /* Prevenir bounce scroll en iOS */
   overscroll-behavior: none;
+}
+
+/* Clases globales para aplicar Hurme con diferentes letter-spacings */
+.font-hurme-styled {
+  font-family: var(--font-hurme);
+  letter-spacing: var(--font-hurme-spacing);
+}
+
+/* Para títulos grandes que necesitan más espacio */
+.font-hurme-heading {
+  font-family: var(--font-hurme);
+  letter-spacing: 0.035em;
+}
+
+/* Para texto pequeño que necesita menos espacio */
+.font-hurme-small {
+  font-family: var(--font-hurme);
+  letter-spacing: 0.015em;
 }
 
 /* Regla específica para iOS */

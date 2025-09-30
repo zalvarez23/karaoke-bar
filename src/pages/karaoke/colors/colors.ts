@@ -11,6 +11,8 @@ export const KaraokeColors = {
     darkPrimary: "#191720",
     lightPrimary: "#1e1c24",
     extraDark: "#0A0A0A",
+    secondary: "#c49b5e",
+    secondaryLight: "rgb(245 221 172)",
   },
   gray: {
     gray950: "#141414",

@@ -131,7 +131,8 @@ const Typography: React.FC<TypographyProps> = ({
   };
 
   const classes = cn(
-    "font-gibson", // Usando la fuente Gibson del proyecto
+    "font-hurme", // Usando la fuente HurmeGeometricSans4 del proyecto
+    "font-hurme-styled", // Aplica automaticamente el letter-spacing global
     getVariantClasses(variant),
     getColorClass(),
     className

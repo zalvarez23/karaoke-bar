@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut } from "lucide-react";
 import { KaraokeColors } from "../../colors";
-import { Avatar, Typography } from "./index";
+import { Typography } from "./index";
 import { useUsersContext } from "../context";
 import { KARAOKE_ROUTES } from "../types";
 import { IUser } from "../types/user.types";
@@ -42,19 +41,22 @@ export const HeaderScreen = ({ user }: THeaderScreenProps) => {
 
   return (
     <>
-      <div className="w-full flex flex-row justify-between items-center mt-5">
-        {/* Profile Section */}
+      <div className="w-full flex flex-row justify-between items-center mt-5 mb-10">
         <div
-          className={`flex flex-row items-center gap-5 transition-opacity ${
-            user?.isGuest ? "opacity-70" : "cursor-pointer hover:opacity-80"
-          }`}
+          className={`flex flex-row items-center gap-5 transition-opacity`}
           onClick={handleGoToProfile}
         >
-          <Avatar image="avatarGirl" />
           <div>
             <Typography
-              variant="body-lg-semi"
+              variant="headline-lg-semi"
               color={KaraokeColors.base.white}
+              className="mb-2"
+            >
+              Bienvenido,
+            </Typography>
+            <Typography
+              variant="body-lg-semi"
+              color={KaraokeColors.base.secondaryLight}
               className="capitalize"
             >
               {
@@ -65,20 +67,19 @@ export const HeaderScreen = ({ user }: THeaderScreenProps) => {
                     }` // Para usuarios normales mostrar nombre y apellido abreviados
               }
             </Typography>
-            <Typography variant="body-sm" color={KaraokeColors.gray.gray200}>
-              {user?.isGuest ? "Modo invitado" : "Cantante profesional"}
-            </Typography>
           </div>
         </div>
 
         {/* Actions Section */}
         <div className="flex flex-row items-center gap-4">
-          <LogOut
-            size={30}
-            color={KaraokeColors.base.white}
-            className="cursor-pointer hover:opacity-80 transition-opacity"
+          <Typography
+            variant="label-md-semi"
+            color={KaraokeColors.base.secondaryLight}
+            className="cursor-pointer hover:opacity-80 transition-opacity underline"
             onClick={handleLogout}
-          />
+          >
+            Salir
+          </Typography>
         </div>
       </div>
 

@@ -99,8 +99,6 @@ export const ModalPersonsLive: FC<ModalPersonsLiveProps> = ({
     setShowConfirmModal(true);
   };
 
-  console.log(user);
-
   if (!visible) return null;
 
   return (

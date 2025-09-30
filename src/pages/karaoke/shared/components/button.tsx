@@ -73,7 +73,7 @@ const Button: React.FC<ButtonProps> = ({
   };
 
   const baseClasses =
-    "inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none";
+    "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 ease-smooth focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-98 active:transition-all active:duration-75";
 
   const buttonClasses = cn(
     baseClasses,
