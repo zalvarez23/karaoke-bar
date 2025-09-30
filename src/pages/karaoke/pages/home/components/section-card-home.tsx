@@ -29,7 +29,7 @@ export const SectionCardHome = ({
         isDisabled
           ? "opacity-50 cursor-not-allowed"
           : "cursor-pointer hover:scale-102 hover:shadow-lg active:scale-98 active:translate-y-0.5 active:transition-all active:duration-75"
-      } ${highlight ? "border-2 border-purple-500 animate-pulse-slow" : ""}`}
+      } ${highlight ? "border-2 border-purple-500 animate-pulse" : ""}`}
       onClick={isDisabled ? undefined : onClick}
     >
       <div className="flex flex-row gap-4 items-center">
