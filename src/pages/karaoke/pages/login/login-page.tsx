@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Phone, Lock } from "lucide-react";
@@ -11,7 +11,7 @@ import {
   StatusModal,
   type ModalRef,
 } from "../../shared/components";
-import { UserServices } from "../../shared/services";
+import { UserServices, VisitsServices } from "../../shared/services";
 import { useUsersContext } from "../../shared/context";
 import { KARAOKE_ROUTES } from "../../shared/types";
 import { useUserStorage } from "../../shared/hooks/user/use-user-storage";
@@ -26,7 +26,8 @@ export const KaraokeLoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isCheckingStorage, setIsCheckingStorage] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const userService = new UserServices();
+  const userService = useMemo(() => new UserServices(), []);
+  const visitsService = useMemo(() => new VisitsServices(), []);
   const { setUser: setUserState } = useUsersContext();
   const { setUser: setUserStorage, getUser: getUserStorage } = useUserStorage();
   const statusModalRef = useRef<ModalRef>(null);
@@ -52,26 +53,63 @@ export const KaraokeLoginPage: React.FC = () => {
       try {
         const storedUser = getUserStorage();
 
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
         if (storedUser) {
-          // Si hay usuario guardado, el contexto ya lo cargará automáticamente
-          // Redirigir directamente a mesas
+          // Si hay usuario guardado, verificar si tiene visita online
           setUserState(storedUser);
           setIsCheckingStorage(true);
-          navigate(KARAOKE_ROUTES.MESAS, { replace: true });
+
+          // Verificar si el usuario tiene una visita online con retry
+          let visitCheck;
+          let retryCount = 0;
+          const maxRetries = 3;
+
+          while (retryCount < maxRetries) {
+            try {
+              visitCheck = await visitsService.checkUserOnlineVisit(
+                storedUser.id
+              );
+              break; // Si es exitoso, salir del loop
+            } catch (error) {
+              retryCount++;
+              console.log("retryCount", retryCount);
+              console.log(
+                `Intento ${retryCount} falló, reintentando...`,
+                error
+              );
+
+              if (retryCount >= maxRetries) {
+                console.log(
+                  "Máximo de reintentos alcanzado, asumiendo sin visita online"
+                );
+                visitCheck = { hasOnlineVisit: false };
+                break;
+              }
+
+              // Esperar 1 segundo antes del siguiente intento
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+            }
+          }
+
+          if (visitCheck?.hasOnlineVisit) {
+            // Si tiene visita online, redirigir a mesas
+            navigate(KARAOKE_ROUTES.MESAS, { replace: true });
+          } else {
+            // Si no tiene visita online, redirigir a home
+            navigate(KARAOKE_ROUTES.HOME, { replace: true });
+          }
         } else {
           // No hay usuario guardado, mostrar formulario
           setIsCheckingStorage(false);
         }
       } catch (error) {
-        console.log("error", error);
+        console.error("Error checking stored user:", error);
         setIsCheckingStorage(false);
       }
     };
 
     checkStoredUser();
-  }, []); // Sin dependencias para que solo se ejecute una vez
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Dependencias necesarias
 
   const handleOnLogIn = async (userData: TFormData) => {
     try {
@@ -80,8 +118,39 @@ export const KaraokeLoginPage: React.FC = () => {
       setUserState(res);
       setUserStorage(res);
 
-      // Navegar directamente a mesas
-      navigate(KARAOKE_ROUTES.MESAS, { replace: true });
+      // Verificar si el usuario tiene una visita online con retry
+      let visitCheck;
+      let retryCount = 0;
+      const maxRetries = 3;
+
+      while (retryCount < maxRetries) {
+        try {
+          visitCheck = await visitsService.checkUserOnlineVisit(res.id);
+          break; // Si es exitoso, salir del loop
+        } catch (error) {
+          retryCount++;
+          console.log(`Intento ${retryCount} falló, reintentando...`, error);
+
+          if (retryCount >= maxRetries) {
+            console.log(
+              "Máximo de reintentos alcanzado, asumiendo sin visita online"
+            );
+            visitCheck = { hasOnlineVisit: false };
+            break;
+          }
+
+          // Esperar 1 segundo antes del siguiente intento
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+      }
+
+      if (visitCheck?.hasOnlineVisit) {
+        // Si tiene visita online, redirigir a mesas
+        navigate(KARAOKE_ROUTES.MESAS, { replace: true });
+      } else {
+        // Si no tiene visita online, redirigir a home
+        navigate(KARAOKE_ROUTES.HOME, { replace: true });
+      }
     } catch (error: unknown) {
       if (error instanceof Error) {
         setErrorMessage(error.message);

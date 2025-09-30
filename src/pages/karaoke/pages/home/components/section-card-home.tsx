@@ -25,15 +25,19 @@ export const SectionCardHome = ({
 
   return (
     <div
-      className={`flex flex-col gap-2 rounded-lg p-4 bg-base-blackLight transition-all duration-150 ease-smooth relative ${
+      className={`flex flex-col gap-2 rounded-lg p-4 bg-base-blackLight  relative ${
         isDisabled
           ? "opacity-50 cursor-not-allowed"
           : "cursor-pointer hover:scale-102 hover:shadow-lg active:scale-98 active:translate-y-0.5 active:transition-all active:duration-75"
-      } ${highlight ? "border-2 border-purple-500 animate-pulse" : ""}`}
+      } ${highlight ? "border-2 border-purple-500 animate-blink" : ""}`}
       onClick={isDisabled ? undefined : onClick}
     >
       <div className="flex flex-row gap-4 items-center">
-        <Icon size={30} color={KaraokeColors.base.secondaryLight} />
+        <Icon
+          size={30}
+          color={KaraokeColors.base.secondaryLight}
+          className={highlight ? "animate-pulse-grow" : ""}
+        />
         <Typography variant="body-md" color={KaraokeColors.base.secondaryLight}>
           {title}
         </Typography>

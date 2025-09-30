@@ -218,8 +218,16 @@ module.exports = {
       "bounce-small": "bounce-small 0.3s ease-in-out",
       "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       ripple: "ripple 0.6s ease-out",
+      blink: "blink 1.5s ease-in-out infinite",
+      "pulse-grow": "pulse-grow 1.2s ease-in-out infinite",
+      spin: "spin 1s linear infinite",
     },
     keyframes: {
+      blink: {
+        "0%": { borderColor: "rgba(245, 221, 172, 0)" }, // invisible
+        "50%": { borderColor: "rgba(245, 221, 172, 1)" }, // color sólido
+        "100%": { borderColor: "rgba(245, 221, 172, 0)" }, // invisible
+      },
       "bounce-small": {
         "0%, 20%, 50%, 80%, 100%": { transform: "translateY(0)" },
         "40%": { transform: "translateY(-2px)" },
@@ -233,6 +241,22 @@ module.exports = {
         "100%": {
           transform: "scale(4)",
           opacity: "0",
+        },
+      },
+      "pulse-grow": {
+        "0%, 100%": {
+          transform: "scale(1)",
+        },
+        "50%": {
+          transform: "scale(1.1)",
+        },
+      },
+      spin: {
+        "0%": {
+          transform: "rotate(0deg)",
+        },
+        "100%": {
+          transform: "rotate(360deg)",
         },
       },
     },

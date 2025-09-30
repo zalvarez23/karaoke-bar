@@ -85,6 +85,51 @@ export class VisitsServices implements IVisitsRepository {
     return visits;
   }
 
+  /**
+   * Verifica si un usuario tiene una visita online activa
+   * @param userId - ID del usuario a verificar
+   * @returns Promise con información sobre si tiene visita online
+   */
+  async checkUserOnlineVisit(
+    userId: string
+  ): Promise<{ hasOnlineVisit: boolean; onlineVisit?: IVisits }> {
+    try {
+      const visitsCollection = collection(
+        this.db,
+        KARAOKE_CONSTANTS.FIREBASE.COLLECTIONS.VISITS
+      );
+      // Buscar visitas del usuario con status "online"
+      const querySnapshot = await getDocs(
+        query(
+          visitsCollection,
+          where("usersIds", "array-contains", userId),
+          where("status", "==", "online")
+        )
+      );
+
+      if (querySnapshot.empty) {
+        return {
+          hasOnlineVisit: false,
+        };
+      }
+
+      // Obtener la primera visita online encontrada
+      const firstDoc = querySnapshot.docs[0];
+      const onlineVisit: IVisits = {
+        ...(firstDoc.data() as IVisits),
+        id: firstDoc.id,
+      };
+
+      return {
+        hasOnlineVisit: true,
+        onlineVisit,
+      };
+    } catch (error) {
+      console.error("Error checking user online visit:", error);
+      throw error; // Lanzar el error para que el retry funcione
+    }
+  }
+
   async saveVisit(visit: IVisits): Promise<string> {
     // Agregar campos adicionales como en el móvil
     visit.img = "";

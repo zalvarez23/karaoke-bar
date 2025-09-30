@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { KaraokeColors } from "../../colors";
-import { Typography } from "./index";
+import { Avatar, Typography } from "./index";
 import { useUsersContext } from "../context";
 import { KARAOKE_ROUTES } from "../types";
 import { IUser } from "../types/user.types";
+import { X } from "lucide-react";
 
 type THeaderScreenProps = {
   user: IUser;
@@ -41,45 +42,47 @@ export const HeaderScreen = ({ user }: THeaderScreenProps) => {
 
   return (
     <>
-      <div className="w-full flex flex-row justify-between items-center mt-5 mb-10">
+      <div className="w-full flex flex-row justify-between items-center mt-5 mb-7">
         <div
-          className={`flex flex-row items-center gap-5 transition-opacity`}
+          className={`flex flex-row items-center gap-5 transition-opacity w-full`}
           onClick={handleGoToProfile}
         >
-          <div>
-            <Typography
-              variant="headline-lg-semi"
-              color={KaraokeColors.base.white}
-              className="mb-2"
-            >
-              Bienvenido,
-            </Typography>
-            <Typography
-              variant="body-lg-semi"
-              color={KaraokeColors.base.secondaryLight}
-              className="capitalize"
-            >
-              {
-                user?.isGuest
-                  ? user.name // Para invitados mostrar el nombre completo
-                  : `${user?.name.split(" ")[0]} ${
-                      user?.lastName.split(" ")[0]
-                    }` // Para usuarios normales mostrar nombre y apellido abreviados
-              }
-            </Typography>
+          <div className="w-full">
+            <div className="flex w-full flex-row items-center gap-5 justify-between mb-1">
+              <div className="flex flex-row items-center gap-7">
+                <Avatar
+                  className="w-10 h-10 rounded-full"
+                  image={"avatarGirl"}
+                />
+                <div className="flex flex-col ">
+                  <Typography
+                    variant="headline-sm-semi"
+                    color={KaraokeColors.base.white}
+                  >
+                    Bienvenido,
+                  </Typography>
+                  <Typography
+                    variant="body-sm-semi"
+                    color={KaraokeColors.base.white}
+                  >
+                    {
+                      user?.isGuest
+                        ? user.name // Para invitados mostrar el nombre completo
+                        : `${user?.name.split(" ")[0]} ${
+                            user?.lastName.split(" ")[0]
+                          }` // Para usuarios normales mostrar nombre y apellido abreviados
+                    }
+                  </Typography>
+                </div>
+              </div>
+              <X
+                size={25}
+                color={KaraokeColors.base.secondaryLight}
+                className="cursor-pointer hover:opacity-80 transition-opacity "
+                onClick={handleLogout}
+              />
+            </div>
           </div>
-        </div>
-
-        {/* Actions Section */}
-        <div className="flex flex-row items-center gap-4">
-          <Typography
-            variant="label-md-semi"
-            color={KaraokeColors.base.secondaryLight}
-            className="cursor-pointer hover:opacity-80 transition-opacity underline"
-            onClick={handleLogout}
-          >
-            Salir
-          </Typography>
         </div>
       </div>
 

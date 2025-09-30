@@ -11,6 +11,8 @@ export default defineConfig({
     },
   },
   server: {
+    host: true, // Permite conexiones desde la red local
+    port: 5173, // Puerto por defecto de Vite
     proxy: {
       "/api/youtube": {
         target: "https://shrill-snowflake-ecac.alvarez23.workers.dev",
