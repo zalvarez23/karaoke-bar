@@ -35,25 +35,31 @@ function App() {
           <Route
             path="/karaoke/login"
             element={
-              <AppProviders>
-                <KaraokeLoginPage />
-              </AppProviders>
+              <div data-route="karaoke">
+                <AppProviders>
+                  <KaraokeLoginPage />
+                </AppProviders>
+              </div>
             }
           />
           <Route
             path="/karaoke/register"
             element={
-              <AppProviders>
-                <KaraokeUserRegisterPage />
-              </AppProviders>
+              <div data-route="karaoke">
+                <AppProviders>
+                  <KaraokeUserRegisterPage />
+                </AppProviders>
+              </div>
             }
           />
           <Route
             path="/karaoke/guest-mode"
             element={
-              <AppProviders>
-                <GuestModePage />
-              </AppProviders>
+              <div data-route="karaoke">
+                <AppProviders>
+                  <GuestModePage />
+                </AppProviders>
+              </div>
             }
           />
 
@@ -61,61 +67,73 @@ function App() {
           <Route
             path="/karaoke"
             element={
-              <AppProviders>
-                <ProtectedKaraokeRoute>
-                  <KaraokeHomePage />
-                </ProtectedKaraokeRoute>
-              </AppProviders>
+              <div data-route="karaoke">
+                <AppProviders>
+                  <ProtectedKaraokeRoute>
+                    <KaraokeHomePage />
+                  </ProtectedKaraokeRoute>
+                </AppProviders>
+              </div>
             }
           />
           <Route
             path="/karaoke/home"
             element={
-              <AppProviders>
-                <ProtectedKaraokeRoute>
-                  <KaraokeHomePage />
-                </ProtectedKaraokeRoute>
-              </AppProviders>
+              <div data-route="karaoke">
+                <AppProviders>
+                  <ProtectedKaraokeRoute>
+                    <KaraokeHomePage />
+                  </ProtectedKaraokeRoute>
+                </AppProviders>
+              </div>
             }
           />
           <Route
             path="/karaoke/mesas"
             element={
-              <AppProviders>
-                <ProtectedKaraokeRoute>
-                  <KaraokeVisitManagePage />
-                </ProtectedKaraokeRoute>
-              </AppProviders>
+              <div data-route="karaoke">
+                <AppProviders>
+                  <ProtectedKaraokeRoute>
+                    <KaraokeVisitManagePage />
+                  </ProtectedKaraokeRoute>
+                </AppProviders>
+              </div>
             }
           />
           <Route
             path="/karaoke/mesas-online"
             element={
-              <AppProviders>
-                <ProtectedKaraokeRoute>
-                  <KaraokeVisitManageOnlinePage />
-                </ProtectedKaraokeRoute>
-              </AppProviders>
+              <div data-route="karaoke">
+                <AppProviders>
+                  <ProtectedKaraokeRoute>
+                    <KaraokeVisitManageOnlinePage />
+                  </ProtectedKaraokeRoute>
+                </AppProviders>
+              </div>
             }
           />
           <Route
             path="/karaoke/live"
             element={
-              <AppProviders>
-                <ProtectedKaraokeRoute>
-                  <KaraokeLivePage />
-                </ProtectedKaraokeRoute>
-              </AppProviders>
+              <div data-route="karaoke">
+                <AppProviders>
+                  <ProtectedKaraokeRoute>
+                    <KaraokeLivePage />
+                  </ProtectedKaraokeRoute>
+                </AppProviders>
+              </div>
             }
           />
           <Route
             path="/karaoke/profile"
             element={
-              <AppProviders>
-                <ProtectedKaraokeRoute>
-                  <KaraokeProfilePage />
-                </ProtectedKaraokeRoute>
-              </AppProviders>
+              <div data-route="karaoke">
+                <AppProviders>
+                  <ProtectedKaraokeRoute>
+                    <KaraokeProfilePage />
+                  </ProtectedKaraokeRoute>
+                </AppProviders>
+              </div>
             }
           />
 

@@ -211,7 +211,7 @@ export const KaraokeLoginPage: React.FC = () => {
             variant="headline-xl-semi"
             color={KaraokeColors.base.white}
           >
-            Log In
+            Iniciar
           </Typography>
           <Typography
             variant="body-md-semi"
@@ -302,9 +302,10 @@ export const KaraokeLoginPage: React.FC = () => {
         </form>
 
         {/* Guest Mode Section */}
-        <div className="mt-8">
+        <div className="mt-4">
           <Button
             size="lg"
+            appearance="outline"
             theme="secondary"
             fullWidth
             onClick={handleGoToGuestMode}

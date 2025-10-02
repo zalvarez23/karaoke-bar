@@ -26,7 +26,8 @@ module.exports = {
         40: "#f0dffc",
       },
       secondary: {
-        DEFAULT: "#00d1c7", // 400
+        DEFAULT: "#c49b5e", // dorado principal
+        light: "rgb(245 221 172)", // dorado claro
         900: "#05474a",
         800: "#065f63",
         700: "#057f80",
@@ -212,6 +213,10 @@ module.exports = {
       transparent: "transparent",
       base: {
         blackLight: "rgb(19, 20, 30)",
+        primary: "#13141e",
+        darkPrimary: "#191720",
+        lightPrimary: "#1e1c24",
+        extraDark: "#0A0A0A",
       },
     },
     animation: {

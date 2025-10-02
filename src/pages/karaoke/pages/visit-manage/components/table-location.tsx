@@ -7,6 +7,7 @@ import {
 } from "../constants/visit-manage.constants";
 import { Typography } from "../../../shared/components";
 import { ILocations } from "../../../shared/types/location.types";
+import { KaraokeColors } from "@/pages/karaoke/colors";
 
 type TTableLocationProps = {
   item?: ILocations;
@@ -40,19 +41,19 @@ const TableLocation: FC<TTableLocationProps> = ({
   return (
     <button
       onClick={handleClick}
-      className={`flex-1 py-4 px-2 mx-2.5 rounded-lg flex flex-col items-center justify-center gap-2 transition-all duration-200 ${
+      className={`flex-1 py-2 px-1 rounded-lg flex flex-col items-center justify-center gap-2 transition-all duration-200 ${
         item?.id === tableSelected
-          ? "bg-green-400/20"
+          ? "bg-purple_light-700/20"
           : item?.status === "available"
-          ? "bg-purple-400/10 hover:bg-purple-400/20"
-          : "bg-red-400/10"
+          ? "bg-green-600/20"
+          : ""
       } disabled:opacity-50 disabled:cursor-not-allowed`}
       disabled={item?.status !== "available"}
     >
-      <Circle size={35} color={getIconColor()} fill={getIconColor()} />
+      <Circle size={34} color={getIconColor()} fill={getIconColor()} />
       <Typography
         variant="label-xs-semi"
-        color={getIconColor()}
+        color={KaraokeColors.base.white}
         className="text-center"
       >
         {showDescription && item?.abbreviation}

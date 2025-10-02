@@ -5,7 +5,7 @@ import { HeaderScreen, Typography } from "../../shared/components";
 import { RecentUsers, SectionCardHome } from "./components";
 import { useUsersContext } from "../../shared/context";
 import { KARAOKE_ROUTES } from "../../shared/types";
-import { FlameIcon, MicVocal } from "lucide-react";
+import { FlameIcon, MicVocal, Radio } from "lucide-react";
 
 export const KaraokeHomePage: React.FC = () => {
   const {
@@ -18,7 +18,7 @@ export const KaraokeHomePage: React.FC = () => {
     <div
       className="min-h-screen pb-20"
       style={{
-        backgroundColor: KaraokeColors.base.extraDark,
+        backgroundColor: KaraokeColors.base.darkPrimary,
         paddingTop: "env(safe-area-inset-top, 0px)",
       }}
     >
@@ -35,6 +35,12 @@ export const KaraokeHomePage: React.FC = () => {
             description="Comienza a sumar puntos y disfruta de los beneficios."
             onClick={() => navigate(KARAOKE_ROUTES.MESAS)}
             highlight={true}
+          />
+          <SectionCardHome
+            icon={Radio}
+            title="Ver Live !"
+            description="Revisa todas las canciones en curso."
+            onClick={() => navigate(KARAOKE_ROUTES.LIVE)}
           />
           <SectionCardHome
             icon={FlameIcon}

@@ -1,12 +1,6 @@
 import { FC, useEffect, useState } from "react";
 import { KaraokeColors } from "../../colors";
-import {
-  Header,
-  Typography,
-  ConfirmModal,
-  UserItemSong,
-  Spinner,
-} from "../../shared/components";
+import { Header, Typography, Spinner } from "../../shared/components";
 import { LocationServices, ReservationServices } from "../../shared/services";
 import { ILocations } from "../../shared/types/location.types";
 import { UserServices } from "../../shared/services";
@@ -18,8 +12,6 @@ import {
   TGuestUsers,
 } from "../../shared/types/visits.types";
 import { Circle } from "lucide-react";
-import { TableRequestCard } from "./components/table-request-card";
-import { BottomNavigation } from "../../shared/components";
 import {
   ICON_TABLE_COLOR_AVAILABLE,
   ICON_TABLE_COLOR_NOT_AVAILABLE,
@@ -27,10 +19,11 @@ import {
 import {
   TableLocation,
   BottomSelectLocation,
+  VisitOnline,
   VisitPendingState,
-  ModalSearchSongs,
 } from "./components";
 import { getFirestore, addDoc, collection } from "firebase/firestore";
+import { KARAOKE_ROUTES } from "../../shared/types";
 
 export const KaraokeVisitManagePage: FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -47,12 +40,10 @@ export const KaraokeVisitManagePage: FC = () => {
 
   const {
     state: { user },
-    updateOnlineStatus,
   } = useUsersContext();
 
   // Identificar si es host o invitado (igual que en el móvil)
   const isHost = currentVisit?.userId === user.id;
-  const isGuest = currentVisit?.userId !== user.id;
   const locationServices = new LocationServices();
   const userServices = new UserServices();
   const visitServices = new VisitsServices();
@@ -150,7 +141,7 @@ export const KaraokeVisitManagePage: FC = () => {
         console.log("✅ Reserva creada exitosamente con ID:", visitId);
 
         // Actualizar el estado online en el contexto y localStorage
-        await updateOnlineStatus(true);
+        // await updateOnlineStatus(true);
 
         console.log(`✅ Reserva completada exitosamente en intento ${attempt}`);
         setTableSelected(undefined);
@@ -190,9 +181,9 @@ export const KaraokeVisitManagePage: FC = () => {
     setShowSearchSongsModal(true);
   };
 
-  const handleCallWaiter = () => {
-    setShowCallWaiterModal(true);
-  };
+  // const handleCallWaiter = () => {
+  //   setShowCallWaiterModal(true);
+  // };
 
   const handleExitTable = () => {
     setShowExitModal(true);
@@ -233,66 +224,46 @@ export const KaraokeVisitManagePage: FC = () => {
   };
 
   const handleHostExitTable = async () => {
-    console.log("🚪 Host saliendo de mesa...");
-    console.log("📊 currentVisit:", currentVisit);
+    try {
+      // Usar transacción atómica para salir de la mesa
+      // La búsqueda por nombre se hace dentro de la transacción si no hay locationId
+      await reservationServices.hostExitTable({
+        visitId: currentVisit!.id!,
+        locationId: currentVisit?.locationId,
+        locationName: currentVisit?.location,
+        userIds: currentVisit?.usersIds || [],
+      });
 
-    // 1. Poner a TODOS los usuarios (host + invitados) como offline
-    if (currentVisit?.usersIds) {
-      console.log("👥 Usuarios en la mesa:", currentVisit.usersIds);
-      for (const userId of currentVisit.usersIds) {
-        console.log(`🔄 Poniendo usuario ${userId} como offline`);
-        await userServices.updateStatusUser(userId, false);
-      }
-    }
-
-    // 2. Cancelar la visita
-    if (currentVisit?.id) {
-      console.log(`📝 Cancelando visita ${currentVisit.id}`);
-      await visitServices.updateStatus(currentVisit.id, "cancelled");
-    }
-
-    // 3. Liberar la mesa
-    if (currentVisit?.locationId) {
-      console.log(`🪑 Liberando mesa por ID: ${currentVisit.locationId}`);
-      await locationServices.changeStatusLocation(
-        currentVisit.locationId,
-        "available"
+      console.log("✅ Host salió de mesa correctamente");
+    } catch (error) {
+      console.error("❌ Error al salir de la mesa:", error);
+      await logErrorToFirebase(
+        error as Error,
+        "handleHostExitTable - Error en transacción"
       );
-    } else if (currentVisit?.location) {
-      console.log(`🪑 Liberando mesa por nombre: ${currentVisit.location}`);
-      await locationServices.changeStatusLocationByName(
-        currentVisit.location,
-        "available"
-      );
-    } else {
-      console.log(
-        "⚠️ No se pudo liberar la mesa: no hay locationId ni location"
-      );
+      throw error;
     }
-
-    // 4. Actualizar el estado online en el contexto y localStorage
-    await updateOnlineStatus(false);
-
-    console.log("✅ Host salió de mesa correctamente");
   };
 
   const handleGuestExitTable = async () => {
     console.log("🚪 Invitado saliendo de mesa...");
 
-    // 1. Solo el invitado se pone offline
-    await userServices.updateStatusUser(user.id, false);
+    try {
+      // Usar transacción atómica para salir de la mesa
+      await reservationServices.guestExitTable({
+        visitId: currentVisit!.id!,
+        userId: user.id,
+      });
 
-    // 2. Remover al invitado de la visita
-    if (currentVisit?.id) {
-      await visitServices.removeUserFromVisit(currentVisit.id, user.id);
+      console.log("✅ Invitado salió de mesa correctamente");
+    } catch (error) {
+      console.error("❌ Error al salir de la mesa:", error);
+      await logErrorToFirebase(
+        error as Error,
+        "handleGuestExitTable - Error en transacción"
+      );
+      throw error;
     }
-
-    // 3. NO cancelar la visita (sigue activa para el host)
-    // 4. NO liberar la mesa (el host sigue ahí)
-    // 5. Actualizar el estado online en el contexto y localStorage
-    await updateOnlineStatus(false);
-
-    console.log("✅ Invitado salió de mesa correctamente");
   };
 
   const handleCancelExitTable = () => {
@@ -444,20 +415,14 @@ export const KaraokeVisitManagePage: FC = () => {
   if (currentVisit?.status === "pending") {
     return (
       <div
-        className="min-h-screen"
+        className="min-h-screen pt-2.5 px-9"
         style={{
           backgroundColor: KaraokeColors.base.darkPrimary,
           paddingTop: "env(safe-area-inset-top, 0px)",
         }}
       >
-        {/* Header */}
-        <div className="pt-2.5 px-9">
-          <Header
-            title="Excelente,"
-            description="Solo un paso más para vivir nuestra experiencia !"
-          />
-          <VisitPendingState />
-        </div>
+        <Header title="Excelente," showBackIcon={true} />
+        <VisitPendingState />
       </div>
     );
   }
@@ -465,199 +430,25 @@ export const KaraokeVisitManagePage: FC = () => {
   // Si hay una visita activa (online), mostrar pantalla de karaoke
   if (currentVisit?.status === "online") {
     return (
-      <div
-        className="min-h-screen"
-        style={{
-          backgroundColor: KaraokeColors.base.darkPrimary,
-          paddingTop: "env(safe-area-inset-top, 0px)",
-        }}
-      >
-        {/* Header con avatar y rol */}
-        <div className="pt-2.5 px-9">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center">
-                <span className="text-white text-lg">🎤</span>
-              </div>
-              <div>
-                <Typography
-                  variant="body-md-semi"
-                  color={KaraokeColors.base.white}
-                >
-                  Mix DJ - KantoBar
-                </Typography>
-                {isHost && (
-                  <Typography
-                    variant="body-sm"
-                    color={KaraokeColors.green.green400}
-                  >
-                    🎤 Host de la mesa
-                  </Typography>
-                )}
-                {isGuest && (
-                  <Typography
-                    variant="body-sm"
-                    color={KaraokeColors.purple.purple400}
-                  >
-                    👥 Invitado en la mesa
-                  </Typography>
-                )}
-              </div>
-            </div>
-            <button onClick={handleExitTable} className="p-2">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 px-6 py-4">
-          {/* Estado vacío si no hay canciones */}
-          {(!currentVisit?.songs || currentVisit.songs.length === 0) && (
-            <div className="flex flex-col items-center justify-center mt-8">
-              <Typography
-                variant="body-lg-semi"
-                color={KaraokeColors.base.white}
-              >
-                ¡Es hora de cantar!
-              </Typography>
-              <Typography
-                variant="body-sm"
-                color={KaraokeColors.gray.gray500}
-                className="text-center mt-2.5"
-              >
-                Selecciona tus canciones favoritas para comenzar
-              </Typography>
-              <button
-                onClick={handleOnStart}
-                className="mt-5 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-              >
-                Buscar Canciones
-              </button>
-            </div>
-          )}
-
-          {/* Acciones */}
-          <div className="mt-8">
-            <Typography variant="body-lg-semi" color={KaraokeColors.base.white}>
-              Acciones
-            </Typography>
-            <div className="flex gap-3 mt-4 overflow-x-auto">
-              <button
-                onClick={handleOnStart}
-                className="flex-shrink-0 px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors"
-              >
-                + Pedir canciones
-              </button>
-              <button
-                onClick={handleCallWaiter}
-                className="flex-shrink-0 px-4 py-2 bg-yellow-500 text-white rounded-lg text-sm hover:bg-yellow-600 transition-colors"
-              >
-                + Llamar Mesero(a)
-              </button>
-              <button
-                onClick={handleExitTable}
-                className="flex-shrink-0 px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-colors"
-              >
-                - Salir de mesa
-              </button>
-            </div>
-          </div>
-          <BottomNavigation />
-
-          {/* Mostrar lista de solicitudes pendientes (solo para hosts) */}
-          {isHost && pendingGuestUsers.length > 0 && (
-            <div className="mt-8">
-              <Typography
-                variant="body-lg-semi"
-                color={KaraokeColors.base.white}
-                className="mb-4"
-              >
-                Solicitudes de Mesa ({pendingGuestUsers.length})
-              </Typography>
-              <div className="space-y-3">
-                {pendingGuestUsers.map((guest) => (
-                  <TableRequestCard
-                    key={`guest-${guest.userId}`}
-                    guestUser={guest}
-                    onAccept={() => handleOnConfirmGuestUser(guest.userId)}
-                    onReject={() => handleOnCloseGuestUser(guest.userId)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Lista de canciones si las hay */}
-          {currentVisit?.songs && currentVisit.songs.length > 0 && (
-            <div className="mt-8">
-              <Typography
-                variant="body-lg-semi"
-                color={KaraokeColors.base.white}
-              >
-                Mis canciones ({currentVisit.songs.length}) -{" "}
-                {currentVisit.location}
-              </Typography>
-              <div className="mt-4 space-y-3">
-                {currentVisit.songs
-                  .sort((a, b) => b.round - a.round)
-                  .map((song, index) => (
-                    <UserItemSong
-                      key={`song-${song.id}-${index}`}
-                      {...song}
-                      onDelete={handleOnDelete}
-                      onSendGreeting={handleOnSendGreeting}
-                    />
-                  ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Modales */}
-        <ConfirmModal
-          visible={showExitModal}
-          title="Salir de Mesa"
-          message={
-            isHost
-              ? "¿Estás seguro de que quieres salir de la mesa? Se cancelará la visita, se liberará la mesa y todos los invitados serán expulsados."
-              : "¿Estás seguro de que quieres salir de la mesa? Saldrás de la visita pero la mesa seguirá activa para el host."
-          }
-          showCancelButton={true}
-          type="warning"
-          onConfirm={handleConfirmExitTable}
-          onClose={handleCancelExitTable}
-        />
-
-        <ConfirmModal
-          visible={showCallWaiterModal}
-          title="Llamar a la Mesera"
-          message="¿Estás seguro de que quieres llamar a la mesera?"
-          showCancelButton={true}
-          type="info"
-          onConfirm={handleConfirmCallWaiter}
-          onClose={handleCancelCallWaiter}
-        />
-
-        {/* Modal de búsqueda de canciones */}
-        <ModalSearchSongs
-          visible={showSearchSongsModal}
-          onClose={() => setShowSearchSongsModal(false)}
-          onSongSelected={handleOnSelectSong}
-        />
-      </div>
+      <VisitOnline
+        currentVisit={currentVisit}
+        pendingGuestUsers={pendingGuestUsers}
+        showExitModal={showExitModal}
+        showCallWaiterModal={showCallWaiterModal}
+        showSearchSongsModal={showSearchSongsModal}
+        handleOnStart={handleOnStart}
+        handleExitTable={handleExitTable}
+        handleConfirmExitTable={handleConfirmExitTable}
+        handleCancelExitTable={handleCancelExitTable}
+        handleConfirmCallWaiter={handleConfirmCallWaiter}
+        handleCancelCallWaiter={handleCancelCallWaiter}
+        handleOnConfirmGuestUser={handleOnConfirmGuestUser}
+        handleOnCloseGuestUser={handleOnCloseGuestUser}
+        handleOnSelectSong={handleOnSelectSong}
+        handleOnDelete={handleOnDelete}
+        handleOnSendGreeting={handleOnSendGreeting}
+        setShowSearchSongsModal={setShowSearchSongsModal}
+      />
     );
   }
 
@@ -665,20 +456,22 @@ export const KaraokeVisitManagePage: FC = () => {
     <div
       className="min-h-screen pb-20"
       style={{
-        backgroundColor: KaraokeColors.base.darkPrimary,
+        backgroundColor: KaraokeColors.base.extraDark,
         paddingTop: "env(safe-area-inset-top, 0px)",
       }}
     >
       {/* Header */}
       <div className="pt-2.5 px-9">
         <Header
-          title="Excelente,"
+          title="Mis Mesas"
           description="Es hora de seleccionar tu mesa y vivir la experiencia."
+          showBackIcon={true}
+          redirectTo={KARAOKE_ROUTES.HOME}
         />
         <Typography
-          variant="body-lg-semi"
+          variant="body-md-semi"
           color={KaraokeColors.base.white}
-          className="my-2.5"
+          className="my-5"
         >
           Locaciones
         </Typography>
@@ -701,7 +494,7 @@ export const KaraokeVisitManagePage: FC = () => {
           ) : (
             <>
               {tableRows.map((row, rowIndex) => (
-                <div key={rowIndex} className="flex justify-between mb-5">
+                <div key={rowIndex} className="flex justify-between gap-2 mb-2">
                   {row.map((location) => (
                     <TableLocation
                       key={`location-${location.id || location.name}`}
@@ -755,8 +548,6 @@ export const KaraokeVisitManagePage: FC = () => {
           isLoading={isLoading}
         />
       </div>
-      {/* Bottom Navigation */}
-      <BottomNavigation />
     </div>
   );
 };

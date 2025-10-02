@@ -50,20 +50,22 @@ export const GuestModePage: React.FC = () => {
       setIsLoading(true);
 
       // Crear usuario invitado con datos mínimos
-      const guestUser = await userService.registerGuest(userData.name);
+      await new Promise((resolve) => setTimeout(resolve, 4000));
 
+      const guestUser = await userService.registerGuest(userData.name);
       setIsSuccess(true);
       setUserState(guestUser);
       setUserStorage(guestUser);
-
       statusModalRef.current?.open();
     } catch (error: unknown) {
+      alert("registerGuest5");
       setIsSuccess(false);
       if (error instanceof Error) {
         setErrorMessage(error.message);
       } else {
         setErrorMessage("Error desconocido");
       }
+      alert("registerGuest6");
       statusModalRef.current?.open();
     } finally {
       setIsLoading(false);
@@ -73,7 +75,7 @@ export const GuestModePage: React.FC = () => {
   const handleOnConfirmStatus = () => {
     if (isSuccess) {
       // Navegar al home después del registro exitoso
-      navigate(KARAOKE_ROUTES.MESAS, { replace: true });
+      navigate(KARAOKE_ROUTES.HOME, { replace: true });
     } else {
       statusModalRef.current?.close();
     }
@@ -84,7 +86,6 @@ export const GuestModePage: React.FC = () => {
       className="min-h-screen flex flex-col"
       style={{
         backgroundColor: KaraokeColors.base.darkPrimary,
-        paddingTop: "env(safe-area-inset-top, 0px)",
       }}
     >
       {/* Header with back button */}
@@ -131,6 +132,7 @@ export const GuestModePage: React.FC = () => {
                     message: "El nombre no puede exceder 50 caracteres",
                   },
                 })}
+                type="text"
                 value={watchedValues.name}
                 placeholder="Nombre o nick"
                 customIcon={
@@ -145,6 +147,7 @@ export const GuestModePage: React.FC = () => {
                 }
                 error={errors?.name?.message}
                 className="w-full"
+                autoComplete="off"
               />
             </div>
 

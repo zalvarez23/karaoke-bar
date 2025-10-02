@@ -1,6 +1,6 @@
 import { FC, useEffect, useState, useCallback } from "react";
-import { Music } from "lucide-react";
-import { Typography, Badge, BottomNavigation } from "../../shared/components";
+import { ChevronLeftIcon, LayoutDashboard } from "lucide-react";
+import { Typography, Badge } from "../../shared/components";
 import { KaraokeColors } from "../../colors";
 import { useUsersContext } from "../../shared/context/UsersContext";
 import { VisitsServices } from "../../shared/services/visits.services";
@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import EmptyStateLive from "./components/empty-state-live";
 import { ModalPersonsLive } from "./components/modal-persons-live";
 import { ItemSong } from "../../shared/components/item-song";
+import { KARAOKE_ROUTES } from "../../shared/types";
 
 export const KaraokeLivePage: FC = () => {
   const [visitsDto, setVisitsDto] = useState<TVisitResponseDto | null>(null);
@@ -60,33 +61,39 @@ export const KaraokeLivePage: FC = () => {
 
   return (
     <div
-      className="min-h-screen bg-[#1e1c24] flex flex-col pb-20"
-      style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+      className="min-h-screen"
+      style={{
+        backgroundColor: KaraokeColors.base.darkPrimary,
+        paddingTop: "env(safe-area-inset-top, 0px)",
+      }}
     >
-      {/* Header */}
-      <div className="px-9 pt-4">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Music size={35} color={KaraokeColors.base.white} />
-            <div>
-              <Typography
-                variant="body-md-semi"
-                color={KaraokeColors.base.white}
-              >
-                Mix DJ - KantoBar
-              </Typography>
-              <Typography
-                variant="body-sm-semi"
-                color={KaraokeColors.gray.gray500}
-              >
-                Todas las canciones aqui.
-              </Typography>
-            </div>
+      {/* Header con avatar y rol */}
+      <div className="pt-4 px-9">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => navigate(-1)}
+            className="hover:opacity-80 transition-opacity"
+          >
+            <ChevronLeftIcon size={30} color={KaraokeColors.base.white} />
+          </button>
+          <div>
+            <Typography
+              variant="headline-sm-semi"
+              color={KaraokeColors.base.white}
+            >
+              KantoBar Live
+            </Typography>
+            <Typography variant="label-xs" color={KaraokeColors.base.white}>
+              Todas las canciones aqui.
+            </Typography>
           </div>
-          <div />
+          <LayoutDashboard
+            size={20}
+            color={KaraokeColors.base.white}
+            onClick={() => navigate(KARAOKE_ROUTES.HOME)}
+          />
         </div>
       </div>
-
       {/* Body */}
       <div className="flex-1 px-10">
         {(visitsDto?.songs.length === 0 || !visitsDto) && (
@@ -133,9 +140,6 @@ export const KaraokeLivePage: FC = () => {
         visitDto={visitsDto}
         onSelectedLocation={handleOnSelectLocation}
       />
-
-      {/* Bottom Navigation */}
-      <BottomNavigation />
     </div>
   );
 };

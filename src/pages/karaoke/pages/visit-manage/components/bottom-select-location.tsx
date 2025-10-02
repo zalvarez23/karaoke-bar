@@ -18,7 +18,7 @@ const BottomSelectLocation: FC<TBottomSelectLocationProps> = ({
   return (
     <div
       className="rounded-2xl p-6 mx-2.5 relative shadow-lg"
-      style={{ backgroundColor: KaraokeColors.base.extraDark }}
+      style={{ backgroundColor: KaraokeColors.base.darkPrimary }}
     >
       <div className="flex flex-row justify-between items-center">
         <div className="flex items-center gap-2.5">
@@ -33,15 +33,18 @@ const BottomSelectLocation: FC<TBottomSelectLocationProps> = ({
               </Typography>
             </>
           ) : (
-            <Typography variant="body-sm" color={KaraokeColors.gray.gray400}>
+            <Typography
+              variant="body-sm-semi"
+              color={KaraokeColors.gray.gray400}
+            >
               Selecciona una mesa disponible
             </Typography>
           )}
         </div>
         <Button
           appearance="outline"
-          theme="primary"
           size="md"
+          theme="secondary"
           isLoading={isLoading}
           onClick={onConfirm}
           disabled={!item}

@@ -80,10 +80,15 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
       return; // Evitar múltiples llamadas simultáneas
     }
 
+    // Agregar "karaoke" al final del query si no lo contiene
+    const searchQuery = query.toLowerCase().includes("karaoke")
+      ? query
+      : `${query} karaoke`;
+
     setIsLoadingSongs(true);
     try {
       const response = await fetch(
-        buildApiUrl(API_CONFIG.ENDPOINTS.SEARCH, query)
+        buildApiUrl(API_CONFIG.ENDPOINTS.SEARCH, searchQuery)
       );
 
       if (!response.ok) {
@@ -176,14 +181,14 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end z-50">
-      <div className="bg-gray-800 w-full h-[80vh] rounded-t-lg overflow-hidden flex flex-col">
+      <div className="w-full h-[80vh] bg-gray-900 rounded-t-lg overflow-hidden flex flex-col border border-gray-700 px-2">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700 flex-shrink-0">
+        <div className="flex items-center justify-between p-4 px-2 pl-5  border-b border-gray-700 flex-shrink-0">
           <Typography
-            variant="headline-md-semi"
+            variant="headline-sm-semi"
             color={KaraokeColors.base.white}
           >
-            Buscar Canciones
+            Buscar canciones
           </Typography>
           <button
             onClick={onClose}
@@ -200,7 +205,7 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
             <Input
               ref={inputRef}
               value={search}
-              placeholder="Buscar canciones en YouTube..."
+              placeholder="Ingresa tu canción favorita..."
               onChangeText={setSearch}
               customIcon={
                 <Search size={20} color={KaraokeColors.primary.primary500} />
@@ -226,19 +231,12 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
           {/* Suggestions */}
           {activeSuggestion && suggestions.length > 0 && !isLoadingSongs && (
             <div className="mb-4">
-              <Typography
-                variant="body-sm-semi"
-                color={KaraokeColors.gray.gray300}
-                className="mb-2"
-              >
-                Sugerencias
-              </Typography>
               <div className="space-y-1">
                 {suggestions.slice(0, 5).map((suggestion, index) => (
                   <button
                     key={index}
                     onClick={() => handleSelectSuggestion(suggestion)}
-                    className="w-full text-left p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+                    className="w-full text-left p-3 bg-base-darkPrimary hover:bg-gray-600 rounded-lg transition-colors"
                   >
                     <Typography
                       variant="body-sm"
@@ -262,7 +260,12 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
                 isLoading={isLoadingSongs}
               >
                 <Search size={20} className="mr-2" />
-                Buscar en YouTube
+                <Typography
+                  variant="body-md-semi"
+                  color={KaraokeColors.base.white}
+                >
+                  Buscar
+                </Typography>
               </Button>
             </div>
           )}
@@ -289,31 +292,24 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
                 {songs.map((song, index) => (
                   <div
                     key={`${song.id}-${index}`}
-                    className="bg-gray-700 rounded-lg p-3 hover:bg-gray-600 transition-colors cursor-pointer"
+                    className=" rounded-lg p-3 bg-base-darkPrimary hover:bg-gray-600 transition-colors cursor-pointer"
                     onClick={() => handleSongSelect(song)}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex gap-5 items-center">
                       {song.thumbnail && (
                         <img
                           src={song.thumbnail}
                           alt={song.title}
-                          className="w-12 h-12 rounded object-cover"
+                          className="w-10 h-10 rounded-full object-cover"
                         />
                       )}
                       <div className="flex-1 min-w-0">
                         <Typography
-                          variant="body-sm-semi"
+                          variant="body-sm"
                           color={KaraokeColors.base.white}
                           className="line-clamp-2"
                         >
                           {song.title}
-                        </Typography>
-                        <Typography
-                          variant="body-sm"
-                          color={KaraokeColors.gray.gray400}
-                          className="line-clamp-1"
-                        >
-                          {song.description}
                         </Typography>
                         <div className="flex items-center gap-2 mt-1">
                           <Clock size={12} color={KaraokeColors.gray.gray500} />

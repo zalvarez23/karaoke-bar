@@ -50,10 +50,7 @@ export const HeaderScreen = ({ user }: THeaderScreenProps) => {
           <div className="w-full">
             <div className="flex w-full flex-row items-center gap-5 justify-between mb-1">
               <div className="flex flex-row items-center gap-7">
-                <Avatar
-                  className="w-10 h-10 rounded-full"
-                  image={"avatarGirl"}
-                />
+                <Avatar image={"image2"} />
                 <div className="flex flex-col ">
                   <Typography
                     variant="headline-sm-semi"
