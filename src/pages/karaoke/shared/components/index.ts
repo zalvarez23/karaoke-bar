@@ -22,3 +22,4 @@ export { UserItemSong } from "./user-item-song";
 export { ItemSong } from "./item-song";
 export { BottomNavigation } from "./bottom-navigation";
 export { RadioButtonGroup } from "./radio-button-group";
+export { SoundPanel } from "./sound-panel";

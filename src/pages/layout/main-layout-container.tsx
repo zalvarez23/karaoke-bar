@@ -18,8 +18,9 @@ import { FC, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/shared/components/ui/button";
-import { LogOut, Megaphone } from "lucide-react";
+import { LogOut, Megaphone, Volume2 } from "lucide-react";
 import { GreetingsModal } from "@/pages/layout/components/greetings-modal";
+import { SoundPanel } from "@/pages/karaoke/shared/components/sound-panel";
 
 type MainLayoutContainerProps = {
   children: React.ReactNode;
@@ -47,6 +48,7 @@ export const MainLayoutContainer: FC<MainLayoutContainerProps> = ({
   const currentPageTitle = getPageTitle(location.pathname);
   const { logout } = useAuth();
   const [isGreetingsModalOpen, setIsGreetingsModalOpen] = useState(false);
+  const [isSoundPanelOpen, setIsSoundPanelOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -75,7 +77,15 @@ export const MainLayoutContainer: FC<MainLayoutContainerProps> = ({
 
           <div className="flex items-center gap-2">
             {/* Botón de saludos */}
-
+            {/* Panel de sonidos */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsSoundPanelOpen(true)}
+              className="relative p-2 hover:bg-gray-100"
+            >
+              <Volume2 className="text-gray-600 !w-7 !h-7" />
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -107,6 +117,12 @@ export const MainLayoutContainer: FC<MainLayoutContainerProps> = ({
       <GreetingsModal
         isOpen={isGreetingsModalOpen}
         onClose={() => setIsGreetingsModalOpen(false)}
+      />
+
+      {/* Panel de Sonidos */}
+      <SoundPanel
+        visible={isSoundPanelOpen}
+        onClose={() => setIsSoundPanelOpen(false)}
       />
     </SidebarProvider>
   );
