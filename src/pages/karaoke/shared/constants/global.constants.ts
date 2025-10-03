@@ -13,7 +13,7 @@ export const KARAOKE_CONSTANTS = {
   // Application settings
   APP: {
     NAME: "KantoBar Karaoke",
-    VERSION: "1.0.3",
+    VERSION: "1.0.4",
     DESCRIPTION: "Sistema de karaoke web para KantoBar",
   },
 
@@ -50,4 +50,3 @@ export const STATUS_MESSAGES = {
   NETWORK_ERROR: "Error de conexión",
   VALIDATION_ERROR: "Error de validación",
 } as const;
-
