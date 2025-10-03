@@ -5,7 +5,7 @@ import Typography from "./typography";
 import { KaraokeColors } from "../../colors";
 import { AlertCircle, CheckCircle } from "lucide-react";
 
-type TStatus = "success" | "error";
+type TStatus = "success" | "error" | "warning";
 type TStatusModalProps = {
   status: TStatus;
   onConfirm: () => void;
@@ -43,11 +43,18 @@ const StatusModal = forwardRef<ModalRef, TStatusModalProps>(
                   backgroundColor:
                     status === "success"
                       ? KaraokeColors.green.green500 + "20"
+                      : status === "warning"
+                      ? KaraokeColors.yellow.yellow500 + "20"
                       : KaraokeColors.red.red500 + "20",
                 }}
               >
                 {status === "success" ? (
                   <CheckCircle size={32} color={KaraokeColors.green.green500} />
+                ) : status === "warning" ? (
+                  <AlertCircle
+                    size={32}
+                    color={KaraokeColors.yellow.yellow500}
+                  />
                 ) : (
                   <AlertCircle size={32} color={KaraokeColors.red.red500} />
                 )}
@@ -59,7 +66,11 @@ const StatusModal = forwardRef<ModalRef, TStatusModalProps>(
                 className="text-center tracking-wide"
                 color={KaraokeColors.base.white}
               >
-                {status === "success" ? "¡Felicidades!" : "¡Ocurrió un error!"}
+                {status === "success"
+                  ? "¡Felicidades!"
+                  : status === "warning"
+                  ? "¡Atención!"
+                  : "¡Ocurrió un error!"}
               </Typography>
 
               {/* Description */}
@@ -74,7 +85,13 @@ const StatusModal = forwardRef<ModalRef, TStatusModalProps>(
               {/* Button */}
               <Button
                 size="lg"
-                theme={status === "success" ? "secondary" : "destructive"}
+                theme={
+                  status === "success"
+                    ? "secondary"
+                    : status === "warning"
+                    ? "secondary"
+                    : "destructive"
+                }
                 appearance="ghost"
                 fullWidth
                 isLoading={status === "success" && isLoading}
@@ -85,7 +102,11 @@ const StatusModal = forwardRef<ModalRef, TStatusModalProps>(
                   onConfirm();
                 }}
               >
-                {status === "success" ? "Ingresar" : "Reintentar"}
+                {status === "success"
+                  ? "Ingresar"
+                  : status === "warning"
+                  ? "Aceptar"
+                  : "Reintentar"}
               </Button>
             </div>
           </div>

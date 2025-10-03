@@ -3,9 +3,11 @@ import {
   doc,
   getDoc,
   getDocs,
+  increment,
   onSnapshot,
   orderBy,
   query,
+  runTransaction,
   Timestamp,
   updateDoc,
   where,
@@ -325,5 +327,142 @@ export class VisitsServices implements IVisitsRepository {
     );
 
     return unsubscribe;
+  }
+
+  /**
+   * Rechaza una visita de forma atómica usando transacción
+   * @param visitId - ID de la visita a rechazar
+   * @param location - Nombre de la ubicación/mesa
+   * @param usersIds - Array de IDs de usuarios a actualizar
+   */
+  async rejectVisitWithTransaction(
+    visitId: string,
+    location: string,
+    usersIds: string[]
+  ): Promise<void> {
+    try {
+      // Buscar la mesa por nombre (fuera de transacción, como updateLocationStatus)
+      const tablesRef = collection(db, "Tables");
+      const q = query(tablesRef, where("name", "==", location));
+      const tableSnapshot = await getDocs(q);
+
+      if (tableSnapshot.empty) {
+        console.error(`No se encontró una tabla con el nombre ${location}`);
+        throw new Error(`No se encontró una tabla con el nombre ${location}`);
+      }
+
+      const tableRef = tableSnapshot.docs[0].ref;
+
+      // Transacción que replica exactamente los 3 métodos originales
+      await runTransaction(db, async (transaction) => {
+        // 1. updateLocationStatus(location, "available")
+        // Busca la mesa por nombre y actualiza su estado
+        transaction.update(tableRef, {
+          status: "available" as TLocationStatus,
+        });
+
+        // 2. updateVisitStatus(visitId, "cancelled")
+        // Actualiza el estado de la visita
+        const visitRef = doc(db, "Visits", visitId);
+        transaction.update(visitRef, {
+          status: "cancelled" as TVisitStatus,
+        });
+
+        // 3. updateStatusUser(userId, false) para cada usuario
+        // Actualiza isOnline y lastVisit de cada usuario
+        usersIds?.forEach((userId) => {
+          const userRef = doc(db, "Users", userId);
+          transaction.update(userRef, {
+            "additionalInfo.isOnline": false,
+            "additionalInfo.lastVisit": new Date(),
+          });
+        });
+      });
+
+      console.log(`Tabla ${location} actualizada con estado: available`);
+      console.log(`Visita ${visitId} actualizada con estado: cancelled`);
+      console.log(
+        `✅ Visita ${visitId} rechazada exitosamente con transacción`
+      );
+    } catch (error) {
+      console.error(`Error actualizando location ${location}:`, error);
+      console.error(`Error actualizando visita ${visitId}:`, error);
+      console.error(
+        `❌ Error rechazando visita ${visitId} con transacción:`,
+        error
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Completa una visita de forma atómica usando transacción
+   * @param visitId - ID de la visita a completar
+   * @param location - Nombre de la ubicación/mesa
+   * @param usersIds - Array de IDs de usuarios a actualizar
+   * @param points - Puntos a asignar
+   * @param totalConsumption - Consumo total
+   */
+  async completeVisitWithTransaction(
+    visitId: string,
+    location: string,
+    usersIds: string[],
+    points: number,
+    totalConsumption: number
+  ): Promise<void> {
+    try {
+      // Buscar la mesa por nombre (fuera de transacción, como updateLocationStatus)
+      const tablesRef = collection(db, "Tables");
+      const q = query(tablesRef, where("name", "==", location));
+      const tableSnapshot = await getDocs(q);
+
+      if (tableSnapshot.empty) {
+        console.error(`No se encontró una tabla con el nombre ${location}`);
+        throw new Error(`No se encontró una tabla con el nombre ${location}`);
+      }
+
+      const tableRef = tableSnapshot.docs[0].ref;
+
+      // Transacción que replica exactamente handleCompleteVisitWithPoints
+      await runTransaction(db, async (transaction) => {
+        // 1. updateLocationStatus(location, "available")
+        transaction.update(tableRef, {
+          status: "available" as TLocationStatus,
+        });
+
+        // 2. completeVisitWithPoints(visitId, points, totalConsumption)
+        const visitRef = doc(db, "Visits", visitId);
+        transaction.update(visitRef, {
+          status: "completed" as TVisitStatus,
+          points: points,
+          totalPayment: totalConsumption,
+        });
+
+        // 3. updateStatusUser(userId, false) + incrementUserVisitsWithPoints(userId, points)
+        // Para cada usuario: poner offline + incrementar visitas y puntos
+        usersIds?.forEach((userId) => {
+          const userRef = doc(db, "Users", userId);
+          transaction.update(userRef, {
+            "additionalInfo.isOnline": false,
+            "additionalInfo.lastVisit": new Date(),
+            "additionalInfo.visits": increment(1),
+            "additionalInfo.points": increment(points),
+          });
+        });
+      });
+
+      console.log(`Tabla ${location} actualizada con estado: available`);
+      console.log(
+        `Visita ${visitId} completada con ${points} puntos y S/ ${totalConsumption} de consumo`
+      );
+      console.log(
+        `✅ Visita ${visitId} completada exitosamente con transacción: ${usersIds.length} usuarios actualizados con ${points} puntos y S/ ${totalConsumption} de consumo`
+      );
+    } catch (error) {
+      console.error(`Error actualizando location ${location}:`, error);
+      console.error(`Error completando visita ${visitId}:`, error);
+      console.error("Error al completar la visita:", error);
+      throw error;
+    }
   }
 }

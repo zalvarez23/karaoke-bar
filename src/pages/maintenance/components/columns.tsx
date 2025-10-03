@@ -36,6 +36,20 @@ export const createColumns = ({
     header: () => <div className="tracking-wider">Abreviatura</div>,
   },
   {
+    accessorKey: "songLimit",
+    header: () => <div className="tracking-wider">Límite de Canciones</div>,
+    cell: ({ row }) => {
+      const songLimit = row.original.songLimit || 0;
+      return (
+        <div className="font-normal tracking-wider text-center">
+          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm font-medium">
+            {songLimit} canciones
+          </span>
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "status",
     header: () => <div className="tracking-wider">Estado</div>,
     cell: ({ row }) => {

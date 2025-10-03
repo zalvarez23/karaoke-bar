@@ -39,6 +39,7 @@ export class LocationServices {
         name: locationData.name,
         abbreviation: locationData.abbreviation,
         status: locationData.status || "available",
+        songLimit: locationData.songLimit || 2,
       });
       console.log("Ubicación creada exitosamente");
     } catch (error) {
@@ -58,6 +59,7 @@ export class LocationServices {
         name: locationData.name,
         abbreviation: locationData.abbreviation,
         status: locationData.status,
+        songLimit: locationData.songLimit,
       });
       console.log("Ubicación actualizada exitosamente");
     } catch (error) {

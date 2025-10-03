@@ -32,6 +32,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({
     name: "",
     abbreviation: "",
     status: "available" as TLocationStatus,
+    songLimit: 2,
   });
 
   useEffect(() => {
@@ -40,12 +41,14 @@ export const LocationModal: React.FC<LocationModalProps> = ({
         name: location.name || "",
         abbreviation: location.abbreviation || "",
         status: location.status || "available",
+        songLimit: location.songLimit || 2,
       });
     } else {
       setFormData({
         name: "",
         abbreviation: "",
         status: "available",
+        songLimit: 2,
       });
     }
   }, [location, isOpen]);
@@ -60,6 +63,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({
       name: "",
       abbreviation: "",
       status: "available",
+      songLimit: 2,
     });
     onClose();
   };
@@ -103,6 +107,31 @@ export const LocationModal: React.FC<LocationModalProps> = ({
                 setFormData({ ...formData, abbreviation: e.target.value })
               }
               placeholder="Ej: M1, VIP, etc."
+              className="mt-1"
+              required
+            />
+          </div>
+
+          <div>
+            <Label
+              htmlFor="songLimit"
+              className="text-right font-normal text-2sm"
+            >
+              Límite de Canciones
+            </Label>
+            <Input
+              id="songLimit"
+              type="number"
+              min="1"
+              max="100"
+              value={formData.songLimit}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  songLimit: parseInt(e.target.value) || 5,
+                })
+              }
+              placeholder="Ej: 5, 10, 15, etc."
               className="mt-1"
               required
             />

@@ -9,7 +9,6 @@ import { VisitsServices } from "./services/visits-services";
 import { DataTable } from "./components/data-table";
 import { columns } from "./components/columns";
 import { IVisits } from "@/shared/types/visit-types";
-import { UserServices } from "../user/services/user-services";
 import { TableUsersModal } from "./components/table-users-modal";
 import { CompleteVisitModal } from "./components/complete-visit-modal";
 
@@ -30,7 +29,6 @@ export const VisitsManagePage: React.FC = () => {
   } | null>(null);
 
   const visitsServices = useCallback(() => new VisitsServices(), []);
-  const userServices = useCallback(() => new UserServices(), []);
 
   useEffect(() => {
     const unsubscribe = visitsServices().getAllVisitsOnSnapshot(
@@ -69,20 +67,70 @@ export const VisitsManagePage: React.FC = () => {
     event.preventDefault();
   };
 
-  const handleOnAcceptClient = (visitId: string) => {
-    visitsServices().updateVisitStatus(visitId, "online");
+  const handleOnAcceptClient = async (visitId: string) => {
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 1000; // 1 segundo
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        await visitsServices().updateVisitStatus(visitId, "online");
+        console.log(
+          `✅ Visita ${visitId} aceptada exitosamente (intento ${attempt})`
+        );
+        return; // Éxito, salir del bucle
+      } catch (error) {
+        console.error(`❌ Intento ${attempt} de aceptar visita falló:`, error);
+
+        if (attempt === MAX_RETRIES) {
+          // Último intento falló
+          console.error(
+            `❌ No se pudo aceptar la visita ${visitId} después de ${MAX_RETRIES} intentos`
+          );
+          return;
+        }
+
+        // Esperar antes del siguiente intento
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+      }
+    }
   };
 
-  const handleOnRejectClient = (
+  const handleOnRejectClient = async (
     visitId: string,
     usersIds: string[],
     location: string
   ) => {
-    visitsServices().updateLocationStatus(location, "available");
-    visitsServices().updateVisitStatus(visitId, "cancelled");
-    usersIds?.forEach((userId) => {
-      userServices().updateStatusUser(userId, false);
-    });
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 1000; // 1 segundo
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        // Usar transacción atómica para rechazar la visita
+        await visitsServices().rejectVisitWithTransaction(
+          visitId,
+          location,
+          usersIds || []
+        );
+
+        console.log(
+          `✅ Visita ${visitId} rechazada exitosamente con transacción (intento ${attempt})`
+        );
+        return; // Éxito, salir del bucle
+      } catch (error) {
+        console.error(`❌ Intento ${attempt} de rechazar visita falló:`, error);
+
+        if (attempt === MAX_RETRIES) {
+          // Último intento falló
+          console.error(
+            `❌ No se pudo rechazar la visita ${visitId} después de ${MAX_RETRIES} intentos`
+          );
+          return;
+        }
+
+        // Esperar antes del siguiente intento
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+      }
+    }
   };
 
   const handleOnCompletedClient = async (
@@ -109,66 +157,43 @@ export const VisitsManagePage: React.FC = () => {
   ) => {
     if (!visitToComplete) return;
 
-    try {
-      const { visitId, usersIds, location } = visitToComplete;
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 1000; // 1 segundo
 
-      // Actualizar estado de la ubicación y visita con puntos y consumo
-      await visitsServices().updateLocationStatus(location, "available");
-      await visitsServices().completeVisitWithPoints(
-        visitId,
-        points,
-        totalConsumption
-      );
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const { visitId, usersIds, location } = visitToComplete;
 
-      // Actualizar usuarios: poner offline e incrementar contador de visitas con puntos (EN PARALELO)
-      console.log(`🚀 Procesando ${usersIds.length} usuarios en paralelo...`);
-
-      const updateResults = await Promise.allSettled(
-        usersIds.map(async (userId) => {
-          try {
-            await userServices().updateStatusUser(userId, false);
-            await userServices().incrementUserVisitsWithPoints(userId, points);
-            console.log(`✅ Usuario ${userId} actualizado correctamente`);
-            return { success: true, userId };
-          } catch (error) {
-            const errorMessage =
-              error instanceof Error ? error.message : String(error);
-            console.error(`❌ Error con usuario ${userId}:`, errorMessage);
-            return { success: false, userId, error: errorMessage };
-          }
-        })
-      );
-
-      // Procesar resultados de Promise.allSettled
-      const successful = updateResults.filter(
-        (result) => result.status === "fulfilled" && result.value.success
-      ).length;
-
-      const failed = updateResults
-        .filter(
-          (result) => result.status === "rejected" || !result.value.success
-        )
-        .map((result) => ({
-          userId:
-            result.status === "fulfilled" ? result.value.userId : "unknown",
-          error:
-            result.status === "fulfilled"
-              ? result.value.error
-              : result.reason?.message || "Unknown error",
-        }));
-
-      if (failed.length > 0) {
-        console.warn(
-          `⚠️ ${failed.length} usuarios no se pudieron actualizar:`,
-          failed
+        // Usar transacción atómica para completar la visita
+        await visitsServices().completeVisitWithTransaction(
+          visitId,
+          location,
+          usersIds || [],
+          points,
+          totalConsumption
         );
-      }
 
-      console.log(
-        `✅ Visita completada: ${successful}/${usersIds.length} usuarios actualizados con ${points} puntos y S/ ${totalConsumption} de consumo`
-      );
-    } catch (error) {
-      console.error("Error al completar la visita:", error);
+        console.log(
+          `✅ Visita completada exitosamente con transacción (intento ${attempt})`
+        );
+        return; // Éxito, salir del bucle
+      } catch (error) {
+        console.error(
+          `❌ Intento ${attempt} de completar visita falló:`,
+          error
+        );
+
+        if (attempt === MAX_RETRIES) {
+          // Último intento falló
+          console.error(
+            `❌ No se pudo completar la visita después de ${MAX_RETRIES} intentos`
+          );
+          return;
+        }
+
+        // Esperar antes del siguiente intento
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+      }
     }
   };
 

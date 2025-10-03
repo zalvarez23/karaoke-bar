@@ -68,24 +68,29 @@ export const KaraokeLivePage: FC = () => {
       }}
     >
       {/* Header con avatar y rol */}
-      <div className="pt-4 px-9">
+      <div className="pt-4 px-7">
         <div className="flex items-center justify-between">
-          <button
-            onClick={() => navigate(-1)}
-            className="hover:opacity-80 transition-opacity"
-          >
-            <ChevronLeftIcon size={30} color={KaraokeColors.base.white} />
-          </button>
-          <div>
-            <Typography
-              variant="headline-sm-semi"
-              color={KaraokeColors.base.white}
+          <div className="flex items-center gap-5">
+            <button
+              onClick={() => navigate(-1)}
+              className="hover:opacity-80 transition-opacity"
             >
-              KantoBar Live
-            </Typography>
-            <Typography variant="label-xs" color={KaraokeColors.base.white}>
-              Todas las canciones aqui.
-            </Typography>
+              <ChevronLeftIcon size={30} color={KaraokeColors.base.white} />
+            </button>
+            <div>
+              <Typography
+                variant="label-lg-semi"
+                color={KaraokeColors.base.white}
+              >
+                KantoBar Live
+              </Typography>
+              <Typography
+                variant="label-xs"
+                color={KaraokeColors.base.secondaryLight}
+              >
+                Todas las canciones aqui.
+              </Typography>
+            </div>
           </div>
           <LayoutDashboard
             size={20}

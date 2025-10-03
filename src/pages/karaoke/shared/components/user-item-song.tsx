@@ -35,7 +35,7 @@ export const UserItemSong: FC<UserItemSongProps> = ({
       case "completed":
         return KaraokeColors.gray.gray500;
       case "singing":
-        return KaraokeColors.primary.primary300;
+        return KaraokeColors.base.secondaryLight;
       case "pending":
         return KaraokeColors.gray.gray200;
       default:

@@ -38,7 +38,7 @@ export const KaraokeHomePage: React.FC = () => {
           />
           <SectionCardHome
             icon={Radio}
-            title="Ver Live !"
+            title="Ver Live"
             description="Revisa todas las canciones en curso."
             onClick={() => navigate(KARAOKE_ROUTES.LIVE)}
           />

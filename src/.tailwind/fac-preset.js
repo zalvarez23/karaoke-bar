@@ -217,6 +217,8 @@ module.exports = {
         darkPrimary: "#191720",
         lightPrimary: "#1e1c24",
         extraDark: "#0A0A0A",
+        secondaryLight: "rgb(245 221 172)",
+        secondary: "#c49b5e",
       },
     },
     animation: {

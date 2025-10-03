@@ -11,4 +11,5 @@ export interface ILocations {
   name: string;
   abbreviation: string;
   status: TLocationStatus;
+  songLimit: number;
 }

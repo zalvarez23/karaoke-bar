@@ -46,29 +46,46 @@ export const GuestModePage: React.FC = () => {
   const isError = Object.keys(errors).length > 0;
 
   const handleOnGuestRegister = async (userData: TFormData) => {
-    try {
-      setIsLoading(true);
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 1000; // 1 segundo
 
-      // Crear usuario invitado con datos mínimos
-      await new Promise((resolve) => setTimeout(resolve, 4000));
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        setIsLoading(true);
 
-      const guestUser = await userService.registerGuest(userData.name);
-      setIsSuccess(true);
-      setUserState(guestUser);
-      setUserStorage(guestUser);
-      statusModalRef.current?.open();
-    } catch (error: unknown) {
-      alert("registerGuest5");
-      setIsSuccess(false);
-      if (error instanceof Error) {
-        setErrorMessage(error.message);
-      } else {
-        setErrorMessage("Error desconocido");
+        // Crear usuario invitado con datos mínimos
+        const guestUser = await userService.registerGuest(userData.name);
+        setIsSuccess(true);
+        setUserState(guestUser);
+        setUserStorage(guestUser);
+        statusModalRef.current?.open();
+        return; // Éxito, salir del bucle
+      } catch (error: unknown) {
+        console.error(`Intento ${attempt} de registro falló:`, error);
+
+        if (attempt === MAX_RETRIES) {
+          // Último intento falló
+          setIsSuccess(false);
+          if (error instanceof Error) {
+            setErrorMessage(
+              `${error.message} (Después de ${MAX_RETRIES} intentos)`
+            );
+          } else {
+            setErrorMessage(
+              `Error desconocido (Después de ${MAX_RETRIES} intentos)`
+            );
+          }
+          statusModalRef.current?.open();
+          return;
+        }
+
+        // Esperar antes del siguiente intento
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+      } finally {
+        if (attempt === MAX_RETRIES) {
+          setIsLoading(false);
+        }
       }
-      alert("registerGuest6");
-      statusModalRef.current?.open();
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -102,7 +119,7 @@ export const GuestModePage: React.FC = () => {
               variant="headline-xl-semi"
               color={KaraokeColors.base.white}
             >
-              Modo Invitado
+              Invitado
             </Typography>
             <Typography
               variant="body-md-semi"

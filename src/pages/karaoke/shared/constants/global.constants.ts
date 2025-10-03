@@ -50,3 +50,4 @@ export const STATUS_MESSAGES = {
   NETWORK_ERROR: "Error de conexión",
   VALIDATION_ERROR: "Error de validación",
 } as const;
+

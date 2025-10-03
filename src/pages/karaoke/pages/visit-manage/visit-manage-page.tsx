@@ -1,6 +1,11 @@
 import { FC, useEffect, useState } from "react";
 import { KaraokeColors } from "../../colors";
-import { Header, Typography, Spinner } from "../../shared/components";
+import {
+  Header,
+  Typography,
+  Spinner,
+  StatusModal,
+} from "../../shared/components";
 import { LocationServices, ReservationServices } from "../../shared/services";
 import { ILocations } from "../../shared/types/location.types";
 import { UserServices } from "../../shared/services";
@@ -37,7 +42,8 @@ export const KaraokeVisitManagePage: FC = () => {
   const [showExitModal, setShowExitModal] = useState(false);
   const [showCallWaiterModal, setShowCallWaiterModal] = useState(false);
   const [pendingGuestUsers, setPendingGuestUsers] = useState<TGuestUsers[]>([]);
-
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [limitSong, setLimitSong] = useState(2);
   const {
     state: { user },
   } = useUsersContext();
@@ -90,6 +96,15 @@ export const KaraokeVisitManagePage: FC = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (currentVisit?.status === "online") {
+      const location = locations.find(
+        (location) => location.id === currentVisit?.locationId
+      );
+      setLimitSong(location?.songLimit || 2);
+    }
+  }, [locations, currentVisit]);
 
   // Escuchar el estado de la visita del usuario
   useEffect(() => {
@@ -327,15 +342,17 @@ export const KaraokeVisitManagePage: FC = () => {
       );
 
       // Si ya hay 2 canciones en la ronda actual
-      if (currentRoundSongs.length >= 2) {
+      if (currentRoundSongs.length >= limitSong) {
         // Verificamos si todas están completadas
         const allCompleted = currentRoundSongs.every(
           (s) => s.status === "completed"
         );
 
+        console.log(allCompleted);
+
         if (!allCompleted) {
           // Si alguna no está completada, se impide agregar otra
-          alert("Solo puedes tener 2 canciones pendientes o en canto.");
+          setShowLimitModal(true);
           return;
         } else {
           // Si todas están completadas, iniciamos una nueva ronda
@@ -430,25 +447,37 @@ export const KaraokeVisitManagePage: FC = () => {
   // Si hay una visita activa (online), mostrar pantalla de karaoke
   if (currentVisit?.status === "online") {
     return (
-      <VisitOnline
-        currentVisit={currentVisit}
-        pendingGuestUsers={pendingGuestUsers}
-        showExitModal={showExitModal}
-        showCallWaiterModal={showCallWaiterModal}
-        showSearchSongsModal={showSearchSongsModal}
-        handleOnStart={handleOnStart}
-        handleExitTable={handleExitTable}
-        handleConfirmExitTable={handleConfirmExitTable}
-        handleCancelExitTable={handleCancelExitTable}
-        handleConfirmCallWaiter={handleConfirmCallWaiter}
-        handleCancelCallWaiter={handleCancelCallWaiter}
-        handleOnConfirmGuestUser={handleOnConfirmGuestUser}
-        handleOnCloseGuestUser={handleOnCloseGuestUser}
-        handleOnSelectSong={handleOnSelectSong}
-        handleOnDelete={handleOnDelete}
-        handleOnSendGreeting={handleOnSendGreeting}
-        setShowSearchSongsModal={setShowSearchSongsModal}
-      />
+      <div>
+        <VisitOnline
+          currentVisit={currentVisit}
+          pendingGuestUsers={pendingGuestUsers}
+          showExitModal={showExitModal}
+          showCallWaiterModal={showCallWaiterModal}
+          showSearchSongsModal={showSearchSongsModal}
+          handleOnStart={handleOnStart}
+          handleExitTable={handleExitTable}
+          handleConfirmExitTable={handleConfirmExitTable}
+          handleCancelExitTable={handleCancelExitTable}
+          handleConfirmCallWaiter={handleConfirmCallWaiter}
+          handleCancelCallWaiter={handleCancelCallWaiter}
+          handleOnConfirmGuestUser={handleOnConfirmGuestUser}
+          handleOnCloseGuestUser={handleOnCloseGuestUser}
+          handleOnSelectSong={handleOnSelectSong}
+          handleOnDelete={handleOnDelete}
+          handleOnSendGreeting={handleOnSendGreeting}
+          setShowSearchSongsModal={setShowSearchSongsModal}
+          limitSong={limitSong}
+        />
+        <StatusModal
+          visible={showLimitModal}
+          status="warning"
+          description={`¡Entendemos que quieres cantar más! Ya tienes ${limitSong} ${
+            limitSong === 1 ? "canción" : "canciones"
+          } en tu ronda. Espera un momento a que se canten para agregar más.`}
+          onClose={() => setShowLimitModal(false)}
+          onConfirm={() => setShowLimitModal(false)}
+        />
+      </div>
     );
   }
 

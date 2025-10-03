@@ -96,7 +96,7 @@ export const DataTable = <TData, TValue>({
               id="online-filter"
               checked={showOnlyOnline}
               onCheckedChange={onToggleOnline}
-              className="data-[state=checked]:bg-blue-400"
+              className="data-[state=checked]:bg-blue-400 data-[state=unchecked]:bg-base-secondaryLight"
             />
           </div>
         )}
