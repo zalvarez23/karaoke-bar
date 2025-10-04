@@ -5,6 +5,7 @@ import { HeaderScreen, Typography } from "../../shared/components";
 import { RecentUsers, SectionCardHome } from "./components";
 import { useUsersContext } from "../../shared/context";
 import { KARAOKE_ROUTES } from "../../shared/types";
+import { KARAOKE_CONSTANTS } from "../../shared/constants";
 import { FlameIcon, MicVocal, Radio } from "lucide-react";
 
 export const KaraokeHomePage: React.FC = () => {
@@ -46,7 +47,9 @@ export const KaraokeHomePage: React.FC = () => {
             icon={FlameIcon}
             title="Nuestra Carta"
             description="Revisa nuestras bebidas y platillos"
-            comingSoon={true}
+            onClick={() =>
+              window.open(KARAOKE_CONSTANTS.APP.CARTA_PDF_URL, "_blank")
+            }
           />
         </div>
         <RecentUsers />
