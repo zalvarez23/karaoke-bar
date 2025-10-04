@@ -15,7 +15,7 @@ export const KARAOKE_CONSTANTS = {
     NAME: "KantoBar Karaoke",
     VERSION: "1.0.5",
     DESCRIPTION: "Sistema de karaoke web para KantoBar",
-    CARTA_PDF_URL: "/pdf/carta-kantobar.pdf",
+    CARTA_PDF_URL: "/pdf/carta.pdf",
   },
 
   // API Configuration
