@@ -22,12 +22,14 @@ type TVisitManageActions = {
   onCompletedClient: (
     visitId: string,
     usersIds: string[],
-    location: string
+    location: string,
+    locationId: string
   ) => void;
   onRejectClient: (
     visitId: string,
     usersIds: string[],
-    location: string
+    location: string,
+    locationId: string
   ) => void;
   onViewTableUsers: (visit: IVisits) => void;
   onToggleCallWaiter: (visitId: string, currentStatus: boolean) => void;
@@ -144,13 +146,14 @@ export const columns = ({
             {row.original.status === "online" && (
               <DropdownMenuItem
                 className="text-gray-600 tracking-wide text-2sm flex items-center"
-                onClick={() =>
+                onClick={() => {
                   onCompletedClient(
                     row.original.id || "",
                     row.original.usersIds || [],
-                    row.original.location || ""
-                  )
-                }
+                    row.original.location || "",
+                    row.original.locationId || ""
+                  );
+                }}
               >
                 <FilePenLine className="h-4 w-4 text-blue-400" />
                 <div>Completar Visita</div>
@@ -163,7 +166,8 @@ export const columns = ({
                 onRejectClient(
                   row.original.id || "",
                   row.original.usersIds || [],
-                  row.original.location || ""
+                  row.original.location || "",
+                  row.original.locationId || ""
                 )
               }
             >

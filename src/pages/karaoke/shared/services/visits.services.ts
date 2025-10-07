@@ -12,6 +12,7 @@ import {
   arrayUnion,
   runTransaction,
   Unsubscribe,
+  DocumentReference,
 } from "firebase/firestore";
 import { IVisitsRepository } from "../repository/visits-repository";
 import {
@@ -581,5 +582,149 @@ export class VisitsServices implements IVisitsRepository {
       visits: formattedVisits,
       songs: sortedSongs,
     };
+  }
+
+  /**
+   * Elimina una visita completamente de la base de datos, libera la mesa y pone al usuario offline
+   * @param visitId - ID de la visita a eliminar
+   * @param locationId - ID de la mesa a liberar (opcional)
+   * @param location - Nombre de la mesa a liberar (opcional)
+   * @param userId - ID del usuario a poner offline (opcional)
+   */
+  async deleteVisit(
+    visitId: string,
+    locationId?: string,
+    location?: string,
+    userId?: string
+  ): Promise<void> {
+    try {
+      const visitRef = doc(this.db, "Visits", visitId);
+
+      // Usar transacción para eliminar visita, liberar mesa y poner usuario offline atómicamente
+      await runTransaction(this.db, async (transaction) => {
+        // 1. Obtener datos de la visita antes de eliminarla
+        const visitDoc = await transaction.get(visitRef);
+        if (!visitDoc.exists()) {
+          throw new Error("La visita no existe");
+        }
+
+        const visitData = visitDoc.data();
+        const userIdToUpdate = userId || visitData?.userId;
+
+        // 2. Eliminar la visita
+        transaction.delete(visitRef);
+
+        // 3. Liberar la mesa si se proporciona información
+        if (locationId || location) {
+          // Usar la función reutilizable para buscar la mesa
+          const tableRef = await this.findTableByIdOrName(locationId, location);
+
+          // Liberar la mesa si se encontró
+          if (tableRef) {
+            transaction.update(tableRef, {
+              status: "available",
+            });
+            console.log(`✅ Mesa liberada correctamente`);
+          } else {
+            console.warn(
+              `⚠️ No se pudo encontrar la mesa para liberar (ID: ${locationId}, Nombre: ${location})`
+            );
+          }
+        }
+
+        // 4. Poner al usuario offline si se proporciona userId
+        if (userIdToUpdate) {
+          const userRef = doc(this.db, "Users", userIdToUpdate);
+          transaction.update(userRef, {
+            "additionalInfo.isOnline": false,
+            "additionalInfo.lastVisit": new Date(),
+          });
+          console.log(
+            `✅ Usuario ${userIdToUpdate} puesto offline correctamente`
+          );
+        }
+      });
+
+      console.log(
+        `✅ Visita ${visitId} eliminada, mesa liberada y usuario puesto offline correctamente`
+      );
+    } catch (error) {
+      console.error(`❌ Error eliminando visita ${visitId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Busca una mesa por ID o por nombre normalizado
+   * @param locationId - ID de la mesa (opcional)
+   * @param location - Nombre de la mesa
+   * @returns DocumentReference de la mesa encontrada o undefined
+   */
+  private async findTableByIdOrName(
+    locationId?: string,
+    location?: string
+  ): Promise<DocumentReference | undefined> {
+    let tableRef: DocumentReference | undefined;
+
+    // Primero intentar buscar por ID
+    if (locationId) {
+      const tableDocRef = doc(this.db, "Tables", locationId);
+      const tableSnapshot = await getDoc(tableDocRef);
+
+      if (tableSnapshot.exists()) {
+        tableRef = tableDocRef;
+        console.log(`✅ Mesa encontrada por ID: ${locationId}`);
+        return tableRef;
+      }
+    }
+
+    // Si no se encontró por ID, buscar por nombre (normalizado)
+    if (location) {
+      console.log(
+        `🔍 Mesa no encontrada por ID ${locationId}, buscando por nombre: ${location}`
+      );
+      const tablesRef = collection(this.db, "Tables");
+      const allTablesSnapshot = await getDocs(tablesRef);
+
+      // Normalizar el nombre de búsqueda
+      const normalizedSearchName = location.toLowerCase().trim();
+
+      // Buscar coincidencia exacta normalizada
+      const exactMatch = allTablesSnapshot.docs.find((doc) => {
+        const tableName = doc.data().name?.toLowerCase().trim();
+        return tableName === normalizedSearchName;
+      });
+
+      if (exactMatch) {
+        tableRef = exactMatch.ref;
+        console.log(
+          `✅ Mesa encontrada por nombre exacto normalizado: ${location} -> ${
+            exactMatch.data().name
+          }`
+        );
+        return tableRef;
+      }
+
+      // Buscar coincidencia parcial (contiene)
+      const partialMatch = allTablesSnapshot.docs.find((doc) => {
+        const tableName = doc.data().name?.toLowerCase().trim();
+        return (
+          tableName?.includes(normalizedSearchName) ||
+          normalizedSearchName.includes(tableName)
+        );
+      });
+
+      if (partialMatch) {
+        tableRef = partialMatch.ref;
+        console.log(
+          `✅ Mesa encontrada por coincidencia parcial: ${location} -> ${
+            partialMatch.data().name
+          }`
+        );
+        return tableRef;
+      }
+    }
+
+    return undefined;
   }
 }

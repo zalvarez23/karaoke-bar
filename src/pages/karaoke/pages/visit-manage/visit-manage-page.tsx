@@ -44,6 +44,7 @@ export const KaraokeVisitManagePage: FC = () => {
   const [pendingGuestUsers, setPendingGuestUsers] = useState<TGuestUsers[]>([]);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [limitSong, setLimitSong] = useState(2);
+  const [isCancellingVisit, setIsCancellingVisit] = useState(false);
   const {
     state: { user },
   } = useUsersContext();
@@ -105,6 +106,35 @@ export const KaraokeVisitManagePage: FC = () => {
       setLimitSong(location?.songLimit || 2);
     }
   }, [locations, currentVisit]);
+
+  // Función para refrescar la visita actual
+  const refreshCurrentVisit = async () => {
+    try {
+      console.log("🔄 Refrescando visita actual...");
+
+      // Hacer una consulta directa para obtener el estado más reciente
+      const { hasOnlineVisit, onlineVisit } =
+        await visitServices.checkUserOnlineVisit(user.id);
+
+      if (hasOnlineVisit && onlineVisit) {
+        setCurrentVisit(onlineVisit);
+        console.log("✅ Visita actualizada con datos frescos");
+
+        // Mostrar alerta de actualización exitosa (solo una vez)
+      } else {
+        // Si no hay visita online, verificar si hay una pendiente
+        const visits = await visitServices.getVisitsByUser(user.id);
+        const pendingVisit = visits.find((v) => v.status === "pending");
+        setCurrentVisit(pendingVisit || null);
+
+        console.log("✅ Estado de visita actualizado");
+      }
+    } catch (error) {
+      console.error("❌ Error refrescando visita:", error);
+      // Como fallback, reiniciar el listener
+      visitServices.getVisitByUserAndStatus(setCurrentVisit, user.id);
+    }
+  };
 
   // Escuchar el estado de la visita del usuario
   useEffect(() => {
@@ -285,6 +315,68 @@ export const KaraokeVisitManagePage: FC = () => {
     setShowExitModal(false);
   };
 
+  // Función para cancelar la visita pendiente
+  const handleCancelPendingVisit = async () => {
+    if (!currentVisit?.id) {
+      alert("No hay una visita para cancelar");
+      return;
+    }
+
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        setIsCancellingVisit(true);
+        console.log(
+          `🚫 Intento ${attempt}/${maxRetries} de cancelación de visita:`,
+          currentVisit.id
+        );
+
+        // Eliminar la visita completamente, liberar la mesa y poner usuario offline
+        await visitServices.deleteVisit(
+          currentVisit.id,
+          currentVisit.locationId,
+          currentVisit.location,
+          user.id
+        );
+
+        // Actualizar el estado local
+        setCurrentVisit(null);
+
+        console.log(`✅ Visita cancelada exitosamente en intento ${attempt}`);
+        return; // Éxito, salir del loop
+      } catch (error) {
+        lastError = error as Error;
+        console.error(`❌ Intento ${attempt} falló:`, error);
+
+        // Loggear error a Firebase (no bloqueante)
+        logErrorToFirebase(
+          error as Error,
+          `Intento ${attempt} de cancelación de visita`
+        ).catch((logError) => {
+          console.error("❌ Error en logging (no crítico):", logError);
+        });
+
+        if (attempt < maxRetries) {
+          console.log(`⏳ Esperando 1 segundo antes del siguiente intento...`);
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+      } finally {
+        setIsCancellingVisit(false);
+      }
+    }
+
+    // Si llegamos aquí, todos los intentos fallaron
+    console.error(
+      `❌ Todos los intentos de cancelación fallaron. Último error:`,
+      lastError
+    );
+    alert(
+      "No se pudo cancelar la solicitud después de varios intentos. Inténtalo nuevamente."
+    );
+  };
+
   // Métodos para manejar solicitudes de mesa (igual que en el móvil)
   const handleOnConfirmGuestUser = async (userId: string) => {
     await visitServices.acceptGuestUser(currentVisit?.id || "", userId);
@@ -439,7 +531,10 @@ export const KaraokeVisitManagePage: FC = () => {
         }}
       >
         <Header title="Excelente," showBackIcon={true} />
-        <VisitPendingState />
+        <VisitPendingState
+          onCancel={handleCancelPendingVisit}
+          isLoading={isCancellingVisit}
+        />
       </div>
     );
   }
@@ -467,6 +562,7 @@ export const KaraokeVisitManagePage: FC = () => {
           handleOnSendGreeting={handleOnSendGreeting}
           setShowSearchSongsModal={setShowSearchSongsModal}
           limitSong={limitSong}
+          onRefreshVisit={refreshCurrentVisit}
         />
         <StatusModal
           visible={showLimitModal}

@@ -4,6 +4,7 @@ import {
   Typography,
   ConfirmModal,
   UserItemSong,
+  Spinner,
 } from "../../../shared/components";
 import { Switch } from "../../../../../shared/components/ui/switch";
 import { useUsersContext } from "../../../shared/context";
@@ -18,6 +19,7 @@ import { LayoutDashboard, MicVocal, Radio, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SectionCardHome } from "../../home/components";
 import { KARAOKE_ROUTES } from "@/pages/karaoke/shared";
+import { useAppForegroundRefresh } from "../../../../../hooks/use-visibility-change";
 
 type TVisitOnlineProps = {
   currentVisit: IVisits;
@@ -38,6 +40,7 @@ type TVisitOnlineProps = {
   handleOnSendGreeting: (greeting: string, songId: string) => Promise<boolean>;
   setShowSearchSongsModal: (show: boolean) => void;
   limitSong: number;
+  onRefreshVisit?: () => void | Promise<void>;
 };
 
 export const VisitOnline: FC<TVisitOnlineProps> = ({
@@ -59,12 +62,20 @@ export const VisitOnline: FC<TVisitOnlineProps> = ({
   handleOnSendGreeting,
   setShowSearchSongsModal,
   limitSong,
+  onRefreshVisit,
 }) => {
   const {
     state: { user },
   } = useUsersContext();
 
   const isHost = currentVisit?.userId === user.id;
+
+  // Hook para detectar cuando la app regresa a primer plano y actualizar datos
+  const { isRefreshing } = useAppForegroundRefresh(async () => {
+    if (onRefreshVisit) {
+      await onRefreshVisit();
+    }
+  });
   const isGuest = currentVisit?.userId !== user.id;
 
   const navigate = useNavigate();
@@ -106,12 +117,20 @@ export const VisitOnline: FC<TVisitOnlineProps> = ({
               onClick={() => navigate(KARAOKE_ROUTES.HOME)}
             />
             <div>
-              <Typography
-                variant="body-lg-semi"
-                color={KaraokeColors.base.white}
-              >
-                Mi Mesa {currentVisit.location}
-              </Typography>
+              <div className="flex items-center gap-2">
+                <Typography
+                  variant="body-lg-semi"
+                  color={KaraokeColors.base.white}
+                >
+                  Mi Mesa {currentVisit.location}
+                </Typography>
+                {isRefreshing && (
+                  <Spinner
+                    size={16}
+                    color={KaraokeColors.base.secondaryLight}
+                  />
+                )}
+              </div>
               <div className="flex items-center gap-2">
                 {isHost && (
                   <Typography

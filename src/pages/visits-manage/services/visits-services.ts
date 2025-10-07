@@ -11,6 +11,7 @@ import {
   Timestamp,
   updateDoc,
   where,
+  DocumentReference,
 } from "firebase/firestore";
 import { IVisitsRepository } from "../repository/user-repository";
 import { db } from "@/config/firebase";
@@ -24,6 +25,80 @@ import { TLocationStatus } from "@/shared/types/location-types";
 
 export class VisitsServices implements IVisitsRepository {
   constructor() {}
+
+  /**
+   * Busca una mesa por ID o por nombre normalizado
+   * @param locationId - ID de la mesa (opcional)
+   * @param location - Nombre de la mesa
+   * @returns DocumentReference de la mesa encontrada o undefined
+   */
+  public async findTableByIdOrName(
+    locationId?: string,
+    location?: string
+  ): Promise<DocumentReference | undefined> {
+    let tableRef: DocumentReference | undefined;
+
+    // Primero intentar buscar por ID
+    if (locationId) {
+      const tableDocRef = doc(db, "Tables", locationId);
+      const tableSnapshot = await getDoc(tableDocRef);
+
+      if (tableSnapshot.exists()) {
+        tableRef = tableDocRef;
+        console.log(`✅ Mesa encontrada por ID: ${locationId}`);
+        return tableRef;
+      }
+    }
+
+    // Si no se encontró por ID, buscar por nombre (normalizado)
+    if (location) {
+      console.log(
+        `🔍 Mesa no encontrada por ID ${locationId}, buscando por nombre: ${location}`
+      );
+      const tablesRef = collection(db, "Tables");
+      const allTablesSnapshot = await getDocs(tablesRef);
+
+      // Normalizar el nombre de búsqueda
+      const normalizedSearchName = location.toLowerCase().trim();
+
+      // Buscar coincidencia exacta normalizada
+      const exactMatch = allTablesSnapshot.docs.find((doc) => {
+        const tableName = doc.data().name?.toLowerCase().trim();
+        return tableName === normalizedSearchName;
+      });
+
+      if (exactMatch) {
+        tableRef = exactMatch.ref;
+        console.log(
+          `✅ Mesa encontrada por nombre exacto normalizado: ${location} -> ${
+            exactMatch.data().name
+          }`
+        );
+        return tableRef;
+      }
+
+      // Buscar coincidencia parcial (contiene)
+      const partialMatch = allTablesSnapshot.docs.find((doc) => {
+        const tableName = doc.data().name?.toLowerCase().trim();
+        return (
+          tableName?.includes(normalizedSearchName) ||
+          normalizedSearchName.includes(tableName)
+        );
+      });
+
+      if (partialMatch) {
+        tableRef = partialMatch.ref;
+        console.log(
+          `✅ Mesa encontrada por coincidencia parcial: ${location} -> ${
+            partialMatch.data().name
+          }`
+        );
+        return tableRef;
+      }
+    }
+
+    return undefined;
+  }
 
   // Este método no retorna una Promise, sino la función de desuscripción
   getAllVisitsOnSnapshot(callback: (visits: IVisits[]) => void): () => void {
@@ -338,20 +413,21 @@ export class VisitsServices implements IVisitsRepository {
   async rejectVisitWithTransaction(
     visitId: string,
     location: string,
-    usersIds: string[]
+    usersIds: string[],
+    locationId: string
   ): Promise<void> {
     try {
-      // Buscar la mesa por nombre (fuera de transacción, como updateLocationStatus)
-      const tablesRef = collection(db, "Tables");
-      const q = query(tablesRef, where("name", "==", location));
-      const tableSnapshot = await getDocs(q);
+      // Buscar mesa por ID o nombre normalizado
+      const tableRef = await this.findTableByIdOrName(locationId, location);
 
-      if (tableSnapshot.empty) {
-        console.error(`No se encontró una tabla con el nombre ${location}`);
-        throw new Error(`No se encontró una tabla con el nombre ${location}`);
+      if (!tableRef) {
+        console.error(
+          `❌ No se encontró una tabla con ID ${locationId} ni con nombre ${location}`
+        );
+        throw new Error(
+          `No se encontró una tabla con ID ${locationId} ni con nombre ${location}`
+        );
       }
-
-      const tableRef = tableSnapshot.docs[0].ref;
 
       // Transacción que replica exactamente los 3 métodos originales
       await runTransaction(db, async (transaction) => {
@@ -408,20 +484,21 @@ export class VisitsServices implements IVisitsRepository {
     location: string,
     usersIds: string[],
     points: number,
-    totalConsumption: number
+    totalConsumption: number,
+    locationId: string
   ): Promise<void> {
     try {
-      // Buscar la mesa por nombre (fuera de transacción, como updateLocationStatus)
-      const tablesRef = collection(db, "Tables");
-      const q = query(tablesRef, where("name", "==", location));
-      const tableSnapshot = await getDocs(q);
+      // Buscar mesa por ID o nombre normalizado
+      const tableRef = await this.findTableByIdOrName(locationId, location);
 
-      if (tableSnapshot.empty) {
-        console.error(`No se encontró una tabla con el nombre ${location}`);
-        throw new Error(`No se encontró una tabla con el nombre ${location}`);
+      if (!tableRef) {
+        console.error(
+          `❌ No se encontró una tabla con ID ${locationId} ni con nombre ${location}`
+        );
+        throw new Error(
+          `No se encontró una tabla con ID ${locationId} ni con nombre ${location}`
+        );
       }
-
-      const tableRef = tableSnapshot.docs[0].ref;
 
       // Transacción que replica exactamente handleCompleteVisitWithPoints
       await runTransaction(db, async (transaction) => {

@@ -8,7 +8,6 @@ import {
   Button,
   Input,
   StatusModal,
-  Header,
   type ModalRef,
 } from "../../shared/components";
 import { UserServices } from "../../shared/services";
@@ -105,11 +104,6 @@ export const GuestModePage: React.FC = () => {
         backgroundColor: KaraokeColors.base.darkPrimary,
       }}
     >
-      {/* Header with back button */}
-      <div className="px-5 pt-3">
-        <Header showBackIcon />
-      </div>
-
       {/* Main Content */}
       <div className="flex-1 flex flex-col justify-center items-center px-8">
         <div className="w-full max-w-md">
@@ -118,15 +112,17 @@ export const GuestModePage: React.FC = () => {
             <Typography
               variant="headline-xl-semi"
               color={KaraokeColors.base.white}
+              // Cursiva
+              className="italic"
             >
-              Invitado
+              KantoBar
             </Typography>
             <Typography
               variant="body-md-semi"
-              className="mt-2 text-center"
+              className="mt-2 text-center italic"
               color={KaraokeColors.gray.gray300}
             >
-              Ingresa tu nombre para continuar como invitado
+              Inicia sesión como invitado
             </Typography>
           </div>
 
@@ -151,7 +147,7 @@ export const GuestModePage: React.FC = () => {
                 })}
                 type="text"
                 value={watchedValues.name}
-                placeholder="Nombre o nick"
+                placeholder="Como quieres que te llamemos?"
                 customIcon={
                   <User
                     size={20}
@@ -171,13 +167,13 @@ export const GuestModePage: React.FC = () => {
             {/* Submit Button */}
             <Button
               size="lg"
-              theme="primary"
               fullWidth
               disabled={isError}
               isLoading={isLoading}
               type="submit"
+              className="bg-red-400"
             >
-              Continuar como invitado
+              Ingresar
             </Button>
           </form>
 

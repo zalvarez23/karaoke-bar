@@ -1,8 +1,16 @@
 import { FC } from "react";
-import { Typography } from "../../../shared/components";
+import { Typography, Button } from "../../../shared/components";
 import { KaraokeColors } from "../../../colors";
 
-const VisitPendingState: FC = () => {
+type TVisitPendingStateProps = {
+  onCancel?: () => void;
+  isLoading?: boolean;
+};
+
+const VisitPendingState: FC<TVisitPendingStateProps> = ({
+  onCancel,
+  isLoading = false,
+}) => {
   return (
     <div className="flex flex-col items-center justify-center mt-8 px-6">
       <Typography variant="body-md" color={KaraokeColors.base.white}>
@@ -24,6 +32,22 @@ const VisitPendingState: FC = () => {
           Estado: Pendiente de confirmación
         </Typography>
       </div>
+
+      {/* Botón de cancelar */}
+      {onCancel && (
+        <div className="mt-8 w-full max-w-xs">
+          <Button
+            theme="destructive"
+            appearance="outline"
+            size="md"
+            onClick={onCancel}
+            disabled={isLoading}
+            className="w-full"
+          >
+            {isLoading ? "Cancelando..." : "Cancelar Solicitud"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

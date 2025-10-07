@@ -46,6 +46,7 @@ export interface IVisits {
   totalPayment?: number;
   songs?: TSongsRequested[];
   location?: string;
+  locationId?: string;
   status?: TVisitStatus;
   usersIds?: string[];
   callWaiter?: boolean;

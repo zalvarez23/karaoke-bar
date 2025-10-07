@@ -16,6 +16,7 @@ import { useUsersContext } from "../../shared/context";
 import { KARAOKE_ROUTES } from "../../shared/types";
 import { useUserStorage } from "../../shared/hooks/user/use-user-storage";
 import { KARAOKE_CONSTANTS } from "../../shared/constants/global.constants";
+import { GuestModePage } from "../guest-mode";
 
 type TFormData = {
   username: string;
@@ -32,6 +33,7 @@ export const KaraokeLoginPage: React.FC = () => {
   const { setUser: setUserStorage, getUser: getUserStorage } = useUserStorage();
   const statusModalRef = useRef<ModalRef>(null);
   const navigate = useNavigate();
+  const showLogin = false;
 
   const {
     register,
@@ -197,164 +199,176 @@ export const KaraokeLoginPage: React.FC = () => {
   }
 
   return (
-    <div
-      className="min-h-screen flex flex-col justify-center relative"
-      style={{
-        backgroundColor: KaraokeColors.base.darkPrimary,
-        paddingTop: "env(safe-area-inset-top, 0px)",
-      }}
-    >
-      <div className="w-full max-w-md px-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <Typography
-            variant="headline-xl-semi"
-            color={KaraokeColors.base.white}
+    <>
+      {showLogin && (
+        <>
+          <div
+            className="min-h-screen flex flex-col justify-center relative"
+            style={{
+              backgroundColor: KaraokeColors.base.darkPrimary,
+              paddingTop: "env(safe-area-inset-top, 0px)",
+            }}
           >
-            Iniciar
-          </Typography>
-          <Typography
-            variant="body-md-semi"
-            className="mt-2 text-right"
-            color={KaraokeColors.gray.gray300}
-          >
-            Vive una experiencia única
-          </Typography>
-        </div>
+            <div className="w-full max-w-md px-8">
+              {/* Header */}
+              <div className="text-center mb-8">
+                <Typography
+                  variant="headline-xl-semi"
+                  color={KaraokeColors.base.white}
+                >
+                  Iniciar
+                </Typography>
+                <Typography
+                  variant="body-md-semi"
+                  className="mt-2 text-right"
+                  color={KaraokeColors.gray.gray300}
+                >
+                  Vive una experiencia única
+                </Typography>
+              </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit(handleOnLogIn)} className="space-y-6">
-          {/* Username Input */}
-          <div>
-            <Input
-              {...register("username", {
-                required: "Número de teléfono es requerido",
-                pattern: {
-                  value: /^[0-9]{9,15}$/,
-                  message: "Número de teléfono inválido (9-15 dígitos)",
-                },
-              })}
-              value={watchedValues.username}
-              placeholder="Número de teléfono"
-              inputType="onlyNumbers"
-              maxLength={15}
-              customIcon={
-                <Phone
-                  size={20}
-                  color={
-                    errors?.username?.message
-                      ? KaraokeColors.red.red300
-                      : KaraokeColors.primary.primary500
-                  }
-                />
-              }
-              error={errors?.username?.message}
-              className="w-full"
-            />
+              {/* Form */}
+              <form
+                onSubmit={handleSubmit(handleOnLogIn)}
+                className="space-y-6"
+              >
+                {/* Username Input */}
+                <div>
+                  <Input
+                    {...register("username", {
+                      required: "Número de teléfono es requerido",
+                      pattern: {
+                        value: /^[0-9]{9,15}$/,
+                        message: "Número de teléfono inválido (9-15 dígitos)",
+                      },
+                    })}
+                    value={watchedValues.username}
+                    placeholder="Número de teléfono"
+                    inputType="onlyNumbers"
+                    maxLength={15}
+                    customIcon={
+                      <Phone
+                        size={20}
+                        color={
+                          errors?.username?.message
+                            ? KaraokeColors.red.red300
+                            : KaraokeColors.primary.primary500
+                        }
+                      />
+                    }
+                    error={errors?.username?.message}
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Password Input */}
+                <div>
+                  <Input
+                    {...register("password", {
+                      required: "Contraseña es requerida",
+                    })}
+                    value={watchedValues.password}
+                    placeholder="Contraseña"
+                    type="password"
+                    customIcon={
+                      <Lock
+                        size={20}
+                        color={
+                          errors?.password?.message
+                            ? KaraokeColors.red.red300
+                            : KaraokeColors.primary.primary500
+                        }
+                      />
+                    }
+                    error={errors?.password?.message}
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Forgot Password Link */}
+                <div className="text-right">
+                  <Typography
+                    variant="link-sm-semi"
+                    color={KaraokeColors.gray.gray300}
+                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Typography>
+                </div>
+
+                {/* Submit Button */}
+                <Button
+                  size="lg"
+                  theme="primary"
+                  fullWidth
+                  disabled={isError}
+                  isLoading={isLoading}
+                  type="submit"
+                >
+                  Ingresar
+                </Button>
+              </form>
+
+              {/* Guest Mode Section */}
+              <div className="mt-4">
+                <Button
+                  size="lg"
+                  appearance="outline"
+                  theme="secondary"
+                  fullWidth
+                  onClick={handleGoToGuestMode}
+                >
+                  Ingresar como invitado
+                </Button>
+              </div>
+
+              {/* Footer */}
+              <div
+                className="absolute bottom-8 left-0 right-0 flex flex-col items-center justify-center space-y-3 mb-6"
+                style={{
+                  paddingBottom: "max(2rem, env(safe-area-inset-bottom))",
+                }}
+              >
+                <div className="flex items-center space-x-2">
+                  <Typography
+                    variant="body-md-semi"
+                    color={KaraokeColors.base.white}
+                    className="text-center"
+                  >
+                    ¿No tienes cuenta?
+                  </Typography>
+                  <Typography
+                    variant="link-md-semi"
+                    color={KaraokeColors.primary.primary400}
+                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={handleGoToRegister}
+                  >
+                    Regístrate
+                  </Typography>
+                </div>
+
+                {/* Version */}
+                <Typography
+                  variant="body-sm-semi"
+                  color={KaraokeColors.gray.gray400}
+                  className="text-center opacity-70"
+                >
+                  v{KARAOKE_CONSTANTS.APP.VERSION}
+                </Typography>
+              </div>
+
+              {/* Status Modal */}
+              <StatusModal
+                ref={statusModalRef}
+                status="error"
+                onConfirm={handleOnConfirmStatus}
+                description={errorMessage}
+              />
+            </div>
           </div>
-
-          {/* Password Input */}
-          <div>
-            <Input
-              {...register("password", {
-                required: "Contraseña es requerida",
-              })}
-              value={watchedValues.password}
-              placeholder="Contraseña"
-              type="password"
-              customIcon={
-                <Lock
-                  size={20}
-                  color={
-                    errors?.password?.message
-                      ? KaraokeColors.red.red300
-                      : KaraokeColors.primary.primary500
-                  }
-                />
-              }
-              error={errors?.password?.message}
-              className="w-full"
-            />
-          </div>
-
-          {/* Forgot Password Link */}
-          <div className="text-right">
-            <Typography
-              variant="link-sm-semi"
-              color={KaraokeColors.gray.gray300}
-              className="cursor-pointer hover:opacity-80 transition-opacity"
-            >
-              ¿Olvidaste tu contraseña?
-            </Typography>
-          </div>
-
-          {/* Submit Button */}
-          <Button
-            size="lg"
-            theme="primary"
-            fullWidth
-            disabled={isError}
-            isLoading={isLoading}
-            type="submit"
-          >
-            Ingresar
-          </Button>
-        </form>
-
-        {/* Guest Mode Section */}
-        <div className="mt-4">
-          <Button
-            size="lg"
-            appearance="outline"
-            theme="secondary"
-            fullWidth
-            onClick={handleGoToGuestMode}
-          >
-            Ingresar como invitado
-          </Button>
-        </div>
-
-        {/* Footer */}
-        <div
-          className="absolute bottom-8 left-0 right-0 flex flex-col items-center justify-center space-y-3 mb-6"
-          style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}
-        >
-          <div className="flex items-center space-x-2">
-            <Typography
-              variant="body-md-semi"
-              color={KaraokeColors.base.white}
-              className="text-center"
-            >
-              ¿No tienes cuenta?
-            </Typography>
-            <Typography
-              variant="link-md-semi"
-              color={KaraokeColors.primary.primary400}
-              className="cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={handleGoToRegister}
-            >
-              Regístrate
-            </Typography>
-          </div>
-
-          {/* Version */}
-          <Typography
-            variant="body-sm-semi"
-            color={KaraokeColors.gray.gray400}
-            className="text-center opacity-70"
-          >
-            v{KARAOKE_CONSTANTS.APP.VERSION}
-          </Typography>
-        </div>
-
-        {/* Status Modal */}
-        <StatusModal
-          ref={statusModalRef}
-          status="error"
-          onConfirm={handleOnConfirmStatus}
-          description={errorMessage}
-        />
-      </div>
-    </div>
+        </>
+      )}
+      {!showLogin && <GuestModePage />}
+    </>
   );
 };
