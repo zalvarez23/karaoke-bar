@@ -236,4 +236,63 @@ export class ReservationServices {
       });
     }, "guestExitTable");
   }
+
+  /**
+   * Solicita unirse a una mesa ocupada
+   * @param entryData - Datos de la solicitud de entrada
+   */
+  async requestEntryToOccupiedTable(entryData: {
+    locationId: string;
+    locationName: string;
+    userId: string;
+    userName: string;
+  }): Promise<string> {
+    await this.executeWithRetry(async () => {
+      await runTransaction(this.db, async (transaction) => {
+        // 1. Actualizar usuario a online
+        const userRef = doc(this.db, "Users", entryData.userId);
+        transaction.update(userRef, {
+          "additionalInfo.isOnline": true,
+          "additionalInfo.lastVisit": new Date(),
+        });
+
+        // 2. Buscar la visita activa en esa mesa
+        const visitsRef = collection(this.db, "Visits");
+        const visitQuery = query(
+          visitsRef,
+          where("locationId", "==", entryData.locationId),
+          where("status", "==", "online")
+        );
+        const visitSnapshot = await getDocs(visitQuery);
+
+        if (visitSnapshot.empty) {
+          throw new Error("No se encontró una visita activa en esa mesa");
+        }
+
+        // Debería existir solo una visita activa por mesa
+        const activeVisit = visitSnapshot.docs[0];
+        const visitId = activeVisit.id;
+
+        // 3. Crear documento de solicitud de entrada
+        const entryRequestData = {
+          locationId: entryData.locationId,
+          locationName: entryData.locationName,
+          visitId: visitId,
+          userId: entryData.userId,
+          userName: entryData.userName,
+          status: "pending" as const,
+          requestDate: new Date(),
+        };
+
+        const entryRef = doc(collection(this.db, "EntryRequests"));
+        transaction.set(entryRef, entryRequestData);
+
+        console.log(
+          `✅ Solicitud de entrada creada para mesa ${entryData.locationName}`
+        );
+      });
+    }, "requestEntryToOccupiedTable");
+
+    return "Solicitud enviada correctamente";
+  }
 }

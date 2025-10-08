@@ -16,11 +16,6 @@ import {
   TSongsRequested,
   TGuestUsers,
 } from "../../shared/types/visits.types";
-import { Circle } from "lucide-react";
-import {
-  ICON_TABLE_COLOR_AVAILABLE,
-  ICON_TABLE_COLOR_NOT_AVAILABLE,
-} from "./constants/visit-manage.constants";
 import {
   TableLocation,
   BottomSelectLocation,
@@ -45,6 +40,9 @@ export const KaraokeVisitManagePage: FC = () => {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [limitSong, setLimitSong] = useState(2);
   const [isCancellingVisit, setIsCancellingVisit] = useState(false);
+  const [showEntryRequestModal, setShowEntryRequestModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const {
     state: { user },
   } = useUsersContext();
@@ -56,6 +54,12 @@ export const KaraokeVisitManagePage: FC = () => {
   const visitServices = new VisitsServices();
   const reservationServices = new ReservationServices();
   const db = getFirestore();
+
+  // Función para mostrar errores en modal personalizado
+  const showError = (message: string) => {
+    setErrorMessage(message);
+    setShowErrorModal(true);
+  };
 
   // Función para loggear errores a Firebase
   const logErrorToFirebase = async (error: Error, context: string) => {
@@ -171,7 +175,7 @@ export const KaraokeVisitManagePage: FC = () => {
         setIsLoading(true);
         console.log(`🔄 Intento ${attempt}/${maxRetries} de reserva`);
 
-        // Realizar reserva atómica
+        // Proceso para mesa disponible
         const reservationData = {
           userId: user.id,
           userName: `${user.name} ${user.lastName}`,
@@ -184,9 +188,6 @@ export const KaraokeVisitManagePage: FC = () => {
           reservationData
         );
         console.log("✅ Reserva creada exitosamente con ID:", visitId);
-
-        // Actualizar el estado online en el contexto y localStorage
-        // await updateOnlineStatus(true);
 
         console.log(`✅ Reserva completada exitosamente en intento ${attempt}`);
         setTableSelected(undefined);
@@ -217,8 +218,86 @@ export const KaraokeVisitManagePage: FC = () => {
     alert("Tenemos inconvenientes con la conexión, inténtelo nuevamente.");
   };
 
+  // Función para solicitar entrada a mesa ocupada
+  const handleRequestEntryToOccupiedTable = async () => {
+    if (!tableSelected) {
+      showError("No hay mesa seleccionada");
+      return;
+    }
+
+    if (tableSelected.status !== "occupied") {
+      showError("Esta mesa no está ocupada");
+      return;
+    }
+
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        setIsLoading(true);
+        console.log(
+          `🔄 Intento ${attempt}/${maxRetries} de solicitud de entrada`
+        );
+
+        const entryData = {
+          locationId: tableSelected.id || "",
+          locationName: tableSelected.name || "",
+          userId: user.id,
+          userName: `${user.name} ${user.lastName}`,
+        };
+
+        console.log("🔄 Solicitando entrada a mesa ocupada:", entryData);
+        const result = await reservationServices.requestEntryToOccupiedTable(
+          entryData
+        );
+        console.log("✅ Solicitud de entrada enviada:", result);
+
+        setShowEntryRequestModal(true);
+        setTableSelected(undefined);
+        return; // Éxito, salir del loop
+      } catch (error) {
+        lastError = error as Error;
+        console.error(`❌ Intento ${attempt} falló:`, error);
+
+        // Loggear error a Firebase (no bloqueante)
+        logErrorToFirebase(
+          error as Error,
+          `Intento ${attempt} de solicitud de entrada`
+        ).catch((logError) => {
+          console.error("❌ Error en logging (no crítico):", logError);
+        });
+
+        if (attempt < maxRetries) {
+          console.log(`⏳ Esperando 1 segundo antes del siguiente intento...`);
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    // Si llegamos aquí, todos los intentos fallaron
+    console.error(`❌ Todos los intentos fallaron. Último error:`, lastError);
+    showError("No se pudo enviar la solicitud. Inténtalo nuevamente.");
+  };
+
   const handleReservedOperations = () => {
-    locationReservedOperations();
+    // Validar el estado de la mesa antes de proceder
+    if (!tableSelected) {
+      showError("Por favor selecciona una mesa");
+      return;
+    }
+
+    if (tableSelected.status === "occupied") {
+      // Llamar función específica para mesas ocupadas
+      handleRequestEntryToOccupiedTable();
+    } else if (tableSelected.status === "available") {
+      // Llamar función para mesas disponibles
+      locationReservedOperations();
+    } else {
+      showError("Esta mesa no está disponible");
+    }
   };
 
   // Funciones para la pantalla de karaoke
@@ -508,11 +587,40 @@ export const KaraokeVisitManagePage: FC = () => {
     }
   };
 
+  // Función para ordenar mesas: M primero (menor a mayor), luego B (menor a mayor)
+  const sortTables = (locations: ILocations[]) => {
+    return locations.sort((a, b) => {
+      const nameA = a.name?.toUpperCase() || "";
+      const nameB = b.name?.toUpperCase() || "";
+
+      // Extraer tipo y número de cada mesa
+      const matchA = nameA.match(/^([MB])(\d+)$/);
+      const matchB = nameB.match(/^([MB])(\d+)$/);
+
+      if (!matchA || !matchB) {
+        // Si no coincide el patrón, ordenar alfabéticamente
+        return nameA.localeCompare(nameB);
+      }
+
+      const [, typeA, numA] = matchA;
+      const [, typeB, numB] = matchB;
+
+      // M tiene prioridad sobre B
+      if (typeA !== typeB) {
+        return typeA === "M" ? -1 : 1;
+      }
+
+      // Si son del mismo tipo, ordenar por número
+      return parseInt(numA) - parseInt(numB);
+    });
+  };
+
   // Función para crear filas de mesas (5 columnas)
   const createTableRows = (locations: ILocations[]) => {
+    const sortedLocations = sortTables(locations);
     const rows = [];
-    for (let i = 0; i < locations.length; i += 5) {
-      const row = locations.slice(i, i + 5);
+    for (let i = 0; i < sortedLocations.length; i += 5) {
+      const row = sortedLocations.slice(i, i + 5);
       rows.push(row);
     }
     return rows;
@@ -640,30 +748,6 @@ export const KaraokeVisitManagePage: FC = () => {
             </>
           )}
         </div>
-
-        {/* Leyenda */}
-        <div className="mt-6 flex flex-row justify-around items-center">
-          <div className="flex items-center gap-2.5">
-            <Circle
-              size={20}
-              color={ICON_TABLE_COLOR_AVAILABLE}
-              fill={ICON_TABLE_COLOR_AVAILABLE}
-            />
-            <Typography variant="body-sm-semi" color={KaraokeColors.base.white}>
-              Disponible
-            </Typography>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <Circle
-              size={20}
-              color={ICON_TABLE_COLOR_NOT_AVAILABLE}
-              fill={ICON_TABLE_COLOR_NOT_AVAILABLE}
-            />
-            <Typography variant="body-sm-semi" color={KaraokeColors.base.white}>
-              No disponible
-            </Typography>
-          </div>
-        </div>
       </div>
       {/* Bottom Section */}
       <div className="absolute bottom-24 left-0 right-0 mx-6.5 mb-8">
@@ -673,6 +757,24 @@ export const KaraokeVisitManagePage: FC = () => {
           isLoading={isLoading}
         />
       </div>
+
+      {/* Modal de confirmación de solicitud de entrada */}
+      <StatusModal
+        visible={showEntryRequestModal}
+        status="success"
+        description="Tu solicitud para unirte a la mesa ha sido enviada. Espera la aprobación"
+        onClose={() => setShowEntryRequestModal(false)}
+        onConfirm={() => setShowEntryRequestModal(false)}
+      />
+
+      {/* Modal de error */}
+      <StatusModal
+        visible={showErrorModal}
+        status="error"
+        description={errorMessage}
+        onClose={() => setShowErrorModal(false)}
+        onConfirm={() => setShowErrorModal(false)}
+      />
     </div>
   );
 };

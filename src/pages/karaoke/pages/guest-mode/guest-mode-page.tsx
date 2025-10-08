@@ -22,7 +22,6 @@ type TFormData = {
 export const GuestModePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
   const userService = new UserServices();
   const { setUser: setUserState } = useUsersContext();
@@ -54,17 +53,16 @@ export const GuestModePage: React.FC = () => {
 
         // Crear usuario invitado con datos mínimos
         const guestUser = await userService.registerGuest(userData.name);
-        setIsSuccess(true);
         setUserState(guestUser);
         setUserStorage(guestUser);
-        statusModalRef.current?.open();
+        // Navegar directamente al home sin mostrar modal
+        navigate(KARAOKE_ROUTES.HOME, { replace: true });
         return; // Éxito, salir del bucle
       } catch (error: unknown) {
         console.error(`Intento ${attempt} de registro falló:`, error);
 
         if (attempt === MAX_RETRIES) {
           // Último intento falló
-          setIsSuccess(false);
           if (error instanceof Error) {
             setErrorMessage(
               `${error.message} (Después de ${MAX_RETRIES} intentos)`
@@ -89,12 +87,8 @@ export const GuestModePage: React.FC = () => {
   };
 
   const handleOnConfirmStatus = () => {
-    if (isSuccess) {
-      // Navegar al home después del registro exitoso
-      navigate(KARAOKE_ROUTES.HOME, { replace: true });
-    } else {
-      statusModalRef.current?.close();
-    }
+    // Solo cerrar el modal de error
+    statusModalRef.current?.close();
   };
 
   return (
@@ -177,16 +171,12 @@ export const GuestModePage: React.FC = () => {
             </Button>
           </form>
 
-          {/* Status Modal */}
+          {/* Status Modal - Solo para errores */}
           <StatusModal
             ref={statusModalRef}
-            status={isSuccess ? "success" : "error"}
+            status="error"
             onConfirm={handleOnConfirmStatus}
-            description={
-              isSuccess
-                ? "¡Bienvenido! Has ingresado como invitado."
-                : errorMessage
-            }
+            description={errorMessage}
           />
         </div>
       </div>

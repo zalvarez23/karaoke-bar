@@ -29,7 +29,7 @@ const BottomSelectLocation: FC<TBottomSelectLocationProps> = ({
                 variant="body-sm-semi"
                 color={KaraokeColors.base.white}
               >
-                Mesa seleccionada: {item?.name}
+                Ingresar a {item?.name}
               </Typography>
             </>
           ) : (
@@ -37,7 +37,7 @@ const BottomSelectLocation: FC<TBottomSelectLocationProps> = ({
               variant="body-sm-semi"
               color={KaraokeColors.gray.gray400}
             >
-              Selecciona una mesa disponible
+              Selecciona una mesa
             </Typography>
           )}
         </div>

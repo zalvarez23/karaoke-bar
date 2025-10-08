@@ -61,3 +61,14 @@ export type TVisitResponseDto = {
   }[];
   songs: TSongsRequested[];
 };
+
+export type TEntryRequest = {
+  id?: string;
+  locationId: string;
+  locationName: string;
+  visitId: string;
+  userId: string;
+  userName: string;
+  status: "pending" | "accepted" | "rejected";
+  requestDate: Date;
+};

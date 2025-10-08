@@ -7,10 +7,13 @@ import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { RequestCardVisit, RequestVisit } from "./request-card-visit";
 import { RequestCardSong, RequestSong } from "./request-card-song";
+import { RequestCardEntry, RequestEntry } from "./request-card-entry";
 import { VisitsServices } from "@/pages/visits-manage/services/visits-services";
 import { SongsServices } from "@/pages/songs-manage/services/songs-services";
 import { UserServices } from "@/pages/user/services/user-services";
+import { EntryRequestsServices } from "@/pages/karaoke/shared/services/entry-requests.services";
 import { IVisits, TSongsRequested } from "@/shared/types/visit-types";
+import { TEntryRequest } from "@/pages/karaoke/shared/types/visits.types";
 
 export const NotificationCenter: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,10 +21,17 @@ export const NotificationCenter: React.FC = () => {
   const [processingCardId, setProcessingCardId] = useState<string | null>(null);
   const [pendingVisits, setPendingVisits] = useState<IVisits[]>([]);
   const [pendingSongs, setPendingSongs] = useState<TSongsRequested[]>([]);
+  const [pendingEntryRequests, setPendingEntryRequests] = useState<
+    TEntryRequest[]
+  >([]);
 
   const visitsServices = useCallback(() => new VisitsServices(), []);
   const songsServices = useCallback(() => new SongsServices(), []);
   const userServices = useCallback(() => new UserServices(), []);
+  const entryRequestsServices = useCallback(
+    () => new EntryRequestsServices(),
+    []
+  );
 
   // Click fuera para cerrar
   useEffect(() => {
@@ -71,8 +81,35 @@ export const NotificationCenter: React.FC = () => {
     };
   }, [songsServices]);
 
+  // Escuchar todas las solicitudes de entrada
+  useEffect(() => {
+    const fetchEntryRequests = async () => {
+      try {
+        const requests = await entryRequestsServices().getAllEntryRequests();
+        setPendingEntryRequests(requests);
+        console.log(
+          "🔔 NotificationCenter recibió solicitudes de entrada:",
+          requests.length
+        );
+      } catch (error) {
+        console.error("Error obteniendo solicitudes de entrada:", error);
+      }
+    };
+
+    // Cargar inicialmente
+    fetchEntryRequests();
+
+    // Configurar polling cada 5 segundos para actualizaciones
+    const interval = setInterval(fetchEntryRequests, 5000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [entryRequestsServices]);
+
   // Contar notificaciones totales
-  const totalNotifications = pendingVisits.length + pendingSongs.length;
+  const totalNotifications =
+    pendingVisits.length + pendingSongs.length + pendingEntryRequests.length;
 
   // Convertir visitas pendientes al formato RequestVisit
   const convertVisitsToRequests = (visits: IVisits[]): RequestVisit[] => {
@@ -97,6 +134,21 @@ export const NotificationCenter: React.FC = () => {
       tableName: song.location || "Mesa desconocida",
       userName: song.userName || "",
       timestamp: song.date instanceof Date ? song.date : new Date(),
+    }));
+  };
+
+  // Convertir solicitudes de entrada al formato RequestEntry
+  const convertEntryRequestsToRequests = (
+    requests: TEntryRequest[]
+  ): RequestEntry[] => {
+    return requests.map((request) => ({
+      id: request.id || "",
+      userId: request.userId || "",
+      userName: request.userName || "Usuario desconocido",
+      locationName: request.locationName || "Mesa desconocida",
+      timestamp:
+        request.requestDate instanceof Date ? request.requestDate : new Date(),
+      status: request.status,
     }));
   };
 
@@ -175,9 +227,55 @@ export const NotificationCenter: React.FC = () => {
     }
   };
 
+  // Funciones para manejar solicitudes de entrada
+  const handleAcceptEntryRequest = async (entryRequestId: string) => {
+    setProcessingCardId(entryRequestId);
+    try {
+      // Buscar la solicitud en pendingEntryRequests para obtener los datos necesarios
+      const request = pendingEntryRequests.find((r) => r.id === entryRequestId);
+      if (!request) return;
+
+      await entryRequestsServices().acceptEntryRequest(
+        entryRequestId,
+        request.visitId,
+        request.userId
+      );
+
+      // Actualizar la lista local removiendo la solicitud aceptada
+      setPendingEntryRequests((prev) =>
+        prev.filter((r) => r.id !== entryRequestId)
+      );
+
+      console.log(`✅ Solicitud de entrada aceptada: ${entryRequestId}`);
+    } catch (error) {
+      console.error("Error al aceptar solicitud de entrada:", error);
+    } finally {
+      setProcessingCardId(null);
+    }
+  };
+
+  const handleRejectEntryRequest = async (entryRequestId: string) => {
+    setProcessingCardId(entryRequestId);
+    try {
+      await entryRequestsServices().rejectEntryRequest(entryRequestId);
+
+      // Actualizar la lista local removiendo la solicitud rechazada
+      setPendingEntryRequests((prev) =>
+        prev.filter((r) => r.id !== entryRequestId)
+      );
+
+      console.log(`✅ Solicitud de entrada rechazada: ${entryRequestId}`);
+    } catch (error) {
+      console.error("Error al rechazar solicitud de entrada:", error);
+    } finally {
+      setProcessingCardId(null);
+    }
+  };
+
   // Convertir datos a requests
   const visitRequests = convertVisitsToRequests(pendingVisits);
   const songRequests = convertSongsToRequests(pendingSongs);
+  const entryRequests = convertEntryRequestsToRequests(pendingEntryRequests);
 
   // Mostrar total de notificaciones en el contador
   const totalUnreadCount = totalNotifications;
@@ -232,15 +330,18 @@ export const NotificationCenter: React.FC = () => {
 
           {/* Contenido principal */}
           <div className="flex-1 overflow-y-auto">
-            {/* Mostrar solicitudes de visitas y canciones */}
-            {visitRequests.length === 0 && songRequests.length === 0 ? (
+            {/* Mostrar solicitudes de visitas, canciones y entradas */}
+            {visitRequests.length === 0 &&
+            songRequests.length === 0 &&
+            entryRequests.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full p-8 text-center">
                 <UserPlus className="h-16 w-16 text-gray-300 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   No hay notificaciones
                 </h3>
                 <p className="text-sm text-gray-500">
-                  Las visitas pendientes y canciones aparecerán aquí.
+                  Las visitas pendientes, canciones y solicitudes de entrada
+                  aparecerán aquí.
                 </p>
               </div>
             ) : (
@@ -274,6 +375,17 @@ export const NotificationCenter: React.FC = () => {
                     request={request}
                     onViewSong={handleViewSong}
                     onMarkAsRead={handleMarkAsRead}
+                    isProcessing={processingCardId === request.id}
+                  />
+                ))}
+
+                {/* Solicitudes de entrada pendientes */}
+                {entryRequests.map((request) => (
+                  <RequestCardEntry
+                    key={`entry-${request.id}`}
+                    request={request}
+                    onAccept={handleAcceptEntryRequest}
+                    onReject={handleRejectEntryRequest}
                     isProcessing={processingCardId === request.id}
                   />
                 ))}

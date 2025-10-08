@@ -1,4 +1,4 @@
-import { forwardRef, Ref, useState } from "react";
+import { forwardRef, Ref } from "react";
 import Modal, { ModalRef } from "./modal";
 import Button from "./button";
 import Typography from "./typography";
@@ -19,8 +19,6 @@ const StatusModal = forwardRef<ModalRef, TStatusModalProps>(
     { status, description, onConfirm, onClose, visible },
     ref: Ref<ModalRef>
   ) => {
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-
     // Si se pasa visible, usar esa prop, sino usar ref
     if (visible !== undefined) {
       if (!visible) return null;
@@ -94,16 +92,13 @@ const StatusModal = forwardRef<ModalRef, TStatusModalProps>(
                 }
                 appearance="ghost"
                 fullWidth
-                isLoading={status === "success" && isLoading}
+                isLoading={false}
                 onClick={() => {
-                  if (status === "success") {
-                    setIsLoading(true);
-                  }
                   onConfirm();
                 }}
               >
                 {status === "success"
-                  ? "Ingresar"
+                  ? "Entendido"
                   : status === "warning"
                   ? "Aceptar"
                   : "Reintentar"}
@@ -159,15 +154,12 @@ const StatusModal = forwardRef<ModalRef, TStatusModalProps>(
             theme={status === "success" ? "secondary" : "destructive"}
             appearance="ghost"
             fullWidth
-            isLoading={status === "success" && isLoading}
+            isLoading={false}
             onClick={() => {
-              if (status === "success") {
-                setIsLoading(true);
-              }
               onConfirm();
             }}
           >
-            {status === "success" ? "Ingresar" : "Reintentar"}
+            {status === "success" ? "Entendido" : "Reintentar"}
           </Button>
         </div>
       </Modal>
