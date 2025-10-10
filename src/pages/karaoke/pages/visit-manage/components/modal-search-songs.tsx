@@ -175,9 +175,24 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="w-full h-full bg-gray-900 overflow-hidden relative flex flex-col border border-gray-700">
+      <div
+        className="w-full h-full bg-gray-900 overflow-hidden relative flex flex-col border border-gray-700"
+        style={{
+          paddingTop: "env(safe-area-inset-top)",
+          paddingBottom: "env(safe-area-inset-bottom)",
+          paddingLeft: "env(safe-area-inset-left)",
+          paddingRight: "env(safe-area-inset-right)",
+        }}
+      >
         {/* Header Fixed */}
-        <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4 px-6 border-b border-gray-700 bg-gray-900">
+        <div
+          className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4 px-6 border-b border-gray-700 bg-gray-900"
+          style={{
+            paddingTop: "calc(1rem + env(safe-area-inset-top))",
+            paddingLeft: "calc(1.5rem + env(safe-area-inset-left))",
+            paddingRight: "calc(1.5rem + env(safe-area-inset-right))",
+          }}
+        >
           <Typography
             variant="headline-sm-semi"
             color={KaraokeColors.base.white}
@@ -193,7 +208,14 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
         </div>
 
         {/* Content con scroll y padding-top para el header */}
-        <div className="flex-1 overflow-y-auto p-4 px-6 pt-20">
+        <div
+          className="flex-1 overflow-y-auto p-4 px-6 pt-20"
+          style={{
+            paddingLeft: "calc(1.5rem + env(safe-area-inset-left))",
+            paddingRight: "calc(1.5rem + env(safe-area-inset-right))",
+            paddingBottom: "calc(1rem + env(safe-area-inset-bottom))",
+          }}
+        >
           {/* Greeting Input */}
           <div className="mb-4">
             <textarea
