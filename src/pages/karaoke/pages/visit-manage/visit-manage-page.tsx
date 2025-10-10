@@ -116,7 +116,11 @@ export const KaraokeVisitManagePage: FC = () => {
     try {
       console.log("🔄 Refrescando visita actual...");
 
-      // Hacer una consulta directa para obtener el estado más reciente
+      // Primero reiniciar el listener para forzar reconexión
+      visitServices.stopListening();
+      visitServices.getVisitByUserAndStatus(setCurrentVisit, user.id);
+
+      // Luego hacer una consulta directa para obtener datos inmediatos
       const { hasOnlineVisit, onlineVisit } =
         await visitServices.checkUserOnlineVisit(user.id);
 
