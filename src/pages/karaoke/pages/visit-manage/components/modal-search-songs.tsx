@@ -5,7 +5,6 @@ import { Typography, Button, Input, Spinner } from "../../../shared/components";
 import { TSongsRequested } from "../../../shared/types/visits.types";
 import useDebounce from "../../../shared/hooks/useDebounce";
 import { buildApiUrl, API_CONFIG } from "../config/api.config";
-import { SongGreetingModal } from "../../../shared/components/song-greeting-modal";
 
 type ModalSearchSongsProps = {
   visible?: boolean;
@@ -26,8 +25,7 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
   const [isLoadingSongs, setIsLoadingSongs] = useState(false);
   const [showFallbackUI, setShowFallbackUI] = useState(false);
   const [manualSongText, setManualSongText] = useState("");
-  const [showGreetingModal, setShowGreetingModal] = useState(false);
-  const [selectedSong, setSelectedSong] = useState<TSongsRequested | null>(null);
+  const [greetingText, setGreetingText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Resetear todo cuando se abre el modal
@@ -40,15 +38,16 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
       setIsLoadingSongs(false);
       setShowFallbackUI(false);
       setManualSongText("");
-      setShowGreetingModal(false);
-      setSelectedSong(null);
+      setGreetingText("");
 
-      // Autofocus al input cuando se abre el modal
+      // Autofocus al input cuando se abre el modal (mejorado para móvil y web)
       setTimeout(() => {
         if (inputRef.current) {
           inputRef.current.focus();
+          // Forzar focus en móviles
+          inputRef.current.click();
         }
-      }, 100);
+      }, 200);
     }
   }, [visible]);
 
@@ -165,14 +164,14 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
         date: new Date(),
         status: "pending",
       };
-      setSelectedSong(manualSong);
-      setShowGreetingModal(true);
+      onSongSelected(manualSong, greetingText.trim() || undefined);
+      onClose();
     }
   };
 
   const handleSongSelect = (song: TSongsRequested) => {
-    setSelectedSong(song);
-    setShowGreetingModal(true);
+    onSongSelected(song, greetingText.trim() || undefined);
+    onClose();
   };
 
   const handleBackToSuggestions = () => {
@@ -182,23 +181,11 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
     setManualSongText("");
   };
 
-  const handleGreetingConfirm = (song: TSongsRequested, greeting?: string) => {
-    onSongSelected(song, greeting);
-    setShowGreetingModal(false);
-    setSelectedSong(null);
-    onClose();
-  };
-
-  const handleGreetingClose = () => {
-    setShowGreetingModal(false);
-    setSelectedSong(null);
-  };
-
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end z-50">
-      <div className="w-full h-[80vh] bg-gray-900 rounded-t-lg overflow-hidden flex flex-col border border-gray-700 px-2">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="w-full h-full bg-gray-900 overflow-hidden flex flex-col border border-gray-700 px-4">
         {/* Header */}
         <div className="flex items-center justify-between p-4 px-2 pl-5  border-b border-gray-700 flex-shrink-0">
           <Typography
@@ -216,7 +203,28 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div
+          className="flex-1 overflow-y-auto p-4 scroll-smooth overscroll-contain"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          {/* Greeting Input */}
+          <div className="mb-4">
+            <Typography
+              variant="body-sm"
+              color={KaraokeColors.gray.gray300}
+              className="mb-2"
+            >
+              Saludo (opcional)
+            </Typography>
+            <textarea
+              value={greetingText}
+              onChange={(e) => setGreetingText(e.target.value)}
+              placeholder="Escribe aquí un saludo, dedicatoria o mensaje especial..."
+              className="w-full bg-gray-800 border-2 border-purple-500 rounded-lg p-3 text-white placeholder-gray-400 resize-none h-22 focus:outline-none focus:ring-2 focus:ring-purple-500 animate-blink"
+              maxLength={200}
+            />
+          </div>
+
           {/* Search Input */}
           <div className="mb-4">
             <Input
@@ -228,6 +236,7 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
                 <Search size={20} color={KaraokeColors.primary.primary500} />
               }
               className="w-full"
+              autoFocus={visible}
             />
           </div>
 
@@ -305,11 +314,17 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
                 </button>
               </div>
 
-              <div className="space-y-2  overflow-y-auto">
+              <div className="space-y-2">
                 {songs.map((song, index) => (
                   <div
                     key={`${song.id}-${index}`}
-                    className=" rounded-lg p-3 bg-base-darkPrimary hover:bg-gray-600 transition-colors cursor-pointer"
+                    className="rounded-lg p-3 bg-base-darkPrimary cursor-pointer select-none touch-manipulation"
+                    style={{
+                      WebkitTouchCallout: "none",
+                      WebkitUserSelect: "none",
+                      WebkitTapHighlightColor: "transparent",
+                      outline: "none",
+                    }}
                     onClick={() => handleSongSelect(song)}
                   >
                     <div className="flex gap-5 items-center">
@@ -392,14 +407,6 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
           )}
         </div>
       </div>
-
-      {/* Modal de saludo */}
-      <SongGreetingModal
-        visible={showGreetingModal}
-        onClose={handleGreetingClose}
-        onConfirm={handleGreetingConfirm}
-        song={selectedSong}
-      />
     </div>
   );
 };

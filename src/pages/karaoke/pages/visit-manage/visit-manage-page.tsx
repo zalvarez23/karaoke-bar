@@ -300,8 +300,48 @@ export const KaraokeVisitManagePage: FC = () => {
     }
   };
 
+  // Función para validar si se puede agregar más canciones
+  const canAddMoreSongs = () => {
+    if (!currentVisit?.songs || currentVisit.songs.length === 0) {
+      return true; // Si no hay canciones, se puede agregar
+    }
+
+    // Determinar la ÚLTIMA canción por numeración global (mayor numberSong)
+    const lastSong = [...currentVisit.songs].sort(
+      (a, b) => b.numberSong - a.numberSong
+    )[0];
+
+    // Si la última canción global está completada, se puede agregar
+    if (lastSong.status === "completed") {
+      return true;
+    }
+
+    // Filtramos las canciones que pertenecen a la ronda actual
+    const currentRoundSongs = currentVisit.songs.filter(
+      (s) => s.round === lastSong.round
+    );
+
+    // Si ya hay canciones en la ronda actual
+    if (currentRoundSongs.length >= limitSong) {
+      // Verificamos si todas están completadas
+      const allCompleted = currentRoundSongs.every(
+        (s) => s.status === "completed"
+      );
+
+      return allCompleted; // Solo se puede agregar si todas están completadas
+    }
+
+    return true; // Si hay menos canciones que el límite, se puede agregar
+  };
+
   // Funciones para la pantalla de karaoke
   const handleOnStart = () => {
+    // Validar si se puede agregar más canciones antes de abrir el modal
+    if (!canAddMoreSongs()) {
+      setShowLimitModal(true);
+      return;
+    }
+
     setShowSearchSongsModal(true);
   };
 
@@ -520,14 +560,12 @@ export const KaraokeVisitManagePage: FC = () => {
         (s) => s.round === lastSong.round
       );
 
-      // Si ya hay 2 canciones en la ronda actual
+      // Si ya hay el límite de canciones en la ronda actual
       if (currentRoundSongs.length >= limitSong) {
         // Verificamos si todas están completadas
         const allCompleted = currentRoundSongs.every(
           (s) => s.status === "completed"
         );
-
-        console.log(allCompleted);
 
         if (!allCompleted) {
           // Si alguna no está completada, se impide agregar otra

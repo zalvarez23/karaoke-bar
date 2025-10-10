@@ -32,30 +32,39 @@ export const LocationModal: React.FC<LocationModalProps> = ({
     name: "",
     abbreviation: "",
     status: "available" as TLocationStatus,
-    songLimit: 2,
+    songLimit: 0,
   });
+  const [songLimitInput, setSongLimitInput] = useState("0");
 
   useEffect(() => {
     if (location) {
+      const songLimit = location.songLimit || 0;
       setFormData({
         name: location.name || "",
         abbreviation: location.abbreviation || "",
         status: location.status || "available",
-        songLimit: location.songLimit || 2,
+        songLimit: songLimit,
       });
+      setSongLimitInput(songLimit.toString());
     } else {
       setFormData({
         name: "",
         abbreviation: "",
         status: "available",
-        songLimit: 2,
+        songLimit: 0,
       });
+      setSongLimitInput("0");
     }
   }, [location, isOpen]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onSave(formData);
+    // Convertir el string del input a número antes de guardar
+    const finalData = {
+      ...formData,
+      songLimit: parseInt(songLimitInput) || 0,
+    };
+    onSave(finalData);
   };
 
   const handleClose = () => {
@@ -63,8 +72,9 @@ export const LocationModal: React.FC<LocationModalProps> = ({
       name: "",
       abbreviation: "",
       status: "available",
-      songLimit: 2,
+      songLimit: 0,
     });
+    setSongLimitInput("0");
     onClose();
   };
 
@@ -122,16 +132,24 @@ export const LocationModal: React.FC<LocationModalProps> = ({
             <Input
               id="songLimit"
               type="number"
-              min="1"
+              min="0"
               max="100"
               value={formData.songLimit}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  songLimit: parseInt(e.target.value) || 5,
-                })
-              }
-              placeholder="Ej: 5, 10, 15, etc."
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "") {
+                  setFormData({
+                    ...formData,
+                    songLimit: 0,
+                  });
+                } else {
+                  setFormData({
+                    ...formData,
+                    songLimit: parseInt(value) || 0,
+                  });
+                }
+              }}
+              placeholder="Ej: 0, 5, 10, 15, etc."
               className="mt-1"
               required
             />

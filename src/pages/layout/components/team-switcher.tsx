@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { ChevronsUpDown, Plus } from "lucide-react";
+import { KARAOKE_CONSTANTS } from "@/pages/karaoke/shared/constants/global.constants";
 
 import {
   DropdownMenu,
@@ -48,7 +49,9 @@ export function TeamSwitcher({
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
-                  {activeTeam.name}
+                  {activeTeam.name === "Karaoke"
+                    ? `${activeTeam.name} v${KARAOKE_CONSTANTS.APP.VERSION}`
+                    : activeTeam.name}
                 </span>
                 <span className="truncate text-xs">{activeTeam.plan}</span>
               </div>
@@ -73,7 +76,9 @@ export function TeamSwitcher({
                 <div className="flex size-6 items-center justify-center rounded-sm border">
                   <team.logo className="size-4 shrink-0" />
                 </div>
-                {team.name}
+                {team.name === "Karaoke"
+                  ? `${team.name} v${KARAOKE_CONSTANTS.APP.VERSION}`
+                  : team.name}
                 <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
               </DropdownMenuItem>
             ))}

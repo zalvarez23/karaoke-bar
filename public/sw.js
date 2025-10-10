@@ -1,5 +1,5 @@
 // Service Worker para KantoBar Karaoke PWA
-const CACHE_NAME = "kantobar-karaoke-v1.0.6";
+const CACHE_NAME = "kantobar-karaoke-v1.0.7";
 const urlsToCache = ["/karaoke/", "/kantobar-icon.svg", "/manifest.json"];
 
 // Instalar service worker
