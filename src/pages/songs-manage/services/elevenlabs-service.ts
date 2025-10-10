@@ -205,7 +205,7 @@ export class ElevenLabsService {
   }
 
   // Método para reproducir audio desde un Blob
-  playAudio(audioBlob: Blob, playbackRate: number = 0.6): void {
+  playAudio(audioBlob: Blob, playbackRate: number = 1.1): void {
     const audioUrl = URL.createObjectURL(audioBlob);
     const audio = new Audio(audioUrl);
 

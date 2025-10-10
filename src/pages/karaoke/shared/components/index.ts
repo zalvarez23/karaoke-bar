@@ -23,3 +23,4 @@ export { ItemSong } from "./item-song";
 export { BottomNavigation } from "./bottom-navigation";
 export { RadioButtonGroup } from "./radio-button-group";
 export { SoundPanel } from "./sound-panel";
+export { SongGreetingModal } from "./song-greeting-modal";

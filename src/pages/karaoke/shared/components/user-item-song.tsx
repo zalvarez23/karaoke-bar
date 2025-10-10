@@ -1,12 +1,11 @@
 import { FC, useCallback, useState, useRef, useEffect } from "react";
-import { Heart, Megaphone, Trash2 } from "lucide-react";
+import { Heart, Trash2 } from "lucide-react";
 import { KaraokeColors } from "../../colors";
 import { Typography, Badge } from "./index";
 import { TSongsRequested } from "../types/visits.types";
 
 interface UserItemSongProps extends TSongsRequested {
   onDelete?: (songId: string, numberSong: number) => void;
-  onSendGreeting?: (greeting: string, songId: string) => Promise<boolean>;
 }
 
 export const UserItemSong: FC<UserItemSongProps> = ({
@@ -20,10 +19,8 @@ export const UserItemSong: FC<UserItemSongProps> = ({
   onDelete,
   numberSong,
   round,
-  onSendGreeting,
   likes,
 }) => {
-  const [isGreetingModalVisible, setIsGreetingModalVisible] = useState(false);
   const [translateX, setTranslateX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -124,22 +121,6 @@ export const UserItemSong: FC<UserItemSongProps> = ({
     };
   }, [isDragging, translateX, status, handleDelete]);
 
-  const handleSendGreeting = async (greeting: string) => {
-    if (onSendGreeting) {
-      try {
-        const success = await onSendGreeting(greeting, id);
-        if (success) {
-          setIsGreetingModalVisible(false);
-        }
-        return success;
-      } catch (error) {
-        console.error("Error sending greeting:", error);
-        return false;
-      }
-    }
-    return false;
-  };
-
   const getStatusBadge = () => {
     switch (status) {
       case "singing":
@@ -217,25 +198,6 @@ export const UserItemSong: FC<UserItemSongProps> = ({
               >
                 {title}
               </Typography>
-
-              {/* Actions - Only for pending songs */}
-              {status === "pending" && (
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {/* Greeting Button */}
-                  <button
-                    onClick={() => setIsGreetingModalVisible(true)}
-                    className="flex items-center gap-1 px-2 py-1 bg-purple-500 hover:bg-purple-600 rounded-full transition-colors"
-                  >
-                    <Megaphone size={12} color={KaraokeColors.base.white} />
-                    <Typography
-                      variant="body-sm"
-                      color={KaraokeColors.base.white}
-                    >
-                      Saludo
-                    </Typography>
-                  </button>
-                </div>
-              )}
             </div>
 
             {/* Duration and Round */}
@@ -287,126 +249,6 @@ export const UserItemSong: FC<UserItemSongProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Greeting Modal */}
-      <GreetingModal
-        visible={isGreetingModalVisible}
-        onClose={() => setIsGreetingModalVisible(false)}
-        onSendGreeting={handleSendGreeting}
-      />
     </>
-  );
-};
-
-// Greeting Modal Component
-interface GreetingModalProps {
-  visible: boolean;
-  onClose: () => void;
-  onSendGreeting: (greeting: string) => Promise<boolean>;
-}
-
-const GreetingModal: FC<GreetingModalProps> = ({
-  visible,
-  onClose,
-  onSendGreeting,
-}) => {
-  const [greetingText, setGreetingText] = useState("");
-  const [isSending, setIsSending] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Autofocus cuando se abre el modal
-  useEffect(() => {
-    if (visible && textareaRef.current) {
-      setTimeout(() => {
-        textareaRef.current?.focus();
-      }, 100);
-    }
-  }, [visible]);
-
-  const handleSendGreeting = async () => {
-    if (!greetingText.trim()) {
-      alert("Por favor ingresa un mensaje de saludo");
-      return;
-    }
-
-    setIsSending(true);
-
-    try {
-      const success = await onSendGreeting(greetingText.trim());
-
-      if (success) {
-        alert("¡Saludo enviado correctamente!");
-        setGreetingText("");
-        setIsSending(false);
-        onClose();
-        return;
-      } else {
-        alert("No se pudo enviar el saludo");
-      }
-    } catch (error) {
-      console.error("❌ Error enviando saludo:", error);
-      alert("No se pudo enviar el saludo");
-    }
-
-    setIsSending(false);
-  };
-
-  const handleClose = () => {
-    setGreetingText("");
-    onClose();
-  };
-
-  if (!visible) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
-        <Typography
-          variant="body-lg-semi"
-          color={KaraokeColors.base.white}
-          className="mb-2"
-        >
-          Saludos
-        </Typography>
-
-        <Typography
-          variant="body-sm-semi"
-          color={KaraokeColors.gray.gray300}
-          className="text-center mb-4"
-        >
-          Envía un saludo antes de cantar
-        </Typography>
-
-        <textarea
-          ref={textareaRef}
-          value={greetingText}
-          onChange={(e) => setGreetingText(e.target.value)}
-          placeholder="Escribe tu mensaje de saludo..."
-          className="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-400 resize-none h-20 mb-4 focus:outline-none focus:ring-2 focus:ring-purple-500"
-          maxLength={200}
-        />
-
-        <div className="flex justify-between items-center pt-2">
-          <button
-            onClick={handleClose}
-            className="text-red-400 hover:text-red-300 transition-colors"
-          >
-            <Typography variant="body-sm-semi" color={KaraokeColors.red.red400}>
-              Cancelar
-            </Typography>
-          </button>
-
-          <button
-            onClick={handleSendGreeting}
-            disabled={isSending || !greetingText.trim()}
-            className="px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
-          >
-            <Typography variant="body-sm-semi" color={KaraokeColors.base.white}>
-              {isSending ? "Enviando..." : "Enviar"}
-            </Typography>
-          </button>
-        </div>
-      </div>
-    </div>
   );
 };

@@ -476,12 +476,20 @@ export const KaraokeVisitManagePage: FC = () => {
     );
   };
 
-  const handleOnSelectSong = async (song: TSongsRequested) => {
+  const handleOnSelectSong = async (
+    song: TSongsRequested,
+    greeting?: string
+  ) => {
     if (!currentVisit?.songs) {
       return;
     }
 
     try {
+      // Agregar saludo si existe
+      if (greeting && greeting.trim()) {
+        song.greeting = greeting.trim();
+      }
+
       // Si no hay canciones en la lista, se inicia la ronda 1
       if (currentVisit.songs.length === 0) {
         song.round = 1;
@@ -567,26 +575,6 @@ export const KaraokeVisitManagePage: FC = () => {
     }
   };
 
-  const handleOnSendGreeting = async (
-    greeting: string,
-    songId: string
-  ): Promise<boolean> => {
-    if (!currentVisit?.id) {
-      return false;
-    }
-
-    try {
-      console.log("💬 Enviando saludo:", greeting, "para canción:", songId);
-      await visitServices.updateSongGreeting(currentVisit.id, songId, greeting);
-      console.log("✅ Saludo enviado correctamente");
-      return true;
-    } catch (error) {
-      console.error("❌ Error enviando saludo:", error);
-      alert("No se pudo enviar el saludo");
-      return false;
-    }
-  };
-
   // Función para ordenar mesas: M primero (menor a mayor), luego B (menor a mayor)
   const sortTables = (locations: ILocations[]) => {
     return locations.sort((a, b) => {
@@ -667,7 +655,6 @@ export const KaraokeVisitManagePage: FC = () => {
           handleOnCloseGuestUser={handleOnCloseGuestUser}
           handleOnSelectSong={handleOnSelectSong}
           handleOnDelete={handleOnDelete}
-          handleOnSendGreeting={handleOnSendGreeting}
           setShowSearchSongsModal={setShowSearchSongsModal}
           limitSong={limitSong}
           onRefreshVisit={refreshCurrentVisit}

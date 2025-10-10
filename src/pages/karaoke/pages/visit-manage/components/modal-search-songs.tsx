@@ -5,11 +5,12 @@ import { Typography, Button, Input, Spinner } from "../../../shared/components";
 import { TSongsRequested } from "../../../shared/types/visits.types";
 import useDebounce from "../../../shared/hooks/useDebounce";
 import { buildApiUrl, API_CONFIG } from "../config/api.config";
+import { SongGreetingModal } from "../../../shared/components/song-greeting-modal";
 
 type ModalSearchSongsProps = {
   visible?: boolean;
   onClose: () => void;
-  onSongSelected: (song: TSongsRequested) => void;
+  onSongSelected: (song: TSongsRequested, greeting?: string) => void;
 };
 
 export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
@@ -25,6 +26,8 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
   const [isLoadingSongs, setIsLoadingSongs] = useState(false);
   const [showFallbackUI, setShowFallbackUI] = useState(false);
   const [manualSongText, setManualSongText] = useState("");
+  const [showGreetingModal, setShowGreetingModal] = useState(false);
+  const [selectedSong, setSelectedSong] = useState<TSongsRequested | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Resetear todo cuando se abre el modal
@@ -37,6 +40,8 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
       setIsLoadingSongs(false);
       setShowFallbackUI(false);
       setManualSongText("");
+      setShowGreetingModal(false);
+      setSelectedSong(null);
 
       // Autofocus al input cuando se abre el modal
       setTimeout(() => {
@@ -160,14 +165,14 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
         date: new Date(),
         status: "pending",
       };
-      onSongSelected(manualSong);
-      onClose();
+      setSelectedSong(manualSong);
+      setShowGreetingModal(true);
     }
   };
 
   const handleSongSelect = (song: TSongsRequested) => {
-    onSongSelected(song);
-    onClose();
+    setSelectedSong(song);
+    setShowGreetingModal(true);
   };
 
   const handleBackToSuggestions = () => {
@@ -175,6 +180,18 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
     setShowFallbackUI(false);
     setActiveSuggestion(true);
     setManualSongText("");
+  };
+
+  const handleGreetingConfirm = (song: TSongsRequested, greeting?: string) => {
+    onSongSelected(song, greeting);
+    setShowGreetingModal(false);
+    setSelectedSong(null);
+    onClose();
+  };
+
+  const handleGreetingClose = () => {
+    setShowGreetingModal(false);
+    setSelectedSong(null);
   };
 
   if (!visible) return null;
@@ -375,6 +392,14 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
           )}
         </div>
       </div>
+
+      {/* Modal de saludo */}
+      <SongGreetingModal
+        visible={showGreetingModal}
+        onClose={handleGreetingClose}
+        onConfirm={handleGreetingConfirm}
+        song={selectedSong}
+      />
     </div>
   );
 };

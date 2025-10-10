@@ -35,9 +35,8 @@ type TVisitOnlineProps = {
   handleCancelCallWaiter: () => void;
   handleOnConfirmGuestUser: (userId: string) => void;
   handleOnCloseGuestUser: (userId: string) => void;
-  handleOnSelectSong: (song: TSongsRequested) => void;
+  handleOnSelectSong: (song: TSongsRequested, greeting?: string) => void;
   handleOnDelete: (songId: string, numberSong: number) => void;
-  handleOnSendGreeting: (greeting: string, songId: string) => Promise<boolean>;
   setShowSearchSongsModal: (show: boolean) => void;
   limitSong: number;
   onRefreshVisit?: () => void | Promise<void>;
@@ -59,7 +58,6 @@ export const VisitOnline: FC<TVisitOnlineProps> = ({
   handleOnCloseGuestUser,
   handleOnSelectSong,
   handleOnDelete,
-  handleOnSendGreeting,
   setShowSearchSongsModal,
   limitSong,
   onRefreshVisit,
@@ -240,7 +238,6 @@ export const VisitOnline: FC<TVisitOnlineProps> = ({
                     key={`song-${song.id}-${index}`}
                     {...song}
                     onDelete={handleOnDelete}
-                    onSendGreeting={handleOnSendGreeting}
                   />
                 ))}
             </div>

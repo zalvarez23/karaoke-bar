@@ -8,6 +8,7 @@ import {
   deleteDoc,
   runTransaction,
   arrayUnion,
+  onSnapshot,
 } from "firebase/firestore";
 import { TEntryRequest } from "../types/visits.types";
 
@@ -205,5 +206,47 @@ export class EntryRequestsServices {
       console.error("❌ Error eliminando solicitudes de entrada:", error);
       throw error;
     }
+  }
+
+  /**
+   * Escucha en tiempo real las solicitudes de entrada
+   */
+  listenToEntryRequests(
+    callback: (requests: TEntryRequest[]) => void
+  ): () => void {
+    const entryRequestsRef = collection(this.db, "EntryRequests");
+
+    const unsubscribe = onSnapshot(
+      entryRequestsRef,
+      (snapshot) => {
+        const requests: TEntryRequest[] = [];
+
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          requests.push({
+            id: doc.id,
+            locationId: data.locationId,
+            locationName: data.locationName,
+            visitId: data.visitId,
+            userId: data.userId,
+            userName: data.userName,
+            status: data.status,
+            requestDate: data.requestDate?.toDate() || new Date(),
+          });
+        });
+
+        console.log(
+          "📡 EntryRequests listener actualizado:",
+          requests.length,
+          "solicitudes"
+        );
+        callback(requests);
+      },
+      (error) => {
+        console.error("❌ Error en listener de EntryRequests:", error);
+      }
+    );
+
+    return unsubscribe;
   }
 }

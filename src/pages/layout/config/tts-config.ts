@@ -93,7 +93,7 @@ export const TTS_CONFIG = {
   google: {
     language: "es-US",
     voice: "es-US-Neural2-A", // Voz premium estable (femenina latina)
-    speed: 1.2,
+    speed: 1.1,
     pitch: 0.0,
     volume: 1.0,
     audioEncoding: "MP3", // o "LINEAR16" si prefieres
@@ -103,14 +103,14 @@ export const TTS_CONFIG = {
   // Configuración para ElevenLabs (fallback)
   elevenlabs: {
     volume: 0.8,
-    rate: 1.2,
+    rate: 1.1,
     pitch: 1.2,
   },
 
   // Configuración para Web Speech API (fallback final)
   webSpeech: {
     language: "es-US",
-    rate: 1.2,
+    rate: 1.1,
     pitch: 1.2,
     volume: 1,
   },

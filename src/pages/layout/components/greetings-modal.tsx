@@ -85,6 +85,7 @@ export const GreetingsModal: React.FC<GreetingsModalProps> = ({
       await googleTtsService.synthesizeAndPlay(improvedMessage, {
         ...TTS_CONFIG.google,
         voice: randomVoice,
+        speed: TTS_CONFIG.google.speed,
       });
 
       // Simular el tiempo de reproducción para actualizar el estado

@@ -83,27 +83,21 @@ export const NotificationCenter: React.FC = () => {
 
   // Escuchar todas las solicitudes de entrada
   useEffect(() => {
-    const fetchEntryRequests = async () => {
-      try {
-        const requests = await entryRequestsServices().getAllEntryRequests();
+    // Configurar listener en tiempo real para solicitudes de entrada
+    const unsubscribe = entryRequestsServices().listenToEntryRequests(
+      (requests) => {
         setPendingEntryRequests(requests);
         console.log(
-          "🔔 NotificationCenter recibió solicitudes de entrada:",
+          "🔔 NotificationCenter recibió solicitudes de entrada (tiempo real):",
           requests.length
         );
-      } catch (error) {
-        console.error("Error obteniendo solicitudes de entrada:", error);
       }
-    };
-
-    // Cargar inicialmente
-    fetchEntryRequests();
-
-    // Configurar polling cada 5 segundos para actualizaciones
-    const interval = setInterval(fetchEntryRequests, 5000);
+    );
 
     return () => {
-      clearInterval(interval);
+      if (unsubscribe) {
+        unsubscribe();
+      }
     };
   }, [entryRequestsServices]);
 
