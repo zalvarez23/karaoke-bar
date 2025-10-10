@@ -140,7 +140,7 @@ export const VisitOnline: FC<TVisitOnlineProps> = ({
                 )}
                 {isGuest && (
                   <Typography
-                    variant="label-sm"
+                    variant="label-xs"
                     color={KaraokeColors.base.secondaryLight}
                   >
                     Invitado
@@ -151,7 +151,8 @@ export const VisitOnline: FC<TVisitOnlineProps> = ({
                     variant="label-sm"
                     color={KaraokeColors.base.secondaryLight}
                   >
-                    - Límite de canciones: {limitSong}
+                    - Límite : {limitSong}{" "}
+                    {`${limitSong === 1 ? "canción" : "canciones"}`}
                   </Typography>
                 )}
               </div>

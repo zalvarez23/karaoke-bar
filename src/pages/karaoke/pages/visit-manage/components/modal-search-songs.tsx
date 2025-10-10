@@ -1,4 +1,4 @@
-import { FC, useState, useEffect, useRef } from "react";
+import { FC, useState, useEffect } from "react";
 import { Search, X, Music, Clock } from "lucide-react";
 import { KaraokeColors } from "../../../colors";
 import { Typography, Button, Input, Spinner } from "../../../shared/components";
@@ -26,7 +26,6 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
   const [showFallbackUI, setShowFallbackUI] = useState(false);
   const [manualSongText, setManualSongText] = useState("");
   const [greetingText, setGreetingText] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
 
   // Resetear todo cuando se abre el modal
   useEffect(() => {
@@ -39,15 +38,6 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
       setShowFallbackUI(false);
       setManualSongText("");
       setGreetingText("");
-
-      // Autofocus al input cuando se abre el modal (mejorado para móvil y web)
-      setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.focus();
-          // Forzar focus en móviles
-          inputRef.current.click();
-        }
-      }, 200);
     }
   }, [visible]);
 
@@ -185,9 +175,9 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="w-full h-full bg-gray-900 overflow-hidden flex flex-col border border-gray-700 px-4">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 px-2 pl-5  border-b border-gray-700 flex-shrink-0">
+      <div className="w-full h-full bg-gray-900 overflow-hidden relative flex flex-col border border-gray-700">
+        {/* Header Fixed */}
+        <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4 px-6 border-b border-gray-700 bg-gray-900">
           <Typography
             variant="headline-sm-semi"
             color={KaraokeColors.base.white}
@@ -202,20 +192,10 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
           </button>
         </div>
 
-        {/* Content */}
-        <div
-          className="flex-1 overflow-y-auto p-4 scroll-smooth overscroll-contain"
-          style={{ WebkitOverflowScrolling: "touch" }}
-        >
+        {/* Content con scroll y padding-top para el header */}
+        <div className="flex-1 overflow-y-auto p-4 px-6 pt-20">
           {/* Greeting Input */}
           <div className="mb-4">
-            <Typography
-              variant="body-sm"
-              color={KaraokeColors.gray.gray300}
-              className="mb-2"
-            >
-              Saludo (opcional)
-            </Typography>
             <textarea
               value={greetingText}
               onChange={(e) => setGreetingText(e.target.value)}
@@ -228,7 +208,6 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
           {/* Search Input */}
           <div className="mb-4">
             <Input
-              ref={inputRef}
               value={search}
               placeholder="Ingresa tu canción favorita..."
               onChangeText={setSearch}
