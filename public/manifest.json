@@ -1,7 +1,7 @@
 {
   "name": "KantoBar Karaoke",
   "short_name": "KantoBar",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "Aplicación de Karaoke para KantoBar - Disfruta de la mejor experiencia de karaoke",
   "start_url": "/karaoke/",
   "display": "standalone",

@@ -1,5 +1,5 @@
 import { FC, useCallback, useState, useRef, useEffect } from "react";
-import { Heart, Trash2 } from "lucide-react";
+import { Heart, Trash2, Clock, X, Mic2 } from "lucide-react";
 import { KaraokeColors } from "../../colors";
 import { Typography, Badge } from "./index";
 import { TSongsRequested } from "../types/visits.types";
@@ -121,12 +121,37 @@ export const UserItemSong: FC<UserItemSongProps> = ({
     };
   }, [isDragging, translateX, status, handleDelete]);
 
-  const getStatusBadge = () => {
+  const getStatusIcon = () => {
     switch (status) {
       case "singing":
-        return <Badge text="Cantando" variant="success" size="small" />;
+        return (
+          <div className="flex items-center gap-1 bg-green-500/20 px-2 py-1 rounded-full">
+            <Mic2
+              size={14}
+              color={KaraokeColors.green.green500}
+              strokeWidth={3}
+            />
+            <Typography variant="label-xs" color={KaraokeColors.green.green500}>
+              Cantando
+            </Typography>
+          </div>
+        );
       case "pending":
-        return <Badge text="En espera" variant="warning" size="small" />;
+        return (
+          <div className="flex items-center gap-1 bg-yellow-500/20 px-2 py-1 rounded-full">
+            <Clock
+              size={13}
+              strokeWidth={3}
+              color={KaraokeColors.yellow.yellow500}
+            />
+            <Typography
+              variant="label-xs"
+              color={KaraokeColors.yellow.yellow500}
+            >
+              Espera
+            </Typography>
+          </div>
+        );
       case "completed":
         return <Badge text="Completado" variant="neutral" size="small" />;
       default:
@@ -152,7 +177,7 @@ export const UserItemSong: FC<UserItemSongProps> = ({
 
         {/* Main Content */}
         <div
-          className="relative bg-gray-800 rounded-lg p-3 flex items-center gap-4 z-10 transition-transform duration-150 ease-out"
+          className="relative bg-gray-800 rounded-lg p-4 flex items-center gap-4 z-10 transition-transform duration-150 ease-out min-h-[100px]"
           style={{
             transform: `translateX(${translateX}px)`,
             cursor:
@@ -173,12 +198,12 @@ export const UserItemSong: FC<UserItemSongProps> = ({
               <img
                 src={thumbnail}
                 alt={title}
-                className="w-12 h-12 rounded-lg object-cover"
+                className="w-16 h-16 rounded-lg object-cover"
               />
             ) : (
-              <div className="w-12 h-12 rounded-lg bg-gray-700 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-lg bg-gray-700 flex items-center justify-center">
                 <Typography
-                  variant="body-sm-semi"
+                  variant="body-md-semi"
                   color={KaraokeColors.gray.gray400}
                 >
                   NN
@@ -198,6 +223,23 @@ export const UserItemSong: FC<UserItemSongProps> = ({
               >
                 {title}
               </Typography>
+
+              {/* Delete Button - Only for pending songs */}
+              {status === "pending" && onDelete && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete();
+                  }}
+                  className="flex-shrink-0 bg-red-500/20 p-2 hover:bg-red-500 rounded-full transition-all hover:scale-110 active:scale-95 relative -top-1.5 left-1.5"
+                >
+                  <X
+                    size={20}
+                    color={KaraokeColors.red.red500}
+                    className="hover:text-white"
+                  />
+                </button>
+              )}
             </div>
 
             {/* Duration and Round */}
@@ -244,8 +286,8 @@ export const UserItemSong: FC<UserItemSongProps> = ({
               </div>
             )}
 
-            {/* Status Badge */}
-            {getStatusBadge()}
+            {/* Status Icon */}
+            {getStatusIcon()}
           </div>
         </div>
       </div>
