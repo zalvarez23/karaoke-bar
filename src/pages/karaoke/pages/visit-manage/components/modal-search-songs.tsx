@@ -1,10 +1,15 @@
 import { FC, useState, useEffect } from "react";
-import { Search, X, Music, Clock } from "lucide-react";
+import { Search, X, Music, Clock, CheckCircle } from "lucide-react";
 import { KaraokeColors } from "../../../colors";
 import { Typography, Button, Input, Spinner } from "../../../shared/components";
 import { TSongsRequested } from "../../../shared/types/visits.types";
 import useDebounce from "../../../shared/hooks/useDebounce";
 import { buildApiUrl, API_CONFIG } from "../config/api.config";
+import { useReactPlayerValidation } from "@/shared/hooks/useReactPlayerValidation";
+import { YouTubeVideoValidator } from "@/shared/components/YouTubeVideoValidator";
+
+// Flag para habilitar/deshabilitar la validación de canciones
+const ENABLE_SONG_VALIDATION = true; // Cambiar a false para deshabilitar validación
 
 type ModalSearchSongsProps = {
   visible?: boolean;
@@ -26,6 +31,15 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
   const [showFallbackUI, setShowFallbackUI] = useState(false);
   const [manualSongText, setManualSongText] = useState("");
   const [greetingText, setGreetingText] = useState("");
+  const [searchCounter, setSearchCounter] = useState(0); // Contador para forzar re-render de validadores
+  // Estados para validación ReactPlayer (reemplazan la validación anterior)
+  const {
+    isValidating: isReactPlayerValidating,
+    startValidation: startReactPlayerValidation,
+    getValidationStatus,
+    handleValidationComplete,
+    resetValidation,
+  } = useReactPlayerValidation();
 
   // Resetear todo cuando se abre el modal
   useEffect(() => {
@@ -38,8 +52,18 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
       setShowFallbackUI(false);
       setManualSongText("");
       setGreetingText("");
+      resetValidation(); // Resetear validación ReactPlayer
     }
-  }, [visible]);
+  }, [visible, resetValidation]);
+
+  // Limpiar canciones y reactivar suggestions cuando se borra el texto
+  useEffect(() => {
+    if (search.trim() === "") {
+      setSongs([]);
+      setActiveSuggestion(true);
+      setShowFallbackUI(false);
+    }
+  }, [search]);
 
   useEffect(() => {
     if (debouncedSearch.trim() !== "" && activeSuggestion) {
@@ -73,6 +97,10 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
     if (isLoadingSongs) {
       return; // Evitar múltiples llamadas simultáneas
     }
+
+    // Resetear validación anterior e incrementar contador
+    resetValidation();
+    setSearchCounter((prev) => prev + 1);
 
     // Agregar "karaoke" al final del query si no lo contiene
     const searchQuery = query.toLowerCase().includes("karaoke")
@@ -117,8 +145,26 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
 
       if (data?.success && data.data && data.data.length > 0) {
         console.log("🎵 Setting songs:", data.data);
+
+        // Mostrar canciones inmediatamente
         setSongs(data.data);
         setActiveSuggestion(false);
+
+        // Iniciar validación ReactPlayer en segundo plano (solo si está habilitada)
+        if (ENABLE_SONG_VALIDATION) {
+          const urls = data.data.map((song) => song.id).filter(Boolean);
+          if (urls.length > 0) {
+            console.log(
+              "🔍 Iniciando validación ReactPlayer para:",
+              urls.length
+            );
+            startReactPlayerValidation(urls);
+          }
+        } else {
+          console.log(
+            "⚠️ Validación de canciones deshabilitada - mostrando todas las canciones"
+          );
+        }
       } else {
         setShowFallbackUI(true);
         setActiveSuggestion(false);
@@ -301,12 +347,35 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
           {songs.length > 0 && !isLoadingSongs && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Typography
-                  variant="body-sm-semi"
-                  color={KaraokeColors.gray.gray300}
-                >
-                  Resultados ({songs.length})
-                </Typography>
+                <div className="flex items-center gap-2">
+                  <Typography
+                    variant="body-sm-semi"
+                    color={KaraokeColors.gray.gray300}
+                  >
+                    Resultados (
+                    {ENABLE_SONG_VALIDATION
+                      ? songs.filter(
+                          (song) =>
+                            getValidationStatus(song.id) !== "unavailable"
+                        ).length
+                      : songs.length}
+                    )
+                  </Typography>
+                  {ENABLE_SONG_VALIDATION && isReactPlayerValidating && (
+                    <div className="flex items-center gap-1">
+                      <Spinner
+                        size={12}
+                        color={KaraokeColors.primary.primary500}
+                      />
+                      <Typography
+                        variant="body-sm"
+                        color={KaraokeColors.gray.gray400}
+                      >
+                        Validando disponibilidad...
+                      </Typography>
+                    </div>
+                  )}
+                </div>
                 <button
                   onClick={handleBackToSuggestions}
                   className="text-sm text-purple-400 hover:text-purple-300"
@@ -316,51 +385,97 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
               </div>
 
               <div className="space-y-2">
-                {songs.map((song, index) => (
-                  <div
-                    key={`${song.id}-${index}`}
-                    className="rounded-lg p-3 bg-base-darkPrimary cursor-pointer select-none touch-manipulation"
-                    style={{
-                      WebkitTouchCallout: "none",
-                      WebkitUserSelect: "none",
-                      WebkitTapHighlightColor: "transparent",
-                      outline: "none",
-                    }}
-                    onClick={() => handleSongSelect(song)}
-                  >
-                    <div className="flex gap-5 items-center">
-                      {song.thumbnail && (
-                        <img
-                          src={song.thumbnail}
-                          alt={song.title}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <Typography
-                          variant="body-sm"
-                          color={KaraokeColors.base.white}
-                          className="line-clamp-2"
-                        >
-                          {song.title}
-                        </Typography>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Clock size={12} color={KaraokeColors.gray.gray500} />
-                          <Typography
-                            variant="body-sm"
-                            color={KaraokeColors.gray.gray500}
-                          >
-                            {song.duration}
-                          </Typography>
+                {songs
+                  .filter((song) => {
+                    if (!ENABLE_SONG_VALIDATION) {
+                      // Si la validación está deshabilitada, mostrar todas las canciones
+                      return true;
+                    }
+                    const validationStatus = getValidationStatus(song.id);
+                    // Mostrar solo canciones disponibles o en validación
+                    return validationStatus !== "unavailable";
+                  })
+                  .map((song, index) => {
+                    const validationStatus = getValidationStatus(song.id);
+
+                    const isAvailable = ENABLE_SONG_VALIDATION
+                      ? validationStatus === "available"
+                      : true; // Si la validación está deshabilitada, todas las canciones son clickeables
+
+                    return (
+                      <div
+                        key={`${song.id}-${index}`}
+                        className={`rounded-lg p-3 select-none touch-manipulation transition-all ${
+                          isAvailable
+                            ? "cursor-pointer bg-base-darkPrimary hover:bg-gray-600"
+                            : "cursor-not-allowed bg-base-darkPrimary opacity-60"
+                        }`}
+                        style={{
+                          WebkitTouchCallout: "none",
+                          WebkitUserSelect: "none",
+                          WebkitTapHighlightColor: "transparent",
+                          outline: "none",
+                        }}
+                        onClick={() => isAvailable && handleSongSelect(song)}
+                      >
+                        <div className="flex gap-5 items-center">
+                          {song.thumbnail && (
+                            <img
+                              src={song.thumbnail}
+                              alt={song.title}
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <Typography
+                                variant="body-sm"
+                                color={KaraokeColors.base.white}
+                                className="line-clamp-2"
+                              >
+                                {song.title}
+                              </Typography>
+                              {ENABLE_SONG_VALIDATION && (
+                                <div className="flex items-center gap-1">
+                                  {validationStatus === "available" ? (
+                                    <CheckCircle size={14} color="#10B981" />
+                                  ) : validationStatus === "validating" ? (
+                                    <Spinner
+                                      size={12}
+                                      color={KaraokeColors.primary.primary500}
+                                    />
+                                  ) : (
+                                    <Clock
+                                      size={12}
+                                      color={KaraokeColors.gray.gray500}
+                                    />
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Clock
+                                size={12}
+                                color={KaraokeColors.gray.gray500}
+                              />
+                              <Typography
+                                variant="body-sm"
+                                color={KaraokeColors.gray.gray500}
+                              >
+                                {song.duration}
+                              </Typography>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Music
+                              size={16}
+                              color={KaraokeColors.primary.primary400}
+                            />
+                          </div>
                         </div>
                       </div>
-                      <Music
-                        size={16}
-                        color={KaraokeColors.primary.primary400}
-                      />
-                    </div>
-                  </div>
-                ))}
+                    );
+                  })}
               </div>
             </div>
           )}
@@ -406,6 +521,28 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
               </div>
             </div>
           )}
+
+          {/* Validadores ReactPlayer ocultos para cada canción (solo si está habilitada la validación) */}
+          {ENABLE_SONG_VALIDATION &&
+            songs.map((song, index) => {
+              const validationStatus = getValidationStatus(song.id);
+              const isCurrentlyValidating = validationStatus === "validating";
+              return (
+                <YouTubeVideoValidator
+                  key={`validator-${searchCounter}-${song.id}-${index}`}
+                  videoUrl={song.id}
+                  videoId={song.id}
+                  onValidationComplete={(result) => {
+                    handleValidationComplete(result, song.id);
+                  }}
+                  onValidationStart={() => {
+                    console.log(`🔍 Iniciando validación para: ${song.title}`);
+                  }}
+                  autoStart={true}
+                  isActive={isCurrentlyValidating}
+                />
+              );
+            })}
         </div>
       </div>
     </div>

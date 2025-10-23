@@ -17,6 +17,7 @@ import {
 import ReactPlayer from "react-player";
 import { Button } from "@/shared/components/ui/button";
 import { VisitsServices } from "../visits-manage/services/visits-services";
+import { Play, Pause } from "lucide-react";
 
 export const SongsManagePage: React.FC = () => {
   const [songs, setSongs] = useState<TVisitResponseDto>();
@@ -28,7 +29,14 @@ export const SongsManagePage: React.FC = () => {
   const [playing, setPlaying] = useState(false);
   const [playingBreak, setPlayingBreak] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [showYouTube] = useState(false); // Control para mostrar/ocultar YouTube - actualmente oculto
+  const [showYouTube] = useState(true); // Mostrar reproductor siempre
+  const [autoPlayEnabled, setAutoPlayEnabled] = useState(false); // Control de reproducción automática
+  const [currentRound, setCurrentRound] = useState(1);
+  const [songsInCurrentRound, setSongsInCurrentRound] = useState(0);
+  const [limitSong] = useState(2); // Límite de canciones por ronda
+
+  // URL del video de intermedio
+  const INTERMISSION_VIDEO_URL = "https://www.youtube.com/watch?v=W6Kq20xYRk0";
 
   const songsServices = useCallback(() => new SongsServices(), []);
   const visitsServices = useCallback(() => new VisitsServices(), []);
@@ -42,44 +50,91 @@ export const SongsManagePage: React.FC = () => {
     return () => unsubscribe();
   }, [songsServices]);
 
+  // Actualizar información de la ronda actual
   useEffect(() => {
-    if (showBreak) return;
+    if (selectedSong && songs?.songs) {
+      setCurrentRound(selectedSong.round);
+
+      // Contar canciones en la misma ronda (solo para display)
+      const songsInRound = songs.songs.filter(
+        (song) => song.round === selectedSong.round
+      ).length;
+      setSongsInCurrentRound(songsInRound);
+    }
+  }, [selectedSong, songs?.songs]);
+
+  useEffect(() => {
+    if (!autoPlayEnabled) return;
+
+    console.log("🔄 useEffect ejecutándose - showBreak:", showBreak);
+
+    // Si estamos en break y hay canciones, salir del break
+    if (showBreak && songs?.songs && songs.songs.length > 0) {
+      console.log("🎵 Hay canciones disponibles, saliendo del break");
+      setShowBreak(false);
+      setPlayingBreak(false);
+      // Continuar con la lógica normal de selección de canciones
+    }
+
+    // NO hacer nada si estamos en break y no hay canciones (mantener bucle)
+    if (showBreak && (!songs?.songs || songs.songs.length === 0)) {
+      console.log("⏸️ En break sin canciones, manteniendo bucle");
+      return;
+    }
 
     if (!songs?.songs || songs.songs.length === 0) {
+      console.log("📭 No hay canciones, activando break en bucle");
       setSelectedSong(undefined);
-      setShowBreak(true);
       setPlaying(false);
+      setShowBreak(true);
       setPlayingBreak(true);
       return;
     }
-    if (!selectedSong) {
-      const firstSong = songs.songs[0];
-      setSelectedSong({ ...firstSong, index: 0 });
-      setCurrentVisitId(firstSong.visitId);
-      setShowBreak(false);
-      setPlayingBreak(false);
-      setPlaying(true);
-      return;
+
+    // Si ya hay una canción seleccionada, verificar si todavía existe en la lista
+    if (selectedSong) {
+      const stillExists = songs.songs.find(
+        (song) =>
+          song.id === selectedSong.id &&
+          song.numberSong === selectedSong.numberSong
+      );
+
+      // Si la canción todavía existe, NO hacer nada (continuar reproduciéndola)
+      if (stillExists) {
+        console.log("✅ Canción actual todavía existe, continuando");
+        return;
+      }
+
+      // Si la canción fue eliminada, buscar la siguiente
+      console.log(
+        "🔄 La canción seleccionada fue eliminada, buscando siguiente"
+      );
     }
-    // Verificamos que la canción seleccionada siga en la lista.
-    const exists = songs.songs.find(
-      (song) =>
-        song.id === selectedSong.id &&
-        song.numberSong === selectedSong.numberSong
-    );
-    if (!exists) {
-      const nextSong = songs.songs[0];
-      if (nextSong.visitId !== currentVisitId) {
-        setShowBreak(true);
-        setPlaying(false);
-        setPlayingBreak(true);
-      } else {
-        setSelectedSong({ ...nextSong, index: 0 });
+
+    // Solo seleccionar una nueva canción si NO hay ninguna seleccionada actualmente
+    if (!selectedSong) {
+      // Buscar la PRIMERA canción pendiente en el orden exacto de la lista
+      const nextPendingSong = songs.songs.find(
+        (song) => song.status === "pending"
+      );
+
+      if (nextPendingSong) {
+        console.log("🎵 Seleccionando nueva canción:", nextPendingSong.title);
+        setSelectedSong({ ...nextPendingSong, index: 0 });
+        setCurrentVisitId(nextPendingSong.visitId);
         setShowBreak(false);
-        setPlaying(true);
+        setPlayingBreak(false);
+        if (autoPlayEnabled) {
+          setPlaying(true);
+        }
+      } else {
+        // No hay canciones pendientes, mostrar intermedio
+        console.log("🎬 No hay canciones pendientes, mostrando intermedio");
+        setShowBreak(true);
+        setPlayingBreak(true);
       }
     }
-  }, [songs?.songs, showBreak, selectedSong, currentVisitId]);
+  }, [songs?.songs, autoPlayEnabled, selectedSong, showBreak]);
 
   const updateSongStatus = async (status: TSongStatus) => {
     if (!selectedSong) return;
@@ -101,53 +156,151 @@ export const SongsManagePage: React.FC = () => {
     setPlaying(false);
   };
 
+  // Función para iniciar reproducción automática
+  const handleStartAutoPlay = () => {
+    setAutoPlayEnabled(true);
+    if (!showBreak && songs?.songs && songs.songs.length > 0) {
+      // Buscar la primera canción pendiente en el orden de la lista
+      const nextPendingSong = songs.songs.find(
+        (song) => song.status === "pending"
+      );
+      if (nextPendingSong) {
+        console.log("▶️ Iniciando Auto Play con:", nextPendingSong.title);
+        setSelectedSong({ ...nextPendingSong, index: 0 });
+        setCurrentVisitId(nextPendingSong.visitId);
+        setShowBreak(false);
+        setPlayingBreak(false);
+        setPlaying(true);
+      }
+    }
+  };
+
+  // Función para detener reproducción automática
+  const handleStopAutoPlay = () => {
+    setAutoPlayEnabled(false);
+    setPlaying(false);
+    setPlayingBreak(false);
+  };
+
   const handleOnSongStart = () => {
     if (!selectedSong) return;
-    console.log(selectedSong);
+    console.log("🎵 Iniciando canción:", selectedSong.title);
     if (selectedSong.status !== "pending") return;
     updateSongStatus("singing");
   };
 
-  const handleOnEnded = () => {
+  const handleOnEnded = async () => {
     if (!selectedSong || !songs?.songs) return;
-    updateSongStatus("completed");
+    console.log("✅ Terminando canción:", selectedSong.title);
 
-    // Siempre tomamos la primera canción de la lista, que ya viene ordenada.
-    const nextSong = songs.songs[0];
-    if (nextSong) {
-      // Si la siguiente canción pertenece a la misma mesa, continuamos reproduciéndola.
-      if (nextSong.visitId === currentVisitId) {
-        setSelectedSong({ ...nextSong, index: 0 });
-        setPlaying(true);
-      } else {
-        // Si la primera canción es de otra mesa, activamos el break.
+    if (!autoPlayEnabled) return;
+
+    // Guardar el visitId actual ANTES de cambiar el estado
+    const currentVisitId = selectedSong.visitId;
+
+    // Buscar la siguiente canción pendiente ANTES de marcar esta como completada
+    const nextPendingSong = songs.songs.find(
+      (song) => song.status === "pending"
+    );
+
+    // Ahora sí marcar como completada
+    await updateSongStatus("completed");
+
+    if (nextPendingSong) {
+      // Verificar si la siguiente canción es de una mesa diferente
+      const isDifferentTable = nextPendingSong.visitId !== currentVisitId;
+
+      if (isDifferentTable) {
+        console.log("🎬 Mostrando intermedio - Cambio de mesa");
+        console.log(
+          `   Mesa actual: ${selectedSong.location} (${currentVisitId})`
+        );
+        console.log(
+          `   Próxima mesa: ${nextPendingSong.location} (${nextPendingSong.visitId})`
+        );
+
+        // Limpiar canción actual y mostrar intermedio
+        console.log("🔄 Estados antes del break:");
+        console.log("  - showBreak:", showBreak);
+        console.log("  - playingBreak:", playingBreak);
+        console.log("  - selectedSong:", selectedSong?.title);
+
         setSelectedSong(undefined);
-        setShowBreak(true);
         setPlaying(false);
+        setShowBreak(true);
         setPlayingBreak(true);
+
+        console.log("▶️ Estados después del break:");
+        console.log("  - showBreak: true");
+        console.log("  - playingBreak: true");
+        console.log("  - selectedSong: undefined");
+        console.log(
+          "🎬 Iniciando reproducción del video de intermedio:",
+          INTERMISSION_VIDEO_URL
+        );
+
+        return;
       }
+
+      // Misma mesa, continuar sin intermedio
+      console.log("🎵 Siguiente canción (misma mesa):", nextPendingSong.title);
+      setSelectedSong({ ...nextPendingSong, index: 0 });
+      setCurrentVisitId(nextPendingSong.visitId);
+      setShowBreak(false);
+      setPlayingBreak(false);
+      setPlaying(true);
     } else {
-      // No hay canciones disponibles, activamos el break.
+      // No hay más canciones pendientes, mostrar intermedio
+      console.log("🎬 No hay más canciones pendientes");
       setSelectedSong(undefined);
-      setShowBreak(true);
       setPlaying(false);
+      setShowBreak(true);
       setPlayingBreak(true);
+      console.log("▶️ Iniciando reproducción del video de intermedio");
     }
   };
 
   const handleBreakEnded = () => {
-    if (songs?.songs && songs.songs.length > 0) {
-      // Siempre tomamos la primera canción de la lista para continuar.
-      const nextSong = songs.songs[0];
-      if (nextSong) {
-        setSelectedSong({ ...nextSong, index: 0 });
-        setCurrentVisitId(nextSong.visitId);
-        setShowBreak(false);
-        setPlaying(true);
-        setPlayingBreak(false);
-      }
+    if (!autoPlayEnabled) {
+      console.log("⏸️ Auto play desactivado, no continuar");
+      return;
+    }
+
+    console.log("🎬 Intermedio terminado, buscando siguiente canción");
+
+    // Buscar la siguiente canción pendiente en el orden de la lista
+    const nextPendingSong = songs?.songs?.find(
+      (song) => song.status === "pending"
+    );
+
+    if (nextPendingSong) {
+      console.log("🎵 Continuando con:", nextPendingSong.title);
+      setSelectedSong({ ...nextPendingSong, index: 0 });
+      setCurrentVisitId(nextPendingSong.visitId);
+      setShowBreak(false);
+      setPlayingBreak(false);
+      setPlaying(true);
+    } else {
+      // No hay más canciones, mantener en estado de espera
+      console.log("⏸️ No hay más canciones pendientes, manteniendo break");
+      setPlayingBreak(false);
+      // NO cambiar showBreak para mantener el break visible
     }
   };
+
+  // Debug log para ver el estado actual
+  console.log("🔍 Estado actual del reproductor:");
+  console.log("  - showBreak:", showBreak);
+  console.log("  - playingBreak:", playingBreak);
+  console.log("  - playing:", playing);
+  console.log("  - selectedSong:", selectedSong?.title || "undefined");
+  console.log("  - autoPlayEnabled:", autoPlayEnabled);
+
+  // Log específico para debug del break
+  if (showBreak) {
+    console.log("🎬 BREAK ACTIVO - URL:", INTERMISSION_VIDEO_URL);
+    console.log("🎬 BREAK ACTIVO - playingBreak:", playingBreak);
+  }
 
   return (
     <div className="container mx-auto">
@@ -323,29 +476,230 @@ export const SongsManagePage: React.FC = () => {
         data={songs?.songs || []}
         loading={loading}
       />
-      <div className="flex justify-center gap-5 py-5">
-        <Button variant="outline" size="sm" onClick={handleOnPlay}>
-          Iniciar
+      {/* Controles de reproducción */}
+      <div className="flex justify-center gap-4 py-4 bg-gray-50 rounded-lg mb-4">
+        <Button
+          variant={autoPlayEnabled ? "primary" : "outline"}
+          size="sm"
+          onClick={autoPlayEnabled ? handleStopAutoPlay : handleStartAutoPlay}
+          className="flex items-center gap-2"
+        >
+          {autoPlayEnabled ? (
+            <>
+              <Pause className="h-4 w-4" />
+              Detener Auto
+            </>
+          ) : (
+            <>
+              <Play className="h-4 w-4" />
+              Iniciar Auto
+            </>
+          )}
         </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleOnPlay}
+          disabled={!selectedSong}
+        >
+          <Play className="h-4 w-4 mr-1" />
+          Play
+        </Button>
+
         <Button variant="outline" size="sm" onClick={handleOnPause}>
+          <Pause className="h-4 w-4 mr-1" />
           Pause
         </Button>
+
+        {/* Información de estado */}
+        <div className="flex items-center gap-4 text-sm text-gray-600">
+          {autoPlayEnabled && (
+            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full">
+              🎵 Auto Play: ON
+            </span>
+          )}
+          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+            Ronda: {currentRound}
+          </span>
+          <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+            Canciones: {songsInCurrentRound}/{limitSong}
+          </span>
+          {currentVisitId && (
+            <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
+              Mesa: {currentVisitId}
+            </span>
+          )}
+        </div>
       </div>
+
+      {/* Reproductor YouTube */}
       {showYouTube && (
-        <div className="flex justify-center">
-          <ReactPlayer
-            url={
-              showBreak
-                ? "https://www.youtube.com/watch?v=yDw2ZTZTA8I"
-                : selectedSong?.id
-            }
-            playing={showBreak ? playingBreak : playing}
-            controls
-            width="100%"
-            loop={showBreak && songs?.songs?.length === 0}
-            onStart={handleOnSongStart}
-            onEnded={showBreak ? handleBreakEnded : handleOnEnded}
-          />
+        <div className="bg-white rounded-lg shadow-lg p-4">
+          <div className="mb-3">
+            <h3 className="text-lg font-semibold text-gray-800">
+              {showBreak ? (
+                <span className="flex items-center gap-2">
+                  🎬 Video de Intermedio
+                </span>
+              ) : selectedSong ? (
+                <span className="flex items-center gap-2">
+                  🎵 {selectedSong.title}
+                  <span className="text-sm text-gray-500">
+                    - {selectedSong.userName} ({selectedSong.location})
+                  </span>
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  ⏸️ Esperando canciones...
+                </span>
+              )}
+            </h3>
+          </div>
+
+          <div className="aspect-video w-full">
+            {showBreak ? (
+              <ReactPlayer
+                key="break-player"
+                url={INTERMISSION_VIDEO_URL}
+                playing={playingBreak}
+                controls
+                width="100%"
+                height="100%"
+                loop={!songs?.songs || songs.songs.length === 0} // Loop si no hay canciones
+                onStart={() => {
+                  console.log("🎬 Video de intermedio iniciado");
+                }}
+                onEnded={() => {
+                  console.log("🎬 Video de intermedio terminado");
+                  // Solo llamar handleBreakEnded si hay canciones disponibles
+                  if (songs?.songs && songs.songs.length > 0) {
+                    handleBreakEnded();
+                  } else {
+                    console.log(
+                      "🔄 No hay canciones, manteniendo bucle del video"
+                    );
+                  }
+                }}
+                onReady={() => {
+                  console.log("🎬 Video de intermedio listo");
+                }}
+                onPlay={() => {
+                  console.log("▶️ Video de intermedio reproduciendo");
+                }}
+                config={{
+                  youtube: {
+                    playerVars: {
+                      autoplay: 1,
+                      controls: 1,
+                      rel: 0,
+                      modestbranding: 1,
+                      loop: !songs?.songs || songs.songs.length === 0 ? 1 : 0, // Loop en YouTube si no hay canciones
+                    },
+                  },
+                }}
+              />
+            ) : (
+              <ReactPlayer
+                key="song-player"
+                url={selectedSong?.id}
+                playing={playing}
+                controls
+                width="100%"
+                height="100%"
+                onStart={handleOnSongStart}
+                onEnded={handleOnEnded}
+                onReady={() => {
+                  console.log("🎵 Canción lista");
+                }}
+                onPlay={() => {
+                  console.log("▶️ Canción reproduciendo");
+                }}
+                config={{
+                  youtube: {
+                    playerVars: {
+                      autoplay: 0,
+                      controls: 1,
+                      rel: 0,
+                      modestbranding: 1,
+                    },
+                  },
+                }}
+              />
+            )}
+          </div>
+
+          {/* Información adicional */}
+          <div className="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded">
+            {showBreak ? (
+              <div className="space-y-2">
+                <p className="font-semibold text-blue-600">
+                  🎬 Video de Intermedio
+                </p>
+                <p>Reproduciendo música de transición entre mesas</p>
+                <p>
+                  <strong>Estado:</strong>{" "}
+                  <span className="text-blue-600">En reproducción</span>
+                </p>
+                <p>
+                  <strong>URL:</strong> {INTERMISSION_VIDEO_URL}
+                </p>
+                <p>
+                  <strong>Auto Play:</strong>{" "}
+                  {autoPlayEnabled ? "✅ Activado" : "❌ Desactivado"}
+                </p>
+              </div>
+            ) : selectedSong ? (
+              <div className="space-y-1">
+                <p className="font-semibold text-green-600">
+                  🎵 Canción Actual
+                </p>
+                <p>
+                  <strong>Estado:</strong>{" "}
+                  <span
+                    className={
+                      selectedSong.status === "pending"
+                        ? "text-yellow-600"
+                        : selectedSong.status === "completed"
+                        ? "text-gray-600"
+                        : "text-green-600"
+                    }
+                  >
+                    {selectedSong.status === "pending"
+                      ? "Pendiente"
+                      : selectedSong.status === "completed"
+                      ? "Completada"
+                      : "Cantando"}
+                  </span>
+                </p>
+                <p>
+                  <strong>Ronda:</strong> {selectedSong.round}
+                </p>
+                <p>
+                  <strong>Número:</strong> {selectedSong.numberSong}
+                </p>
+                <p>
+                  <strong>Mesa:</strong> {selectedSong.location} (
+                  {selectedSong.visitId})
+                </p>
+                <p>
+                  <strong>Auto Play:</strong>{" "}
+                  {autoPlayEnabled ? "✅ Activado" : "❌ Desactivado"}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                <p className="font-semibold text-gray-600">
+                  ⏸️ Estado de Espera
+                </p>
+                <p>No hay canciones seleccionadas</p>
+                <p>
+                  <strong>Auto Play:</strong>{" "}
+                  {autoPlayEnabled ? "✅ Activado" : "❌ Desactivado"}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
