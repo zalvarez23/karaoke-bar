@@ -242,7 +242,23 @@ export const SongsManagePage: React.FC = () => {
         console.log("🎵 Canción actual sigue existiendo, continuando");
         return;
       } else {
-        console.log("🔄 Canción actual ya no existe, buscando siguiente");
+        console.log(
+          "🔄 Canción actual ya no existe, verificando cambio de mesa antes de seleccionar"
+        );
+
+        // Verificar si hay cambio de mesa antes de seleccionar automáticamente
+        const nextSong = songs.songs[0];
+        if (nextSong && lastVisitIdRef.current !== null) {
+          const isNewTable = nextSong.visitId !== lastVisitIdRef.current;
+          if (isNewTable) {
+            // Hay cambio de mesa, NO seleccionar automáticamente
+            // Dejar que handleOnEnded maneje el break y welcome
+            console.log(
+              "🔄 Detectado cambio de mesa, esperando handleOnEnded para activar break"
+            );
+            return;
+          }
+        }
         // La canción ya no existe, buscar la siguiente
       }
     }
@@ -251,6 +267,19 @@ export const SongsManagePage: React.FC = () => {
     const firstByOrder = songs.songs[0];
 
     if (firstByOrder) {
+      // Verificar si hay cambio de mesa antes de seleccionar
+      if (
+        lastVisitIdRef.current !== null &&
+        firstByOrder.visitId !== lastVisitIdRef.current
+      ) {
+        // Hay cambio de mesa, NO seleccionar automáticamente
+        // Dejar que handleOnEnded maneje el break y welcome
+        console.log(
+          "🔄 Detectado cambio de mesa en primera canción, esperando handleOnEnded"
+        );
+        return;
+      }
+
       console.log("🎵 Seleccionando primera por orden:", firstByOrder.title);
       setSelectedSong({ ...firstByOrder, index: 0 });
       setCurrentVisitId(firstByOrder.visitId);
