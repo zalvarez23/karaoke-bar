@@ -1,5 +1,5 @@
-import { FC, useState, useEffect } from "react";
-import { Search, X, Music, Clock, CheckCircle } from "lucide-react";
+import { FC, useState, useEffect, useRef } from "react";
+import { Search, X, Music, Clock } from "lucide-react";
 import { KaraokeColors } from "../../../colors";
 import { Typography, Button, Input, Spinner } from "../../../shared/components";
 import { TSongsRequested } from "../../../shared/types/visits.types";
@@ -7,20 +7,20 @@ import useDebounce from "../../../shared/hooks/useDebounce";
 import { buildApiUrl, API_CONFIG } from "../config/api.config";
 import { useReactPlayerValidation } from "@/shared/hooks/useReactPlayerValidation";
 import { YouTubeVideoValidator } from "@/shared/components/YouTubeVideoValidator";
-
-// Flag para habilitar/deshabilitar la validación de canciones
-const ENABLE_SONG_VALIDATION = true; // Cambiar a false para deshabilitar validación
+import { useFirebaseFlag } from "@/shared/hooks/useFirebaseFlag";
 
 type ModalSearchSongsProps = {
   visible?: boolean;
   onClose: () => void;
   onSongSelected: (song: TSongsRequested, greeting?: string) => void;
+  tableName?: string;
 };
 
 export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
   visible,
   onClose,
   onSongSelected,
+  tableName,
 }) => {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 500);
@@ -32,6 +32,15 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
   const [manualSongText, setManualSongText] = useState("");
   const [greetingText, setGreetingText] = useState("");
   const [searchCounter, setSearchCounter] = useState(0); // Contador para forzar re-render de validadores
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Leer flag de Firebase: disabledSongValidation
+  // Por defecto es false (siempre validar), solo deshabilita si el flag es true
+  const DISABLED_SONG_VALIDATION = useFirebaseFlag(
+    "disabledSongValidation",
+    false
+  );
+
   // Estados para validación ReactPlayer (reemplazan la validación anterior)
   const {
     isValidating: isReactPlayerValidating,
@@ -103,10 +112,12 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
     setSearchCounter((prev) => prev + 1);
 
     // Agregar "karaoke" al final del query si no lo contiene
-    const searchQuery = query.toLowerCase().includes("karaoke")
-      ? query
-      : `${query} karaoke`;
+    const searchQuery =
+      tableName?.toLowerCase() === "server"
+        ? `${query}`
+        : `karaoke ${query} karaoke`;
 
+    console.log("🔍 Search Query:", searchQuery);
     setIsLoadingSongs(true);
     try {
       const response = await fetch(
@@ -133,31 +144,15 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
         timestamp: string;
       };
 
-      console.log("✅ YouTube search successful:", {
-        success: data.success,
-        source: data.source,
-        apiKeyUsed: data.apiKeyUsed,
-        message: data.message,
-        resultsCount: data.data?.length || 0,
-        timestamp: data.timestamp,
-        query: query,
-      });
-
       if (data?.success && data.data && data.data.length > 0) {
-        console.log("🎵 Setting songs:", data.data);
-
         // Mostrar canciones inmediatamente
         setSongs(data.data);
         setActiveSuggestion(false);
 
-        // Iniciar validación ReactPlayer en segundo plano (solo si está habilitada)
-        if (ENABLE_SONG_VALIDATION) {
+        // Iniciar validación ReactPlayer en segundo plano (solo si NO está deshabilitada)
+        if (!DISABLED_SONG_VALIDATION) {
           const urls = data.data.map((song) => song.id).filter(Boolean);
           if (urls.length > 0) {
-            console.log(
-              "🔍 Iniciando validación ReactPlayer para:",
-              urls.length
-            );
             startReactPlayerValidation(urls);
           }
         } else {
@@ -253,13 +248,12 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
           </button>
         </div>
 
-        {/* Content con scroll y padding-top para el header */}
+        {/* Content sin scroll, padding-top para el header */}
         <div
-          className="flex-1 overflow-y-auto p-4 px-6 pt-20"
+          className="flex-1 flex flex-col overflow-hidden p-4 px-6 pt-20"
           style={{
             paddingLeft: "calc(1.5rem + env(safe-area-inset-left))",
             paddingRight: "calc(1.5rem + env(safe-area-inset-right))",
-            paddingBottom: "calc(1rem + env(safe-area-inset-bottom))",
           }}
         >
           {/* Greeting Input */}
@@ -276,14 +270,31 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
           {/* Search Input */}
           <div className="mb-4">
             <Input
+              ref={inputRef}
               value={search}
               placeholder="Ingresa tu canción favorita..."
               onChangeText={setSearch}
               customIcon={
-                <Search size={20} color={KaraokeColors.primary.primary500} />
+                search.trim() ? (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setSearch("");
+                    }}
+                    className="flex items-center justify-center"
+                    type="button"
+                  >
+                    <X size={20} color={KaraokeColors.primary.primary500} />
+                  </button>
+                ) : null
               }
               className="w-full"
               autoFocus={visible}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && search.trim()) {
+                  handleSearchYoutube(search);
+                }
+              }}
             />
           </div>
 
@@ -343,9 +354,9 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
             </div>
           )}
 
-          {/* Songs Results */}
+          {/* Songs Results - Solo esta sección tiene scroll */}
           {songs.length > 0 && !isLoadingSongs && (
-            <div className="space-y-3">
+            <div className="flex-1 flex flex-col overflow-hidden space-y-3 min-h-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Typography
@@ -353,7 +364,7 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
                     color={KaraokeColors.gray.gray300}
                   >
                     Resultados (
-                    {ENABLE_SONG_VALIDATION
+                    {!DISABLED_SONG_VALIDATION
                       ? songs.filter(
                           (song) =>
                             getValidationStatus(song.id) !== "unavailable"
@@ -361,7 +372,7 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
                       : songs.length}
                     )
                   </Typography>
-                  {ENABLE_SONG_VALIDATION && isReactPlayerValidating && (
+                  {!DISABLED_SONG_VALIDATION && isReactPlayerValidating && (
                     <div className="flex items-center gap-1">
                       <Spinner
                         size={12}
@@ -384,10 +395,15 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
                 </button>
               </div>
 
-              <div className="space-y-2">
+              <div
+                className="flex-1 overflow-y-auto space-y-2 pr-2"
+                style={{
+                  paddingBottom: "calc(1rem + env(safe-area-inset-bottom))",
+                }}
+              >
                 {songs
                   .filter((song) => {
-                    if (!ENABLE_SONG_VALIDATION) {
+                    if (DISABLED_SONG_VALIDATION) {
                       // Si la validación está deshabilitada, mostrar todas las canciones
                       return true;
                     }
@@ -398,7 +414,7 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
                   .map((song, index) => {
                     const validationStatus = getValidationStatus(song.id);
 
-                    const isAvailable = ENABLE_SONG_VALIDATION
+                    const isAvailable = !DISABLED_SONG_VALIDATION
                       ? validationStatus === "available"
                       : true; // Si la validación está deshabilitada, todas las canciones son clickeables
 
@@ -407,7 +423,7 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
                         key={`${song.id}-${index}`}
                         className={`rounded-lg p-3 select-none touch-manipulation transition-all ${
                           isAvailable
-                            ? "cursor-pointer bg-base-darkPrimary hover:bg-gray-600"
+                            ? "cursor-pointer bg-base-darkPrimary md:hover:bg-gray-600"
                             : "cursor-not-allowed bg-base-darkPrimary opacity-60"
                         }`}
                         style={{
@@ -431,15 +447,15 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
                               <Typography
                                 variant="body-sm"
                                 color={KaraokeColors.base.white}
-                                className="line-clamp-2"
+                                className="line-clamp-3"
                               >
                                 {song.title}
                               </Typography>
-                              {ENABLE_SONG_VALIDATION && (
+                              {!DISABLED_SONG_VALIDATION && (
                                 <div className="flex items-center gap-1">
-                                  {validationStatus === "available" ? (
-                                    <CheckCircle size={14} color="#10B981" />
-                                  ) : validationStatus === "validating" ? (
+                                  {validationStatus ===
+                                  "available" ? null : validationStatus ===
+                                    "validating" ? (
                                     <Spinner
                                       size={12}
                                       color={KaraokeColors.primary.primary500}
@@ -465,12 +481,6 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
                                 {song.duration}
                               </Typography>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Music
-                              size={16}
-                              color={KaraokeColors.primary.primary400}
-                            />
                           </div>
                         </div>
                       </div>
@@ -522,8 +532,8 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
             </div>
           )}
 
-          {/* Validadores ReactPlayer ocultos para cada canción (solo si está habilitada la validación) */}
-          {ENABLE_SONG_VALIDATION &&
+          {/* Validadores ReactPlayer ocultos para cada canción (solo si NO está deshabilitada la validación) */}
+          {!DISABLED_SONG_VALIDATION &&
             songs.map((song, index) => {
               const validationStatus = getValidationStatus(song.id);
               const isCurrentlyValidating = validationStatus === "validating";
@@ -534,9 +544,6 @@ export const ModalSearchSongs: FC<ModalSearchSongsProps> = ({
                   videoId={song.id}
                   onValidationComplete={(result) => {
                     handleValidationComplete(result, song.id);
-                  }}
-                  onValidationStart={() => {
-                    console.log(`🔍 Iniciando validación para: ${song.title}`);
                   }}
                   autoStart={true}
                   isActive={isCurrentlyValidating}

@@ -81,10 +81,18 @@ export const TableUsersModal: React.FC<TableUsersModalProps> = ({
     const userServices = new UserServices();
     const visitsServices = new VisitsServices();
 
+    let unsubscribeUsers: (() => void) | null = null;
+
     // Escuchar cambios en la visita específica
     const unsubscribeVisit = visitsServices.getVisitByIdOnSnapshot(
       visit.id,
-      (updatedVisit) => {
+      (updatedVisit: IVisits | null) => {
+        // Limpiar suscripción anterior de usuarios si existe
+        if (unsubscribeUsers) {
+          unsubscribeUsers();
+          unsubscribeUsers = null;
+        }
+
         if (!updatedVisit?.usersIds || updatedVisit.usersIds.length === 0) {
           setUsers([]);
           setLoading(false);
@@ -92,34 +100,33 @@ export const TableUsersModal: React.FC<TableUsersModalProps> = ({
         }
 
         // Obtener usuarios de la visita actualizada
-        const unsubscribeUsers = userServices.getAllUsersOnSnapshot(
-          (allUsers) => {
-            // Filtrar solo los usuarios que están en esta visita
-            const visitUsers = allUsers.filter((user) =>
-              updatedVisit.usersIds?.includes(user.id || "")
-            );
+        unsubscribeUsers = userServices.getAllUsersOnSnapshot((allUsers) => {
+          // Filtrar solo los usuarios que están en esta visita
+          const visitUsers = allUsers.filter((user) =>
+            updatedVisit.usersIds?.includes(user.id || "")
+          );
 
-            // Ordenar usuarios: host primero, luego invitados
-            const sortedUsers = visitUsers.sort((a, b) => {
-              const aIsHost = updatedVisit.userId === a.id;
-              const bIsHost = updatedVisit.userId === b.id;
+          // Ordenar usuarios: host primero, luego invitados
+          const sortedUsers = visitUsers.sort((a, b) => {
+            const aIsHost = updatedVisit.userId === a.id;
+            const bIsHost = updatedVisit.userId === b.id;
 
-              if (aIsHost && !bIsHost) return -1; // a (host) va primero
-              if (!aIsHost && bIsHost) return 1; // b (host) va primero
-              return 0; // mismo tipo, mantener orden original
-            });
+            if (aIsHost && !bIsHost) return -1; // a (host) va primero
+            if (!aIsHost && bIsHost) return 1; // b (host) va primero
+            return 0; // mismo tipo, mantener orden original
+          });
 
-            setUsers(sortedUsers);
-            setLoading(false);
-          }
-        );
-
-        return unsubscribeUsers;
+          setUsers(sortedUsers);
+          setLoading(false);
+        });
       }
     );
 
     return () => {
       unsubscribeVisit();
+      if (unsubscribeUsers) {
+        unsubscribeUsers();
+      }
       setLoading(false);
     };
   }, [isOpen, visit?.id]);

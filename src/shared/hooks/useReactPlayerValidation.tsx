@@ -31,17 +31,12 @@ export const useReactPlayerValidation = (): UseReactPlayerValidationReturn => {
   const [validatingUrls, setValidatingUrls] = useState(new Set<string>());
 
   const resetValidation = useCallback(() => {
-    console.log("🔄 Reseteando validación ReactPlayer");
     setValidationResults(new Map());
     setIsValidating(false);
     setValidatingUrls(new Set());
   }, []);
 
   const startValidation = useCallback((urls: string[]) => {
-    console.log(
-      `🔍 Iniciando validación ReactPlayer para ${urls.length} videos (todos al mismo tiempo)`
-    );
-
     // Resetear estado anterior
     setValidationResults(new Map());
     setIsValidating(true);
@@ -74,11 +69,6 @@ export const useReactPlayerValidation = (): UseReactPlayerValidationReturn => {
 
   const handleValidationComplete = useCallback(
     (result: YouTubeValidationResult, url: string) => {
-      console.log(
-        `✅ Validación completada para ${url}:`,
-        result.isAvailable ? "Disponible" : "No disponible"
-      );
-
       // Actualizar resultados
       setValidationResults((prev) => {
         const newResults = new Map(prev);
@@ -94,7 +84,6 @@ export const useReactPlayerValidation = (): UseReactPlayerValidationReturn => {
         // Si no hay más URLs validándose, marcar como completado
         if (newUrls.size === 0) {
           setIsValidating(false);
-          console.log("🎉 Todas las validaciones completadas");
         }
 
         return newUrls;

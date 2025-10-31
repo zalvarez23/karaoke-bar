@@ -29,7 +29,7 @@ export const UserHistoryModal: React.FC<UserHistoryModalProps> = ({
 
     const unsubscribe = visitsServices.getVisitsByUserOnSnapshot(
       user.id,
-      (userVisits) => {
+      (userVisits: IVisits[]) => {
         setVisits(userVisits);
         setLoading(false);
       }

@@ -23,13 +23,15 @@ type TVisitManageActions = {
     visitId: string,
     usersIds: string[],
     location: string,
-    locationId: string
+    locationId: string,
+    isWebVisit: boolean
   ) => void;
   onRejectClient: (
     visitId: string,
     usersIds: string[],
     location: string,
-    locationId: string
+    locationId: string,
+    isWebVisit: boolean
   ) => void;
   onViewTableUsers: (visit: IVisits) => void;
   onToggleCallWaiter: (visitId: string, currentStatus: boolean) => void;
@@ -151,7 +153,8 @@ export const columns = ({
                     row.original.id || "",
                     row.original.usersIds || [],
                     row.original.location || "",
-                    row.original.locationId || ""
+                    row.original.locationId || "",
+                    row.original.isWebVisit || false
                   );
                 }}
               >
@@ -167,7 +170,8 @@ export const columns = ({
                   row.original.id || "",
                   row.original.usersIds || [],
                   row.original.location || "",
-                  row.original.locationId || ""
+                  row.original.locationId || "",
+                  row.original.isWebVisit || false
                 )
               }
             >

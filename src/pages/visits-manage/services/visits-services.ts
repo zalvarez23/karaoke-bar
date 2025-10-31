@@ -12,6 +12,8 @@ import {
   updateDoc,
   where,
   DocumentReference,
+  arrayUnion,
+  addDoc,
 } from "firebase/firestore";
 import { IVisitsRepository } from "../repository/user-repository";
 import { db } from "@/config/firebase";
@@ -25,6 +27,241 @@ import { TLocationStatus } from "@/shared/types/location-types";
 
 export class VisitsServices implements IVisitsRepository {
   constructor() {}
+
+  /**
+   * Obtiene todas las mesas disponibles
+   */
+  async getAllTables(): Promise<string[]> {
+    try {
+      console.log("🔍 Buscando mesas en Firebase...");
+      const tablesRef = collection(db, "tables");
+
+      // Primero intentar con filtro de status
+      let q = query(tablesRef, where("status", "==", "active"));
+      let querySnapshot = await getDocs(q);
+
+      console.log("📊 Mesas con status 'active':", querySnapshot.docs.length);
+
+      // Si no hay mesas con status active, obtener todas las mesas
+      if (querySnapshot.empty) {
+        console.log(
+          "⚠️ No hay mesas con status 'active', obteniendo todas las mesas..."
+        );
+        q = query(tablesRef);
+        querySnapshot = await getDocs(q);
+      }
+
+      const tables = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        console.log("📋 Mesa encontrada:", data);
+        return data.name || data.tableName || `Mesa ${doc.id}`;
+      });
+
+      console.log("✅ Mesas obtenidas:", tables);
+
+      // Si aún no hay mesas, usar fallback
+      if (tables.length === 0) {
+        console.log("🔄 No se encontraron mesas, usando fallback");
+        return ["Mesa 1", "Mesa 2", "Mesa 3", "Mesa 4", "Mesa 5"];
+      }
+
+      return tables;
+    } catch (error) {
+      console.error("❌ Error obteniendo mesas:", error);
+      // Fallback a mesas de ejemplo si hay error
+      return ["Mesa 1", "Mesa 2", "Mesa 3", "Mesa 4", "Mesa 5"];
+    }
+  }
+
+  /**
+   * Busca una visita activa por ID de mesa o nombre de mesa
+   */
+  async getActiveVisitByTable(
+    tableIdOrName: string,
+    tableId?: string
+  ): Promise<IVisits | null> {
+    try {
+      console.log(
+        `🔍 Buscando visita activa para mesa: ${tableIdOrName}${
+          tableId ? ` (ID: ${tableId})` : ""
+        }`
+      );
+
+      // Primero intentar buscar por ID de la mesa si se proporciona
+      if (tableId) {
+        console.log(`🔍 Buscando visita por locationId: ${tableId}`);
+        const visitsRef = collection(db, "Visits");
+        const q = query(
+          visitsRef,
+          where("status", "==", "online"),
+          where("locationId", "==", tableId)
+        );
+
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const visitDoc = querySnapshot.docs[0];
+          console.log(`✅ Visita encontrada por locationId: ${tableId}`);
+          return {
+            id: visitDoc.id,
+            ...visitDoc.data(),
+          } as IVisits;
+        }
+        console.log(
+          `⚠️ No se encontró visita por locationId: ${tableId}, intentando por nombre...`
+        );
+      }
+
+      // Si no se encontró por ID, buscar por nombre normalizado
+      console.log(
+        `🔍 Buscando visita por nombre normalizado: ${tableIdOrName}`
+      );
+
+      // Normalizar el nombre de búsqueda
+      const normalizedSearchName = tableIdOrName.toLowerCase().trim();
+
+      const visitsRef = collection(db, "Visits");
+      const allVisitsSnapshot = await getDocs(visitsRef);
+
+      // Buscar coincidencia exacta normalizada
+      const exactMatch = allVisitsSnapshot.docs.find((doc) => {
+        const visitData = doc.data();
+        if (visitData.status !== "active") return false;
+
+        const tableName = visitData.tableName?.toLowerCase().trim();
+        return tableName === normalizedSearchName;
+      });
+
+      if (exactMatch) {
+        console.log(
+          `✅ Visita encontrada por nombre exacto normalizado: ${tableIdOrName}`
+        );
+        return {
+          id: exactMatch.id,
+          ...exactMatch.data(),
+        } as IVisits;
+      }
+
+      // Buscar coincidencia parcial (contiene)
+      const partialMatch = allVisitsSnapshot.docs.find((doc) => {
+        const visitData = doc.data();
+        if (visitData.status !== "active") return false;
+
+        const tableName = visitData.tableName?.toLowerCase().trim();
+        return (
+          tableName?.includes(normalizedSearchName) ||
+          normalizedSearchName.includes(tableName)
+        );
+      });
+
+      if (partialMatch) {
+        console.log(
+          `✅ Visita encontrada por coincidencia parcial: ${tableIdOrName}`
+        );
+        return {
+          id: partialMatch.id,
+          ...partialMatch.data(),
+        } as IVisits;
+      }
+
+      console.log(
+        `❌ No se encontró visita activa para mesa: ${tableIdOrName}`
+      );
+      return null;
+    } catch (error) {
+      console.error("Error buscando visita activa:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Escuchar cambios en tiempo real para una visita activa por mesa
+   */
+  listenToActiveVisitByTable(
+    tableIdOrName: string,
+    tableId?: string,
+    callback?: (visit: IVisits | null) => void
+  ): () => void {
+    console.log("🔍 Iniciando listener para mesa:", tableIdOrName, tableId);
+
+    const unsubscribe = onSnapshot(
+      collection(db, "Visits"),
+      (snapshot) => {
+        console.log("📡 Snapshot recibido, documentos:", snapshot.docs.length);
+
+        const visits: IVisits[] = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as IVisits[];
+
+        console.log("📋 Visitas encontradas:", visits.length);
+
+        // Buscar visita activa para la mesa
+        let activeVisit: IVisits | null = null;
+
+        // Primero intentar por locationId si tenemos tableId
+        if (tableId) {
+          activeVisit =
+            visits.find(
+              (visit) =>
+                visit.locationId === tableId && visit.status === "online"
+            ) || null;
+        }
+
+        // Si no se encontró, buscar por location (nombre de mesa)
+        if (!activeVisit) {
+          activeVisit =
+            visits.find(
+              (visit) =>
+                visit.location?.toLowerCase() === tableIdOrName.toLowerCase() &&
+                visit.status === "online"
+            ) || null;
+        }
+
+        console.log(
+          "✅ Visita activa encontrada:",
+          activeVisit?.id || "ninguna"
+        );
+
+        if (callback) {
+          callback(activeVisit);
+        }
+      },
+      (error) => {
+        console.error("❌ Error en listener de visita:", error);
+        if (callback) {
+          callback(null);
+        }
+      }
+    );
+
+    return unsubscribe;
+  }
+
+  /**
+   * Agrega una canción a una visita usando arrayUnion (como en karaoke)
+   */
+  async addSongToVisit(visitId: string, song: TSongsRequested): Promise<void> {
+    try {
+      const visitRef = doc(db, "Visits", visitId);
+
+      // Usar el objeto song directamente (como en karaoke)
+      const newSong = {
+        ...song,
+        status: "pending" as const,
+        visitId,
+      };
+
+      // Usar arrayUnion para agregar la canción (como en karaoke)
+      await updateDoc(visitRef, {
+        songs: arrayUnion(newSong),
+      });
+
+      console.log("✅ Canción agregada exitosamente:", newSong.title);
+    } catch (error) {
+      console.error("❌ Error agregando canción a la visita:", error);
+      throw error;
+    }
+  }
 
   /**
    * Busca una mesa por ID o por nombre normalizado
@@ -160,25 +397,83 @@ export class VisitsServices implements IVisitsRepository {
     }
   }
 
-  async completeVisitWithPoints(
+  /**
+   * Escucha cambios en tiempo real para una visita específica por ID
+   */
+  getVisitByIdOnSnapshot(
     visitId: string,
-    points: number,
-    totalConsumption: number
+    callback: (visit: IVisits | null) => void
+  ): () => void {
+    const visitRef = doc(db, "Visits", visitId);
+
+    const unsubscribe = onSnapshot(
+      visitRef,
+      (docSnapshot) => {
+        if (docSnapshot.exists()) {
+          const visit: IVisits = {
+            id: docSnapshot.id,
+            ...docSnapshot.data(),
+          } as IVisits;
+          callback(visit);
+        } else {
+          callback(null);
+        }
+      },
+      (error) => {
+        console.error("Error escuchando visita:", error);
+        callback(null);
+      }
+    );
+
+    return unsubscribe;
+  }
+
+  /**
+   * Actualiza el array de usersIds de una visita
+   */
+  async updateVisitUsersIds(
+    visitId: string,
+    usersIds: string[]
   ): Promise<void> {
     try {
       const visitRef = doc(db, "Visits", visitId);
-      await updateDoc(visitRef, {
-        status: "completed" as TVisitStatus,
-        points: points,
-        totalPayment: totalConsumption,
-      });
-      console.log(
-        `Visita ${visitId} completada con ${points} puntos y S/ ${totalConsumption} de consumo`
-      );
+      await updateDoc(visitRef, { usersIds });
+      console.log(`Visita ${visitId} actualizada con usersIds:`, usersIds);
     } catch (error) {
-      console.error(`Error completando visita ${visitId}:`, error);
+      console.error(`Error actualizando usersIds de visita ${visitId}:`, error);
       throw error;
     }
+  }
+
+  /**
+   * Escucha cambios en tiempo real para las visitas de un usuario específico
+   */
+  getVisitsByUserOnSnapshot(
+    userId: string,
+    callback: (visits: IVisits[]) => void
+  ): () => void {
+    const visitsRef = collection(db, "Visits");
+    const visitsQuery = query(
+      visitsRef,
+      where("usersIds", "array-contains", userId)
+    );
+
+    const unsubscribe = onSnapshot(
+      visitsQuery,
+      (snapshot) => {
+        const visits: IVisits[] = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as IVisits[];
+        callback(visits);
+      },
+      (error) => {
+        console.error("Error escuchando visitas del usuario:", error);
+        callback([]);
+      }
+    );
+
+    return unsubscribe;
   }
 
   async updateLocationStatus(
@@ -237,49 +532,6 @@ export class VisitsServices implements IVisitsRepository {
     }
   }
 
-  // Obtener visitas por usuario
-  getVisitsByUserOnSnapshot(
-    userId: string,
-    callback: (visits: IVisits[]) => void
-  ): () => void {
-    const visitsQuery = query(
-      collection(db, "Visits"),
-      where("usersIds", "array-contains", userId),
-      orderBy("date", "desc")
-    );
-
-    const unsubscribe = onSnapshot(
-      visitsQuery,
-      (snapshot) => {
-        const visits: IVisits[] = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        callback(visits);
-      },
-      (error) => {
-        console.error("Error obteniendo visitas del usuario:", error);
-      }
-    );
-
-    return unsubscribe;
-  }
-
-  // Actualizar usersIds de una visita
-  async updateVisitUsersIds(
-    visitId: string,
-    usersIds: string[]
-  ): Promise<void> {
-    try {
-      const visitRef = doc(db, "Visits", visitId);
-      await updateDoc(visitRef, { usersIds });
-      console.log(`Visita ${visitId} actualizada con nuevos usersIds`);
-    } catch (error) {
-      console.error(`Error actualizando usersIds de visita ${visitId}:`, error);
-      throw error;
-    }
-  }
-
   // Actualizar estado de llamada a la mesera
   async updateCallWaiterStatus(
     visitId: string,
@@ -333,32 +585,6 @@ export class VisitsServices implements IVisitsRepository {
     }
   }
 
-  // Obtener una visita específica en tiempo real
-  getVisitByIdOnSnapshot(
-    visitId: string,
-    callback: (visit: IVisits | null) => void
-  ): () => void {
-    const visitRef = doc(db, "Visits", visitId);
-
-    const unsubscribe = onSnapshot(
-      visitRef,
-      (doc) => {
-        if (doc.exists()) {
-          const visitData = { id: doc.id, ...doc.data() } as IVisits;
-          callback(visitData);
-        } else {
-          callback(null);
-        }
-      },
-      (error) => {
-        console.error("Error obteniendo visita:", error);
-        callback(null);
-      }
-    );
-
-    return unsubscribe;
-  }
-
   // Nuevo método para obtener solo visitas pendientes (para notificaciones)
   getPendingVisitsOnSnapshot(
     callback: (visits: IVisits[]) => void
@@ -409,12 +635,15 @@ export class VisitsServices implements IVisitsRepository {
    * @param visitId - ID de la visita a rechazar
    * @param location - Nombre de la ubicación/mesa
    * @param usersIds - Array de IDs de usuarios a actualizar
+   * @param locationId - ID de la mesa
+   * @param isWebVisit - Indica si es una visita web (no actualiza usuarios)
    */
   async rejectVisitWithTransaction(
     visitId: string,
     location: string,
     usersIds: string[],
-    locationId: string
+    locationId: string,
+    isWebVisit: boolean = false
   ): Promise<void> {
     try {
       // Buscar mesa por ID o nombre normalizado
@@ -428,6 +657,10 @@ export class VisitsServices implements IVisitsRepository {
           `No se encontró una tabla con ID ${locationId} ni con nombre ${location}`
         );
       }
+
+      console.log(
+        `🔍 Procesando rechazo de visita ${visitId} - isWebVisit: ${isWebVisit}`
+      );
 
       // Transacción que replica exactamente los 3 métodos originales
       await runTransaction(db, async (transaction) => {
@@ -444,22 +677,34 @@ export class VisitsServices implements IVisitsRepository {
           status: "cancelled" as TVisitStatus,
         });
 
-        // 3. updateStatusUser(userId, false) para cada usuario
-        // Actualiza isOnline y lastVisit de cada usuario
-        usersIds?.forEach((userId) => {
-          const userRef = doc(db, "Users", userId);
-          transaction.update(userRef, {
-            "additionalInfo.isOnline": false,
-            "additionalInfo.lastVisit": new Date(),
+        // 3. Solo actualizar usuarios si NO es una visita web
+        if (!isWebVisit) {
+          // updateStatusUser(userId, false) para cada usuario
+          // Actualiza isOnline y lastVisit de cada usuario
+          usersIds.forEach((userId) => {
+            const userRef = doc(db, "Users", userId);
+            transaction.update(userRef, {
+              "additionalInfo.isOnline": false,
+              "additionalInfo.lastVisit": new Date(),
+            });
           });
-        });
+        }
       });
 
       console.log(`Tabla ${location} actualizada con estado: available`);
       console.log(`Visita ${visitId} actualizada con estado: cancelled`);
-      console.log(
-        `✅ Visita ${visitId} rechazada exitosamente con transacción`
-      );
+
+      if (isWebVisit) {
+        console.log(
+          `✅ Visita web ${visitId} rechazada exitosamente - solo mesa liberada`
+        );
+      } else {
+        console.log(
+          `✅ Visita ${visitId} rechazada exitosamente con transacción - ${
+            usersIds?.length || 0
+          } usuarios actualizados`
+        );
+      }
     } catch (error) {
       console.error(`Error actualizando location ${location}:`, error);
       console.error(`Error actualizando visita ${visitId}:`, error);
@@ -478,6 +723,8 @@ export class VisitsServices implements IVisitsRepository {
    * @param usersIds - Array de IDs de usuarios a actualizar
    * @param points - Puntos a asignar
    * @param totalConsumption - Consumo total
+   * @param locationId - ID de la mesa
+   * @param isWebVisit - Indica si es una visita web (no actualiza usuarios)
    */
   async completeVisitWithTransaction(
     visitId: string,
@@ -485,7 +732,8 @@ export class VisitsServices implements IVisitsRepository {
     usersIds: string[],
     points: number,
     totalConsumption: number,
-    locationId: string
+    locationId: string,
+    isWebVisit: boolean = false
   ): Promise<void> {
     try {
       // Buscar mesa por ID o nombre normalizado
@@ -499,6 +747,10 @@ export class VisitsServices implements IVisitsRepository {
           `No se encontró una tabla con ID ${locationId} ni con nombre ${location}`
         );
       }
+
+      console.log(
+        `🔍 Procesando completado de visita ${visitId} - isWebVisit: ${isWebVisit}`
+      );
 
       // Transacción que replica exactamente handleCompleteVisitWithPoints
       await runTransaction(db, async (transaction) => {
@@ -515,30 +767,117 @@ export class VisitsServices implements IVisitsRepository {
           totalPayment: totalConsumption,
         });
 
-        // 3. updateStatusUser(userId, false) + incrementUserVisitsWithPoints(userId, points)
-        // Para cada usuario: poner offline + incrementar visitas y puntos
-        usersIds?.forEach((userId) => {
-          const userRef = doc(db, "Users", userId);
-          transaction.update(userRef, {
-            "additionalInfo.isOnline": false,
-            "additionalInfo.lastVisit": new Date(),
-            "additionalInfo.visits": increment(1),
-            "additionalInfo.points": increment(points),
+        // 3. Solo actualizar usuarios si NO es una visita web
+        if (!isWebVisit) {
+          // updateStatusUser(userId, false) + incrementUserVisitsWithPoints(userId, points)
+          // Para cada usuario: poner offline + incrementar visitas y puntos
+          usersIds.forEach((userId) => {
+            const userRef = doc(db, "Users", userId);
+            transaction.update(userRef, {
+              "additionalInfo.isOnline": false,
+              "additionalInfo.lastVisit": new Date(),
+              "additionalInfo.visits": increment(1),
+              "additionalInfo.points": increment(points),
+            });
           });
-        });
+        }
       });
 
       console.log(`Tabla ${location} actualizada con estado: available`);
       console.log(
         `Visita ${visitId} completada con ${points} puntos y S/ ${totalConsumption} de consumo`
       );
-      console.log(
-        `✅ Visita ${visitId} completada exitosamente con transacción: ${usersIds.length} usuarios actualizados con ${points} puntos y S/ ${totalConsumption} de consumo`
-      );
+
+      if (isWebVisit) {
+        console.log(
+          `✅ Visita web ${visitId} completada exitosamente - solo mesa liberada`
+        );
+      } else {
+        console.log(
+          `✅ Visita ${visitId} completada exitosamente con transacción: ${
+            usersIds?.length || 0
+          } usuarios actualizados con ${points} puntos y S/ ${totalConsumption} de consumo`
+        );
+      }
     } catch (error) {
       console.error(`Error actualizando location ${location}:`, error);
       console.error(`Error completando visita ${visitId}:`, error);
       console.error("Error al completar la visita:", error);
+      throw error;
+    }
+  }
+
+  async saveVisit(visit: IVisits): Promise<string> {
+    // Agregar campos adicionales como en el móvil
+    visit.img = "";
+    visit.date = new Date();
+    visit.points = 1;
+    visit.totalPayment = 0;
+    // Usar el estado proporcionado o 'online' por defecto para nuevas visitas
+    visit.status = visit.status || "online";
+    visit.songs = [];
+    visit.usersIds = [visit.userId || ""];
+    visit.isWebVisit = true;
+
+    const visitsCollection = collection(db, "Visits");
+    const docRef = await addDoc(visitsCollection, visit);
+    return docRef.id;
+  }
+
+  /**
+   * Crea una visita web y actualiza el estado de la mesa usando transacción
+   * @param visit - Datos de la visita a crear
+   * @param tableName - Nombre de la mesa a actualizar
+   * @param tableId - ID de la mesa a actualizar
+   */
+  async createWebVisitWithTransaction(
+    visit: IVisits,
+    tableName: string,
+    tableId: string
+  ): Promise<string> {
+    try {
+      // Usar directamente el DocumentReference con el tableId
+      const tableRef = doc(db, "Tables", tableId);
+
+      // Preparar datos de la visita
+      visit.img = "";
+      visit.date = new Date();
+      visit.points = 1;
+      visit.totalPayment = 0;
+      visit.status = visit.status || "online";
+      visit.songs = [];
+      visit.usersIds = [visit.userId || ""];
+      visit.isWebVisit = true;
+
+      console.log(
+        `🔍 Creando visita web con transacción para mesa: ${tableName} (ID: ${tableId})`
+      );
+
+      // Transacción atómica: crear visita y actualizar mesa
+      let visitId: string = "";
+      await runTransaction(db, async (transaction) => {
+        // 1. Crear la visita
+        const visitsCollection = collection(db, "Visits");
+        const visitRef = doc(visitsCollection);
+        transaction.set(visitRef, visit);
+        visitId = visitRef.id;
+
+        // 2. Actualizar el estado de la mesa a "occupied"
+        transaction.update(tableRef, {
+          status: "occupied" as TLocationStatus,
+        });
+      });
+
+      console.log(
+        `✅ Visita web ${visitId} creada exitosamente con transacción`
+      );
+      console.log(
+        `✅ Mesa ${tableName} (${tableId}) actualizada a ocupada con transacción`
+      );
+
+      return visitId;
+    } catch (error) {
+      console.error(`❌ Error creando visita web con transacción:`, error);
       throw error;
     }
   }

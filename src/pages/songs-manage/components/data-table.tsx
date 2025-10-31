@@ -21,18 +21,20 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { useState } from "react";
 import { Input } from "@/shared/components/ui/input";
-import { Download } from "lucide-react";
+import { Plus } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   loading?: boolean;
+  onAddSongs?: () => void;
 }
 
 export const DataTable = <TData, TValue>({
   columns,
   data,
   loading = false,
+  onAddSongs,
 }: DataTableProps<TData, TValue>) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -64,9 +66,14 @@ export const DataTable = <TData, TValue>({
           className="max-w-sm"
         />
 
-        <Button variant="outline" size="sm" className="tracking-wide">
-          <Download className="w-4 h-4" />
-          Descargar
+        <Button
+          variant="outline"
+          size="sm"
+          className="tracking-wide"
+          onClick={onAddSongs}
+        >
+          <Plus className="w-4 h-4" />
+          Agregar
         </Button>
       </div>
 

@@ -588,8 +588,6 @@ export const KaraokeVisitManagePage: FC = () => {
         song.round = lastSong.round;
         song.numberSong = lastSong.numberSong + 1;
         song.date = lastSong.date;
-        console.log(song);
-        console.log("Nuevo");
         await visitServices.addSongToVisit(currentVisit.id, song);
         return;
       }
@@ -647,11 +645,16 @@ export const KaraokeVisitManagePage: FC = () => {
 
   // Función para crear filas de mesas (5 columnas)
   const createTableRows = (locations: ILocations[]) => {
-    const sortedLocations = sortTables(locations);
-    const rows = [];
+    // 1) Filtrar "server" para que no genere huecos visuales
+    const filtered = locations.filter(
+      (loc) => loc.name?.toLowerCase() !== "server"
+    );
+    // 2) Ordenar: Mesas (M) primero, luego Barras (B)
+    const sortedLocations = sortTables(filtered);
+    // 3) Agrupar en filas de 5 sin huecos
+    const rows: ILocations[][] = [];
     for (let i = 0; i < sortedLocations.length; i += 5) {
-      const row = sortedLocations.slice(i, i + 5);
-      rows.push(row);
+      rows.push(sortedLocations.slice(i, i + 5));
     }
     return rows;
   };
@@ -765,13 +768,6 @@ export const KaraokeVisitManagePage: FC = () => {
                       onSelectTable={handleSelectTable}
                     />
                   ))}
-                  {/* Rellenar espacios vacíos si la fila no tiene 5 elementos */}
-                  {Array.from({ length: 5 - row.length }).map((_, index) => (
-                    <div
-                      key={`empty-${rowIndex}-${index}`}
-                      className="flex-1 mx-2.5"
-                    />
-                  ))}
                 </div>
               ))}
             </>
@@ -779,7 +775,7 @@ export const KaraokeVisitManagePage: FC = () => {
         </div>
       </div>
       {/* Bottom Section */}
-      <div className="absolute bottom-24 left-0 right-0 mx-6.5 mb-8">
+      <div className="absolute bottom-24 left-0 right-0 mx-6.5">
         <BottomSelectLocation
           item={tableSelected}
           onConfirm={handleReservedOperations}

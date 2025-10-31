@@ -27,6 +27,7 @@ export const VisitsManagePage: React.FC = () => {
     location: string;
     visit: IVisits;
     locationId: string;
+    isWebVisit: boolean;
   } | null>(null);
 
   const visitsServices = useCallback(() => new VisitsServices(), []);
@@ -100,7 +101,8 @@ export const VisitsManagePage: React.FC = () => {
     visitId: string,
     usersIds: string[],
     location: string,
-    locationId: string
+    locationId: string,
+    isWebVisit: boolean = false
   ) => {
     const MAX_RETRIES = 3;
     const RETRY_DELAY = 1000; // 1 segundo
@@ -112,7 +114,8 @@ export const VisitsManagePage: React.FC = () => {
           visitId,
           location,
           usersIds || [],
-          locationId
+          locationId,
+          isWebVisit
         );
 
         console.log(
@@ -140,7 +143,8 @@ export const VisitsManagePage: React.FC = () => {
     visitId: string,
     usersIds: string[],
     location: string,
-    locationId: string
+    locationId: string,
+    isWebVisit: boolean = false
   ) => {
     // Encontrar la visita completa para mostrar en el modal
     const visit = visits?.find((v) => v.id === visitId);
@@ -151,6 +155,7 @@ export const VisitsManagePage: React.FC = () => {
         location,
         visit,
         locationId,
+        isWebVisit,
       });
       setIsCompleteVisitModalOpen(true);
     }
@@ -167,7 +172,8 @@ export const VisitsManagePage: React.FC = () => {
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        const { visitId, usersIds, location, locationId } = visitToComplete;
+        const { visitId, usersIds, location, locationId, isWebVisit } =
+          visitToComplete;
 
         // Usar transacción atómica para completar la visita
         await visitsServices().completeVisitWithTransaction(
@@ -176,7 +182,8 @@ export const VisitsManagePage: React.FC = () => {
           usersIds || [],
           points,
           totalConsumption,
-          locationId
+          locationId,
+          isWebVisit
         );
 
         console.log(

@@ -50,6 +50,7 @@ export interface IVisits {
   status?: TVisitStatus;
   usersIds?: string[];
   callWaiter?: boolean;
+  isWebVisit?: boolean;
 }
 
 export type TVisitResponseDto = {

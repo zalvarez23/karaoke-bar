@@ -34,7 +34,6 @@ export const LocationModal: React.FC<LocationModalProps> = ({
     status: "available" as TLocationStatus,
     songLimit: 0,
   });
-  const [songLimitInput, setSongLimitInput] = useState("0");
 
   useEffect(() => {
     if (location) {
@@ -45,7 +44,6 @@ export const LocationModal: React.FC<LocationModalProps> = ({
         status: location.status || "available",
         songLimit: songLimit,
       });
-      setSongLimitInput(songLimit.toString());
     } else {
       setFormData({
         name: "",
@@ -53,16 +51,15 @@ export const LocationModal: React.FC<LocationModalProps> = ({
         status: "available",
         songLimit: 0,
       });
-      setSongLimitInput("0");
     }
   }, [location, isOpen]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // Convertir el string del input a número antes de guardar
+    // Usar el valor actualizado de formData.songLimit
     const finalData = {
       ...formData,
-      songLimit: parseInt(songLimitInput) || 0,
+      songLimit: formData.songLimit,
     };
     onSave(finalData);
   };
@@ -74,7 +71,6 @@ export const LocationModal: React.FC<LocationModalProps> = ({
       status: "available",
       songLimit: 0,
     });
-    setSongLimitInput("0");
     onClose();
   };
 
