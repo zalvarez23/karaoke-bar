@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   TSongsRequested,
   TSongStatus,
@@ -8,7 +9,7 @@ import { SongsServices } from "./services/songs-services";
 import ReactPlayer from "react-player";
 import { Button } from "@/shared/components/ui/button";
 import { VisitsServices } from "../visits-manage/services/visits-services";
-import { Play, Pause, Maximize2 } from "lucide-react";
+import { Play, Pause, Maximize2, ArrowLeft } from "lucide-react";
 import { useFirebaseFlag } from "@/shared/hooks/useFirebaseFlag";
 
 /**
@@ -30,6 +31,7 @@ interface FullscreenDocument extends Document {
 }
 
 export const SongsManageAutomaticPage: React.FC = () => {
+  const navigate = useNavigate();
   const [songs, setSongs] = useState<TVisitResponseDto>();
   const [selectedSong, setSelectedSong] = useState<
     (TSongsRequested & { index: number }) | undefined
@@ -593,12 +595,23 @@ export const SongsManageAutomaticPage: React.FC = () => {
 
   // --- RENDER ---
   return (
-    <div className="min-h-screen w-full bg-black overflow-hidden">
+    <div className="min-h-screen w-full bg-black overflow-hidden relative">
+      {/* Botón de retroceso */}
+
       {!DISABLED_SONG_VALIDATION && (
         <div
           ref={controlsRef}
           className="fixed top-0 left-0 right-0 z-50 flex justify-center items-center gap-4 py-3 bg-gray-900 border-b border-gray-800"
         >
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/songs-manage")}
+            className="fixed top-4 left-4 z-50 bg-gray-800 hover:bg-gray-700 text-white border-gray-700 shadow-lg"
+            title="Volver"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
           {!autoPlayEnabled ? (
             <>
               <Button

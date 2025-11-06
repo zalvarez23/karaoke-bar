@@ -58,18 +58,20 @@ export const MainLayoutContainer: FC<MainLayoutContainerProps> = ({
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 items-center gap-2 border-b px-4 border-gray-40 justify-between">
+        <header className="flex h-16 items-center gap-2 border-b px-4 border-gray-700 bg-gray-900 justify-between">
           <div className="flex items-center gap-2">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
+            <SidebarTrigger className="-ml-1 text-white hover:bg-gray-800" />
+            <Separator orientation="vertical" className="mr-2 h-4 bg-gray-700" />
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">Karaoke Bar !</BreadcrumbLink>
+                  <BreadcrumbLink href="#" className="text-white hover:text-gray-300">
+                    Karaoke Bar !
+                  </BreadcrumbLink>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbSeparator className="hidden md:block text-gray-600" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>{currentPageTitle}</BreadcrumbPage>
+                  <BreadcrumbPage className="text-white">{currentPageTitle}</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
@@ -82,17 +84,17 @@ export const MainLayoutContainer: FC<MainLayoutContainerProps> = ({
               variant="ghost"
               size="sm"
               onClick={() => setIsSoundPanelOpen(true)}
-              className="relative p-2 hover:bg-gray-100"
+              className="relative p-2 hover:bg-gray-800 text-white"
             >
-              <Volume2 className="text-gray-600 !w-7 !h-7" />
+              <Volume2 className="text-white !w-7 !h-7" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsGreetingsModalOpen(true)}
-              className="relative p-2 hover:bg-gray-100"
+              className="relative p-2 hover:bg-gray-800 text-white"
             >
-              <Megaphone className="text-gray-600 !w-7 !h-7" />
+              <Megaphone className="text-white !w-7 !h-7" />
             </Button>
 
             {/* Centro de notificaciones */}
@@ -103,14 +105,14 @@ export const MainLayoutContainer: FC<MainLayoutContainerProps> = ({
               variant="ghost"
               size="sm"
               onClick={handleLogout}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+              className="flex items-center gap-2 text-white hover:text-gray-300 hover:bg-gray-800"
             >
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline">Cerrar Sesión</span>
             </Button>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 px-10">{children}</div>
+        <div className="flex flex-1 flex-col gap-4 p-4 px-10 bg-gray-900">{children}</div>
       </SidebarInset>
 
       {/* Modal de Saludos */}

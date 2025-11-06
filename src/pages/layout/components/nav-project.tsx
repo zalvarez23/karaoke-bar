@@ -40,13 +40,13 @@ export function NavProjects({
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Apps</SidebarGroupLabel>
+      <SidebarGroupLabel className="text-gray-400">Apps</SidebarGroupLabel>
       <SidebarMenu>
         {projects.map((item) => (
           <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton onClick={() => navigate(item.url)}>
-              <item.icon />
-              <span>{item.name}</span>
+            <SidebarMenuButton onClick={() => navigate(item.url)} className="text-white hover:bg-gray-800 hover:text-white">
+              <item.icon className="text-white" />
+              <span className="text-white">{item.name}</span>
             </SidebarMenuButton>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -56,22 +56,22 @@ export function NavProjects({
                 </SidebarMenuAction>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-48 rounded-lg"
+                className="w-48 rounded-lg bg-gray-800 border-gray-700"
                 side={isMobile ? "bottom" : "right"}
                 align={isMobile ? "end" : "start"}
               >
-                <DropdownMenuItem>
-                  <Folder className="text-muted-foreground" />
-                  <span>View Project</span>
+                <DropdownMenuItem className="text-white hover:bg-gray-700">
+                  <Folder className="text-white" />
+                  <span className="text-white">View Project</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Forward className="text-muted-foreground" />
-                  <span>Share Project</span>
+                <DropdownMenuItem className="text-white hover:bg-gray-700">
+                  <Forward className="text-white" />
+                  <span className="text-white">Share Project</span>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Trash2 className="text-muted-foreground" />
-                  <span>Delete Project</span>
+                <DropdownMenuSeparator className="bg-gray-700" />
+                <DropdownMenuItem className="text-white hover:bg-gray-700">
+                  <Trash2 className="text-white" />
+                  <span className="text-white">Delete Project</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -67,7 +67,7 @@ export const createColumns = ({
 }: ColumnsProps): ColumnDef<IUser>[] => [
   {
     accessorKey: "name",
-    header: () => <div className="tracking-wider">Nombres</div>,
+    header: () => <div className="tracking-wider text-white">Nombres</div>,
     cell: ({ row }) => {
       const { name, lastName } = row.original;
       return (
@@ -79,12 +79,12 @@ export const createColumns = ({
   },
   {
     accessorKey: "email",
-    header: () => <div className="tracking-wider">Correo</div>,
+    header: () => <div className="tracking-wider text-white">Correo</div>,
   },
 
   {
     accessorKey: "isGuest",
-    header: () => <div className="tracking-wider">Tipo</div>,
+    header: () => <div className="tracking-wider text-white">Tipo</div>,
     cell: ({ row }) => {
       const isGuest = row.original.isGuest;
       return (
@@ -105,17 +105,17 @@ export const createColumns = ({
 
   {
     accessorKey: "additionalInfo.visits",
-    header: () => <div className="tracking-wider">Visitas</div>,
+    header: () => <div className="tracking-wider text-white">Visitas</div>,
   },
 
   {
     accessorKey: "additionalInfo.points",
-    header: () => <div className="tracking-wider">Puntos</div>,
+    header: () => <div className="tracking-wider text-white">Puntos</div>,
   },
 
   {
     accessorKey: "additionalInfo.lastVisit",
-    header: () => <div className="tracking-wider">Ultima Visita</div>,
+    header: () => <div className="tracking-wider text-white">Ultima Visita</div>,
     cell: ({ row }) => {
       const formattedDate = formatUserDate(
         row.original.additionalInfo.lastVisit
@@ -126,7 +126,7 @@ export const createColumns = ({
 
   {
     accessorKey: "additionalInfo.isOnline",
-    header: () => <div className="tracking-wider">Estado</div>,
+    header: () => <div className="tracking-wider text-white">Estado</div>,
     cell: ({ row }) => {
       const isOnline =
         (String(row.original.additionalInfo.isOnline) as TUserStatusByOnline) ||
@@ -161,28 +161,28 @@ export const createColumns = ({
               <MoreHorizontal className="h-4 w-4 text-primary-600" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel className="font-normal tracking-wide">
+          <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+            <DropdownMenuLabel className="font-normal tracking-wide text-white">
               Acciones
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="bg-gray-700" />
             <DropdownMenuItem
-              className="text-gray-600 tracking-wide text-2sm flex items-center"
+              className="text-white tracking-wide text-2sm flex items-center hover:bg-gray-700"
               onClick={() => onViewData(user)}
             >
               <Eye className="h-4 w-4 text-blue-400" />
               <div>Ver datos</div>
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="text-gray-600 tracking-wide text-2sm flex items-center"
+              className="text-white tracking-wide text-2sm flex items-center hover:bg-gray-700"
               onClick={() => onViewHistory(user)}
             >
               <History className="h-4 w-4 text-green-400" />
               <div>Ver historia</div>
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="bg-gray-700" />
             <DropdownMenuItem
-              className="text-red-600 tracking-wide text-2sm flex items-center"
+              className="text-red-400 tracking-wide text-2sm flex items-center hover:bg-gray-700"
               onClick={() => onDeleteUser(user)}
             >
               <Trash2 className="h-4 w-4 text-red-500" />

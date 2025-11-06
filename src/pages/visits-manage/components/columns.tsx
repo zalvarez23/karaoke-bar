@@ -46,11 +46,11 @@ export const columns = ({
 }: TVisitManageActions): ColumnDef<IVisits>[] => [
   {
     accessorKey: "userName",
-    header: () => <div className="tracking-wider">Cliente</div>,
+    header: () => <div className="tracking-wider text-white">Cliente</div>,
   },
   {
     accessorKey: "date",
-    header: () => <div className="tracking-wider">Fecha</div>,
+    header: () => <div className="tracking-wider text-white">Fecha</div>,
     cell: ({ row }) => {
       const formattedVisitDate = formatDateTimeLarge(row.getValue("date"));
       return <>{formattedVisitDate}</>;
@@ -59,12 +59,12 @@ export const columns = ({
 
   {
     accessorKey: "location",
-    header: () => <div className="tracking-wider">Ubicacion</div>,
+    header: () => <div className="tracking-wider text-white">Ubicacion</div>,
   },
 
   {
     accessorKey: "status",
-    header: () => <div className="tracking-wider">Estado</div>,
+    header: () => <div className="tracking-wider text-white">Estado</div>,
     cell: ({ row }) => {
       const status = String(row.original.status) as TVisitStatus;
       const { color, statusName } = getStatusValue[status];
@@ -120,15 +120,15 @@ export const columns = ({
               <MoreHorizontal className="h-4 w-4 text-primary-600" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel className="font-normal tracking-wide">
+          <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+            <DropdownMenuLabel className="font-normal tracking-wide text-white">
               Acciones
             </DropdownMenuLabel>
 
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="bg-gray-700" />
 
             <DropdownMenuItem
-              className="text-gray-600 tracking-wide text-2sm flex items-center"
+              className="text-white tracking-wide text-2sm flex items-center hover:bg-gray-700"
               onClick={() => onViewTableUsers(row.original)}
             >
               <Users className="h-4 w-4 text-blue-400" />
@@ -137,7 +137,7 @@ export const columns = ({
 
             {row.original.status === "pending" && (
               <DropdownMenuItem
-                className="text-gray-600 tracking-wide text-2sm flex items-center"
+                className="text-white tracking-wide text-2sm flex items-center hover:bg-gray-700"
                 onClick={() => onAcceptClient(row.original.id || "")}
               >
                 <FilePenLine className="h-4 w-4 text-green-400" />
@@ -147,7 +147,7 @@ export const columns = ({
 
             {row.original.status === "online" && (
               <DropdownMenuItem
-                className="text-gray-600 tracking-wide text-2sm flex items-center"
+                className="text-white tracking-wide text-2sm flex items-center hover:bg-gray-700"
                 onClick={() => {
                   onCompletedClient(
                     row.original.id || "",
@@ -164,7 +164,7 @@ export const columns = ({
             )}
 
             <DropdownMenuItem
-              className="text-gray-600 tracking-wide text-2sm flex items-center"
+              className="text-white tracking-wide text-2sm flex items-center hover:bg-gray-700"
               onClick={() =>
                 onRejectClient(
                   row.original.id || "",

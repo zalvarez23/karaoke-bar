@@ -81,14 +81,14 @@ export const DataTable = <TData, TValue>({
           placeholder="Buscar en todos los datos"
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
-          className="max-w-sm"
+          className="max-w-sm bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
         />
 
         {onToggleOnline && (
           <div className="flex items-center gap-2">
             <Label
               htmlFor="online-filter"
-              className="text-sm font-medium text-gray-600"
+              className="text-sm font-medium text-white"
             >
               Mostrar online
             </Label>
@@ -103,13 +103,13 @@ export const DataTable = <TData, TValue>({
       </div>
 
       <div className="rounded-md ">
-        <Table>
+        <Table className="bg-gray-900">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="border-gray-700 hover:bg-gray-800">
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className="text-white opacity-90">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -124,14 +124,14 @@ export const DataTable = <TData, TValue>({
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow>
+              <TableRow className="border-gray-700">
                 <TableCell
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
                   <div className="flex flex-col items-center justify-center">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
-                    <span className="mt-2 text-gray-500">
+                    <span className="mt-2 text-gray-400">
                       Cargando usuarios...
                     </span>
                   </div>
@@ -142,11 +142,12 @@ export const DataTable = <TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className="border-gray-700 hover:bg-gray-800"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className="tracking-wide text-2sm text-gray-500"
+                      className="tracking-wide text-2sm text-gray-300"
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
@@ -157,10 +158,10 @@ export const DataTable = <TData, TValue>({
                 </TableRow>
               ))
             ) : (
-              <TableRow>
+              <TableRow className="border-gray-700">
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="h-24 text-center text-gray-400"
                 >
                   No results.
                 </TableCell>
@@ -170,41 +171,41 @@ export const DataTable = <TData, TValue>({
         </Table>
       </div>
       <div className="flex items-center justify-between px-2 mt-5">
-        <div className="flex-1 text-sm text-muted-foreground">
+        <div className="flex-1 text-sm text-gray-400">
           {table.getFilteredSelectedRowModel().rows.length} de{" "}
           {table.getFilteredRowModel().rows.length} fila(s) seleccionada(s).
         </div>
         <div className="flex items-center space-x-6 lg:space-x-8">
           <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium">Filas por página</p>
+            <p className="text-sm font-medium text-white">Filas por página</p>
             <Select
               value={`${table.getState().pagination.pageSize}`}
               onValueChange={(value) => {
                 table.setPageSize(Number(value));
               }}
             >
-              <SelectTrigger className="h-8 w-[70px]">
+              <SelectTrigger className="h-8 w-[70px] bg-gray-800 border-gray-700 text-white">
                 <SelectValue
                   placeholder={table.getState().pagination.pageSize}
                 />
               </SelectTrigger>
-              <SelectContent side="top">
+              <SelectContent side="top" className="bg-gray-800 border-gray-700">
                 {[10, 20, 30, 40, 50].map((pageSize) => (
-                  <SelectItem key={pageSize} value={`${pageSize}`}>
+                  <SelectItem key={pageSize} value={`${pageSize}`} className="text-white hover:bg-gray-700">
                     {pageSize}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+          <div className="flex w-[100px] items-center justify-center text-sm font-medium text-white">
             Página {table.getState().pagination.pageIndex + 1} de{" "}
             {table.getPageCount()}
           </div>
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
-              className="hidden h-8 w-8 p-0 lg:flex"
+              className="hidden h-8 w-8 p-0 lg:flex border-gray-700 text-white hover:bg-gray-800 disabled:text-gray-600"
               onClick={() => table.setPageIndex(0)}
               disabled={!table.getCanPreviousPage()}
             >
@@ -213,7 +214,7 @@ export const DataTable = <TData, TValue>({
             </Button>
             <Button
               variant="outline"
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 border-gray-700 text-white hover:bg-gray-800 disabled:text-gray-600"
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
             >
@@ -222,7 +223,7 @@ export const DataTable = <TData, TValue>({
             </Button>
             <Button
               variant="outline"
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 border-gray-700 text-white hover:bg-gray-800 disabled:text-gray-600"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
             >
@@ -231,7 +232,7 @@ export const DataTable = <TData, TValue>({
             </Button>
             <Button
               variant="outline"
-              className="hidden h-8 w-8 p-0 lg:flex"
+              className="hidden h-8 w-8 p-0 lg:flex border-gray-700 text-white hover:bg-gray-800 disabled:text-gray-600"
               onClick={() => table.setPageIndex(table.getPageCount() - 1)}
               disabled={!table.getCanNextPage()}
             >

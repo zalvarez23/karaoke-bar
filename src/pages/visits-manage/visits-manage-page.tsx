@@ -236,7 +236,7 @@ export const VisitsManagePage: React.FC = () => {
     }
   };
   return (
-    <div>
+    <div className="bg-gray-900 text-white min-h-full">
       <div className="container mx-auto">
         <DataTable<IVisits, unknown>
           columns={columns({

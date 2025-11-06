@@ -35,7 +35,7 @@ export const SongsManagePage: React.FC = () => {
   }, [songsServices]);
 
   return (
-    <div className="container mx-auto">
+    <div className="container mx-auto bg-gray-900 text-white min-h-full">
       <DataTable<TSongsRequested, unknown>
         columns={columns({
           onOpenYouTube: (song: TSongsRequested) => {

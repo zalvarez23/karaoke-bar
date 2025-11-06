@@ -92,11 +92,11 @@ export const columns = ({
 }: TSongsManageActions): ColumnDef<TSongsRequested>[] => [
   {
     accessorKey: "userName",
-    header: () => <div className="tracking-wider">Cliente</div>,
+    header: () => <div className="tracking-wider text-white">Cliente</div>,
   },
   {
     accessorKey: "title",
-    header: () => <div className="tracking-wider">Cancion</div>,
+    header: () => <div className="tracking-wider text-white">Cancion</div>,
     cell: ({ row }) => {
       return (
         <div className="font-normal tracking-wider flex gap-5 items-center">
@@ -115,7 +115,7 @@ export const columns = ({
 
   {
     accessorKey: "date",
-    header: () => <div className="tracking-wider">Hora</div>,
+    header: () => <div className="tracking-wider text-white">Hora</div>,
     cell: ({ row }) => {
       const formattedVisitDate = formatDateToTime(row.getValue("date"));
       return (
@@ -126,12 +126,12 @@ export const columns = ({
 
   {
     accessorKey: "location",
-    header: () => <div className="tracking-wider">Ubicacion</div>,
+    header: () => <div className="tracking-wider text-white">Ubicacion</div>,
   },
 
   {
     accessorKey: "status",
-    header: () => <div className="tracking-wider">Estado</div>,
+    header: () => <div className="tracking-wider text-white">Estado</div>,
     cell: ({ row }) => {
       const status = String(row.original.status) as TSongStatus;
       const { color, statusName } = getStatusSongValue[status];
@@ -149,7 +149,7 @@ export const columns = ({
   },
   {
     id: "play",
-    header: () => <div className="tracking-wider">Reproducir</div>,
+    header: () => <div className="tracking-wider text-white">Reproducir</div>,
     cell: ({ row }) => {
       const isPending = (row.original.status as TSongStatus) === "pending";
       const isSinging = (row.original.status as TSongStatus) === "singing";
@@ -190,7 +190,7 @@ export const columns = ({
   },
   {
     id: "youtube",
-    header: () => <div className="tracking-wider">YouTube</div>,
+    header: () => <div className="tracking-wider text-white">YouTube</div>,
     cell: ({ row }) => {
       return (
         <Button
@@ -206,7 +206,7 @@ export const columns = ({
   },
   {
     id: "greeting",
-    header: () => <div className="tracking-wider">Saludos</div>,
+    header: () => <div className="tracking-wider text-white">Saludos</div>,
     cell: ({ row }) => {
       return (
         <GreetingCell
@@ -218,7 +218,7 @@ export const columns = ({
   },
   {
     id: "likes",
-    header: () => <div className="tracking-wider">Likes</div>,
+    header: () => <div className="tracking-wider text-white">Likes</div>,
     cell: ({ row }) => {
       const likes = row.original.likes || 0;
       return (

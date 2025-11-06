@@ -110,7 +110,7 @@ export const UserPage: React.FC = () => {
     : users;
 
   return (
-    <div>
+    <div className="bg-gray-900 text-white min-h-full">
       <div className="container mx-auto">
         <DataTable<IUser, unknown>
           columns={createColumns({

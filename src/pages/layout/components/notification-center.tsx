@@ -281,9 +281,9 @@ export const NotificationCenter: React.FC = () => {
         variant="ghost"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 hover:bg-gray-100"
+        className="relative p-2 hover:bg-gray-800 text-white"
       >
-        <Bell className="text-gray-600 !w-6 !h-6" />
+        <Bell className="text-white !w-6 !h-6" />
         {totalUnreadCount > 0 && (
           <Badge
             variant="destructive"
@@ -298,17 +298,17 @@ export const NotificationCenter: React.FC = () => {
       <div
         ref={panelRef}
         className={cn(
-          "fixed top-0 right-0 h-full w-96 bg-white shadow-2xl border-l border-gray-200 z-50 transform transition-transform duration-300 ease-in-out",
+          "fixed top-0 right-0 h-full w-96 bg-gray-900 shadow-2xl border-l border-gray-700 z-50 transform transition-transform duration-300 ease-in-out",
           isOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
         {/* Contenido del panel */}
         <div className="h-full flex flex-col">
           {/* Header del panel */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
+          <div className="flex items-center justify-between p-6 border-b border-gray-700 bg-gray-800">
             <div className="flex items-center gap-3">
-              <Bell className="h-6 w-6 text-gray-600" />
-              <h2 className="text-xl font-semibold text-gray-900">
+              <Bell className="h-6 w-6 text-white" />
+              <h2 className="text-xl font-semibold text-white">
                 Notificaciones
               </h2>
             </div>
@@ -316,7 +316,7 @@ export const NotificationCenter: React.FC = () => {
               variant="ghost"
               size="sm"
               onClick={() => setIsOpen(false)}
-              className="p-2 h-8 w-8 hover:bg-gray-200"
+              className="p-2 h-8 w-8 hover:bg-gray-700 text-white"
             >
               <X className="h-5 w-5" />
             </Button>
@@ -329,11 +329,11 @@ export const NotificationCenter: React.FC = () => {
             songRequests.length === 0 &&
             entryRequests.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                <UserPlus className="h-16 w-16 text-gray-300 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <UserPlus className="h-16 w-16 text-gray-600 mb-4" />
+                <h3 className="text-lg font-medium text-white mb-2">
                   No hay notificaciones
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-400">
                   Las visitas pendientes, canciones y solicitudes de entrada
                   aparecerán aquí.
                 </p>

@@ -35,7 +35,7 @@ export function NavMain({
 }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Modulos</SidebarGroupLabel>
+      <SidebarGroupLabel className="text-gray-400">Modulos</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <Collapsible
@@ -46,25 +46,25 @@ export function NavMain({
           >
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
-                <SidebarMenuButton tooltip={item.title}>
-                  {item.icon && <item.icon />}
-                  <span className="tracking-wider">{item.title}</span>
-                  <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                <SidebarMenuButton tooltip={item.title} className="text-white hover:bg-gray-800 hover:text-white">
+                  {item.icon && <item.icon className="text-white" />}
+                  <span className="tracking-wider text-white">{item.title}</span>
+                  <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 text-white" />
                 </SidebarMenuButton>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <SidebarMenuSub>
+                <SidebarMenuSub className="border-gray-700">
                   {item.items?.map((subItem) => (
                     <SidebarMenuSubItem key={subItem.title} className="py-0.5">
-                      <SidebarMenuSubButton asChild>
-                        <a href={subItem.url}>
+                      <SidebarMenuSubButton asChild className="text-white hover:bg-gray-800 hover:text-white">
+                        <a href={subItem.url} className="text-white">
                           {subItem.icon && (
                             <subItem.icon
                               size={7}
                               className={cn(subItem.color)}
                             />
                           )}
-                          <span className="text-2sm tracking-wider text-gray-500">
+                          <span className="text-2sm tracking-wider text-gray-300">
                             {subItem.title}
                           </span>
                         </a>

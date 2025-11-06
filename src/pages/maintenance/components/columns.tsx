@@ -29,15 +29,15 @@ export const createColumns = ({
 }: TMaintenanceActions): ColumnDef<ILocations>[] => [
   {
     accessorKey: "name",
-    header: () => <div className="tracking-wider">Nombre de la Mesa</div>,
+    header: () => <div className="tracking-wider text-white">Nombre de la Mesa</div>,
   },
   {
     accessorKey: "abbreviation",
-    header: () => <div className="tracking-wider">Abreviatura</div>,
+    header: () => <div className="tracking-wider text-white">Abreviatura</div>,
   },
   {
     accessorKey: "songLimit",
-    header: () => <div className="tracking-wider">Límite de Canciones</div>,
+    header: () => <div className="tracking-wider text-white">Límite de Canciones</div>,
     cell: ({ row }) => {
       const songLimit = row.original.songLimit || 0;
       return (
@@ -51,7 +51,7 @@ export const createColumns = ({
   },
   {
     accessorKey: "status",
-    header: () => <div className="tracking-wider">Estado</div>,
+    header: () => <div className="tracking-wider text-white">Estado</div>,
     cell: ({ row }) => {
       const status = String(row.original.status) as TLocationStatus;
       const statusName = ELocationsStatus[status] || status;
@@ -86,14 +86,14 @@ export const createColumns = ({
               <MoreHorizontal className="h-4 w-4 text-primary-600" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel className="font-normal tracking-wide">
+          <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+            <DropdownMenuLabel className="font-normal tracking-wide text-white">
               Acciones
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="bg-gray-700" />
 
             <DropdownMenuItem
-              className="text-gray-600 tracking-wide text-2sm flex items-center"
+              className="text-white tracking-wide text-2sm flex items-center hover:bg-gray-700"
               onClick={() => onEdit(location)}
             >
               <Edit className="h-4 w-4 text-blue-400" />
@@ -101,7 +101,7 @@ export const createColumns = ({
             </DropdownMenuItem>
 
             <DropdownMenuItem
-              className="text-gray-600 tracking-wide text-2sm flex items-center"
+              className="text-white tracking-wide text-2sm flex items-center hover:bg-gray-700"
               onClick={() => onToggleStatus(location.id || "", location.status)}
             >
               <Power className="h-4 w-4 text-orange-400" />
@@ -111,7 +111,7 @@ export const createColumns = ({
             </DropdownMenuItem>
 
             <DropdownMenuItem
-              className="text-gray-600 tracking-wide text-2sm flex items-center"
+              className="text-white tracking-wide text-2sm flex items-center hover:bg-gray-700"
               onClick={() => onDelete(location.id || "")}
             >
               <Trash className="h-4 w-4 text-red-400" />
