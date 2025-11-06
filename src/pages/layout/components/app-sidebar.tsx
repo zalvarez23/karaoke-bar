@@ -13,6 +13,7 @@ import {
   Tags,
   MicVocal,
   Table,
+  Play,
 } from "lucide-react";
 
 import { NavProjects } from "./nav-project";
@@ -113,6 +114,12 @@ const data = {
           url: "songs-manage",
           icon: MicVocal,
           color: "text-green-500",
+        },
+        {
+          title: "Reproductor Automático",
+          url: "songs-manage-automatic",
+          icon: Play,
+          color: "text-blue-500",
         },
 
         // {

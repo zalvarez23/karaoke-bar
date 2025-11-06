@@ -16,6 +16,7 @@ import {
   KaraokeUserRegisterPage,
   KaraokeProfilePage,
   GuestModePage,
+  SongsManageAutomaticPage,
 } from "@/pages";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -134,6 +135,16 @@ function App() {
                   </ProtectedKaraokeRoute>
                 </AppProviders>
               </div>
+            }
+          />
+
+          {/* Ruta de Reproductor Automático sin sidebar ni header */}
+          <Route
+            path="/songs-manage-automatic"
+            element={
+              <ProtectedRoute>
+                <SongsManageAutomaticPage />
+              </ProtectedRoute>
             }
           />
 

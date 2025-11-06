@@ -233,6 +233,8 @@ export const columns = ({
     id: "actions",
     cell: ({ row }) => {
       const isPending = (row.original.status as TSongStatus) === "pending";
+      const isSinging = (row.original.status as TSongStatus) === "singing";
+      const canDelete = isPending || isSinging;
 
       return (
         <DropdownMenu>
@@ -249,7 +251,7 @@ export const columns = ({
 
             <DropdownMenuSeparator />
 
-            {isPending && (
+            {canDelete && (
               <DropdownMenuItem
                 className="text-gray-600 tracking-wide text-2sm flex items-center"
                 onClick={() =>
